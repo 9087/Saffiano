@@ -17,9 +17,10 @@ namespace Saffiano
 
         public static void Destroy(Object obj)
         {
+            obj.RequestDestroy();
         }
 
-        public static void DestroyImmediate(Object obj)
+        internal virtual void RequestDestroy()
         {
         }
     }

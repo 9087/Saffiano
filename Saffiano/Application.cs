@@ -19,9 +19,9 @@ namespace Saffiano
             int timePerFrame = (int)(1000.0f / fps);
             while (true)
             {
-                int begin = System.Environment.TickCount;
+                int begin = Environment.TickCount;
                 Application.Update();
-                int phase = System.Environment.TickCount - begin;
+                int phase = Environment.TickCount - begin;
                 if (phase < timePerFrame)
                 {
                     Thread.Sleep((int)(timePerFrame - phase));
