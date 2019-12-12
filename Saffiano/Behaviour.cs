@@ -83,6 +83,7 @@ namespace Saffiano
             if (!this.started)
             {
                 this.Invoke("Start");
+                this.started = true;
             }
             this.Invoke("Update");
         }

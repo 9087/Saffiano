@@ -15,72 +15,32 @@ namespace Saffiano
     public class Transform : Component, IEnumerable
     {
         internal static Transform root;
+        private Transform internalParent = null;
+        internal List<Transform> children = new List<Transform>();
 
         public Vector3 localPosition { get; set; } = Vector3.zero;
 
         public Vector3 position
         {
-            get
-            {
-                return this.internalParent is null ? this.localPosition : (this.localPosition + this.internalParent.position);
-            }
-
-            set
-            {
-                this.localPosition = this.internalParent is null ? value : (value - this.internalParent.position);
-            }
+            get => this.internalParent is null ? this.localPosition : (this.localPosition + this.internalParent.position);
+            set => this.localPosition = this.internalParent is null ? value : (value - this.internalParent.position);
         }
 
         public Quaternion localRotation { get; set; } = Quaternion.Euler(0, 0, 0);
 
         public Quaternion rotation
         {
-            get
-            {
-                return this.internalParent is null ? this.localRotation : (this.localRotation * this.internalParent.rotation);
-            }
-
-            set
-            {
-                this.localRotation = this.internalParent is null ? value : (value * Quaternion.Inverse(this.internalParent.rotation));
-            }
+            get => this.internalParent is null ? this.localRotation : (this.localRotation * this.internalParent.rotation);
+            set => this.localRotation = this.internalParent is null ? value : (value * Quaternion.Inverse(this.internalParent.rotation));
         }
 
-        public Vector3 scale
-        {
-            get
-            {
-                return new Vector3(1, 1, 1);
-            }
-        }
+        public Vector3 scale => new Vector3(1, 1, 1);
 
-        public Vector3 right
-        {
-            get
-            {
-                Debug.LogFormat("right {0} {1}", this.rotation.eulerAngles, this.rotation * Vector3.right);
-                return this.rotation * Vector3.right;
-            }
-        }
+        public Vector3 right => this.rotation * Vector3.right;
 
-        public Vector3 up
-        {
-            get
-            {
-                return this.rotation * Vector3.up;
-            }
-        }
+        public Vector3 up => this.rotation * Vector3.up;
 
-        public Vector3 forward
-        {
-            get
-            {
-                return this.rotation * Vector3.forward;
-            }
-        }
-
-        private Transform internalParent = null;
-        internal List<Transform> children = new List<Transform>();
+        public Vector3 forward => this.rotation * Vector3.forward;
 
         public Transform parent
         {
@@ -103,13 +63,7 @@ namespace Saffiano
             }
         }
 
-        public Matrix4x4 worldToLocalMatrix
-        {
-            get
-            {
-                return Matrix4x4.TRS(this.position, this.rotation, this.scale);
-            }
-        }
+        public Matrix4x4 worldToLocalMatrix => Matrix4x4.TRS(this.position, this.rotation, this.scale);
 
         internal struct Root { }
 

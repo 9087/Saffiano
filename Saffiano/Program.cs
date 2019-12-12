@@ -14,7 +14,7 @@ namespace Saffiano
         {
             while (true)
             {
-                Debug.Log(Time.time);
+                Debug.LogFormat("Time.time = {0}", Time.time);
                 yield return new WaitForSeconds(1);
             }
         }
