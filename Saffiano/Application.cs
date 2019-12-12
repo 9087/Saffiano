@@ -7,10 +7,14 @@ namespace Saffiano
     {
         public static void Initialize()
         {
+            Time.Initialize();
+            Transform.Initialize();
         }
 
         public static void Uninitialize()
         {
+            Transform.Uninitialize();
+            Time.Uninitialize();
         }
 
         public static void Run()
@@ -31,6 +35,9 @@ namespace Saffiano
 
         public static void Update()
         {
+            Time.Update();
+            Transform.Update();
+            Timer.Update();
         }
 
         public static void LoadLevel(string name)

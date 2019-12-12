@@ -7,6 +7,14 @@ namespace Saffiano
     {
         private List<Component> components = new List<Component>();
 
+        public Transform transform
+        {
+            get
+            {
+                return this.GetComponent<Transform>();
+            }
+        }
+
         public GameObject()
         {
         }
@@ -61,6 +69,23 @@ namespace Saffiano
             foreach (Component component in this.components.ToArray())
             {
                 this.components.Remove(component);
+            }
+        }
+
+        internal void RequestUpdate()
+        {
+            foreach (Component component in this.components)
+            {
+                Behaviour behaviour = component as Behaviour;
+                if (behaviour == null)
+                {
+                    continue;
+                }
+                behaviour.RequestUpdate();
+                foreach (Transform transform in this.transform.children)
+                {
+                    transform.gameObject.RequestUpdate();
+                }
             }
         }
     }
