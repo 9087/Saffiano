@@ -1,5 +1,6 @@
 ﻿using FreeImageAPI;
 using System;
+using System.IO;
 
 namespace Saffiano
 {
@@ -23,22 +24,22 @@ namespace Saffiano
             private set;
         }
 
-        public Texture(string filePath) : base(filePath)
+        public Texture(string filePath) : base()
         {
             pixels = null;
             width = 0;
             height = 0;
-            switch (extension)
+            switch (Path.GetExtension(filePath).ToUpper())
             {
                 case ".PNG":
-                    PNG();
+                    PNG(filePath);
                     break;
                 default:
                     throw new NotImplementedException();
             }
         }
 
-        private void PNG()
+        private void PNG(string filePath)
         {
             FIBITMAP bitmap = FreeImage.LoadEx(filePath);
             width = FreeImage.GetWidth(bitmap);

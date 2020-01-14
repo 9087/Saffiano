@@ -29,6 +29,7 @@ namespace Saffiano
             GameObject gameObject = new GameObject();
             gameObject.AddComponent<Transform>();
             gameObject.AddComponent<Sample>();
+            var mesh = new Mesh("../../../../Resources/bunny/reconstruction/bun_zipper_res4.ply");
 
             Application.Run();
             Application.Uninitialize();
