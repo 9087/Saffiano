@@ -25,7 +25,7 @@ namespace Saffiano
 
         internal static SortedSet<Timer> timers = new SortedSet<Timer>();
 
-        internal static void Update()
+        private static bool Update()
         {
             List<Timer> endeds = new List<Timer>();
             foreach (Timer timer in Timer.timers)
@@ -40,6 +40,7 @@ namespace Saffiano
                 timer.callback();
                 Timer.Destroy(timer);
             }
+            return true;
         }
 
         private Timer(float time, TimerCallback callback)

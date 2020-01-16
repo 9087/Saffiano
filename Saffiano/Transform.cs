@@ -74,12 +74,12 @@ namespace Saffiano
         {
         }
 
-        internal static void Initialize()
+        private static void Initialize()
         {
             Transform.root = CreateRoot();
         }
 
-        internal static void Uninitialize()
+        private static void Uninitialize()
         {
             Transform.root = null;
         }
@@ -122,12 +122,13 @@ namespace Saffiano
             throw new NotImplementedException();
         }
 
-        public static void Update()
+        private static bool Update()
         {
             foreach (Transform transform in Transform.root.children)
             {
                 transform.gameObject.RequestUpdate();
             }
+            return true;
         }
     }
 }

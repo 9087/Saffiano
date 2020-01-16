@@ -1,20 +1,65 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 
 namespace Saffiano
 {
+    internal static class TypeExtend
+    {
+        public static MethodInfo GetPrivateStaticMethod(this Type type, string methodName)
+        {
+            return type.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Static);
+        }
+    }
+
     public sealed class Application
     {
+        private static Type[] systems = new Type[] { typeof(Time), typeof(Transform), typeof(Timer), typeof(Window), typeof(Input), };
+        private static MethodInfo[] updaters;
+
+        static Application()
+        {
+            List<MethodInfo> methodInfos = new List<MethodInfo>();
+            foreach (var system in systems)
+            {
+                var methodInfo = system.GetPrivateStaticMethod("Update");
+                if (methodInfo != null)
+                {
+                    methodInfos.Add(methodInfo);
+                }
+            }
+            updaters = methodInfos.ToArray();
+        }
+
         public static void Initialize()
         {
-            Time.Initialize();
-            Transform.Initialize();
+            foreach (var system in systems)
+            {
+                system.GetPrivateStaticMethod("Initialize")?.Invoke(null, new object[] { });
+            }
         }
 
         public static void Uninitialize()
         {
-            Transform.Uninitialize();
-            Time.Uninitialize();
+            foreach (var system in systems.Reverse())
+            {
+                system.GetPrivateStaticMethod("Uninitialize")?.Invoke(null, new object[] { });
+            }
+        }
+
+        public static bool Update()
+        {
+            foreach (var updater in updaters)
+            {
+                bool success = (bool)updater.Invoke(null, new object[] { });
+                if (!success)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public static void Run()
@@ -24,20 +69,16 @@ namespace Saffiano
             while (true)
             {
                 int begin = Environment.TickCount;
-                Application.Update();
+                if (!Update())
+                {
+                    break;
+                }
                 int phase = Environment.TickCount - begin;
                 if (phase < timePerFrame)
                 {
                     Thread.Sleep((int)(timePerFrame - phase));
                 }
             };
-        }
-
-        public static void Update()
-        {
-            Time.Update();
-            Transform.Update();
-            Timer.Update();
         }
 
         public static void LoadLevel(string name)

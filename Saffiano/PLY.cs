@@ -218,7 +218,6 @@ namespace Saffiano
         }
 
         private static char[] blankCharacters = { '\x20', '\n', '\r', '\t' };
-        private StreamReader streamReader = null;
         private TokenReader tokenReader = null;
         private List<Element> elements = new List<Element>();
 
