@@ -65,10 +65,9 @@ namespace Saffiano
 
         public Matrix4x4 worldToLocalMatrix => Matrix4x4.TRS(this.position, this.rotation, this.scale);
 
-        internal struct Root { }
-
-        internal Transform(Root root)
+        internal static Transform CreateRoot()
         {
+            return new Transform();
         }
 
         public Transform()
@@ -77,7 +76,7 @@ namespace Saffiano
 
         internal static void Initialize()
         {
-            Transform.root = new Transform(new Root());
+            Transform.root = CreateRoot();
         }
 
         internal static void Uninitialize()
