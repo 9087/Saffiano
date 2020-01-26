@@ -4,8 +4,6 @@ namespace Saffiano
 {
     internal class Window
     {
-        private static bool available;
-
         public delegate void KeyboardEventHandler(KeyboardEvent args);
         public static event KeyboardEventHandler KeyboardEvent;
 
@@ -20,9 +18,14 @@ namespace Saffiano
 
         private static void Initialize()
         {
-            available = true;
             window = new Win32Window();
             window.KeyboradEvent += OnWindowKeyboradEventDispatched;
+            window.MouseEvent += OnWindowMouseEventDispatched;
+        }
+
+        private static void OnWindowMouseEventDispatched(MouseEvent args)
+        {
+            MouseEvent?.Invoke(args);
         }
 
         private static void OnWindowKeyboradEventDispatched(KeyboardEvent args)
@@ -33,7 +36,6 @@ namespace Saffiano
         private static void Uninitialize()
         {
             window = null;
-            available = false;
         }
 
         private static bool Update()
@@ -44,6 +46,11 @@ namespace Saffiano
         public static bool GetKey(KeyCode key)
         {
             return window.GetKey(key);
+        }
+
+        public static Vector3 GetMousePosition()
+        {
+            return window.GetMousePosition();
         }
     }
 }

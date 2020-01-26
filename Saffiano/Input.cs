@@ -13,13 +13,36 @@ namespace Saffiano
         private static InputContext inputContext = new InputContext();
         private static InputContext nextFrameInputContext = new InputContext();
 
+        public static Vector3 mousePosition
+        {
+            get
+            {
+                return Window.GetMousePosition();
+            }
+        }
+
         private static void Initialize()
         {
             Window.KeyboardEvent += OnWindowKeyboardEventDispatched;
+            Window.MouseEvent += OnWindowMouseEventDispatched;
+        }
+
+        private static void OnWindowMouseEventDispatched(MouseEvent args)
+        {
+            switch (args.eventType)
+            {
+                case MouseEventType.MouseDown:
+                    Input.nextFrameInputContext.downs.Add(args.keyCode);
+                    break;
+                case MouseEventType.MouseUp:
+                    Input.nextFrameInputContext.ups.Add(args.keyCode);
+                    break;
+            };
         }
 
         private static void Uninitialize()
         {
+            Window.MouseEvent -= OnWindowMouseEventDispatched;
             Window.KeyboardEvent -= OnWindowKeyboardEventDispatched;
         }
 
