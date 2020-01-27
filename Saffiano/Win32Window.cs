@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Saffiano
 {
-    public enum VirtualKeys : ushort
+    internal enum VirtualKeys : ushort
     {
         LeftButton = 0x01,
         RightButton = 0x02,
@@ -768,11 +768,18 @@ namespace Saffiano
             return new Vector3(point.X, rect.Height - point.Y, 0);
         }
 
+        public Vector2 GetSize()
+        {
+            RECT rect;
+            GetClientRect(this.handle, out rect);
+            return new Vector2(rect.Width, rect.Height);
+        }
+
         #endregion
 
         #region Key events
 
-        internal static Dictionary<KeyCode, VirtualKeys> keyCodeToVirtualKeyMap = new Dictionary<KeyCode, VirtualKeys>
+        public static Dictionary<KeyCode, VirtualKeys> keyCodeToVirtualKeyMap = new Dictionary<KeyCode, VirtualKeys>
         {
             {KeyCode.A, VirtualKeys.A},
             {KeyCode.B, VirtualKeys.B},
@@ -835,7 +842,6 @@ namespace Saffiano
             }
         }
 
-        public delegate void MouseEventHandler(MouseEvent args);
         public event MouseEventHandler MouseEvent;
 
         protected void DispatchMouseEvent(MouseEventType mouseEventType, VirtualKeys virtualKey)
@@ -843,13 +849,20 @@ namespace Saffiano
             this.MouseEvent?.Invoke(new MouseEvent(mouseEventType, virtualKeyToKeyCodeMap[virtualKey]));
         }
 
-        public delegate void KeyboradEventHandler(KeyboardEvent args);
-        public event KeyboradEventHandler KeyboradEvent;
+        public event KeyboardEventHandler KeyboradEvent;
 
         protected void DispatchKeyboradEvent(KeyboardEventType keyboradEventType, VirtualKeys virtualKey)
         {
             this.KeyboradEvent?.Invoke(new KeyboardEvent(keyboradEventType, virtualKeyToKeyCodeMap[virtualKey]));
         }
+
+        #endregion
+
+        #region Common window event
+
+        public event CreatedEventHandler Created;
+        public event DestroyedEventHandler Destroyed;
+        public event ResizedEventHandler Resized;
 
         #endregion
 
@@ -898,13 +911,16 @@ namespace Saffiano
             {
                 case WindowsMessages.CREATE:
                     this.handle = hWnd;
+                    Created?.Invoke();
                     break;
                 case WindowsMessages.DESTROY:
+                    Destroyed?.Invoke();
                     PostQuitMessage(0);
                     break;
                 case WindowsMessages.PAINT:
                     break;
                 case WindowsMessages.SIZE:
+                    Resized?.Invoke(new Vector2((float)(((uint)lParam) & 0xffff), (float)(((uint)lParam) >> 16)));
                     break;
                 case WindowsMessages.KEYDOWN:
                 case WindowsMessages.SYSKEYDOWN:

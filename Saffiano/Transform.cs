@@ -67,7 +67,7 @@ namespace Saffiano
 
         internal static Transform CreateRoot()
         {
-            return new Transform();
+            return new GameObject().AddComponent<Transform>();
         }
 
         public Transform()
@@ -114,7 +114,10 @@ namespace Saffiano
 
         public IEnumerator GetEnumerator()
         {
-            throw new NotImplementedException();
+            foreach (var child in children)
+            {
+                yield return child;
+            }
         }
 
         public void Rotate(float xAngle, float yAngle, float zAngle, [DefaultValue("Space.Self")] Space relativeTo)

@@ -1,5 +1,4 @@
-﻿using OpenGL;
-using System;
+﻿using System;
 using System.Collections;
 
 namespace Saffiano
@@ -29,16 +28,59 @@ namespace Saffiano
         }
     }
 
+    class Controller : Behaviour
+    {
+        public float positionSpeed = 0.02f;
+
+        void Update()
+        {
+            Vector3 deltaPosition = Vector3.zero;
+            if (Input.GetKey(KeyCode.Q))
+            {
+                deltaPosition = -Camera.main.transform.up * this.positionSpeed;
+            }
+            if (Input.GetKey(KeyCode.E))
+            {
+                deltaPosition = Camera.main.transform.up * this.positionSpeed;
+            }
+            if (Input.GetKey(KeyCode.A))
+            {
+                deltaPosition = -Camera.main.transform.right * this.positionSpeed;
+            }
+            if (Input.GetKey(KeyCode.D))
+            {
+                deltaPosition = Camera.main.transform.right * this.positionSpeed;
+            }
+            if (Input.GetKey(KeyCode.W))
+            {
+                deltaPosition = Camera.main.transform.forward * this.positionSpeed;
+            }
+            if (Input.GetKey(KeyCode.S))
+            {
+                deltaPosition = -Camera.main.transform.forward * this.positionSpeed;
+            }
+            Camera.main.transform.position += deltaPosition;
+        }
+    }
+
     class Program
     {
         static void Main(String[] arguments)
         {
             Application.Initialize();
 
+            GameObject camera = new GameObject("Camera");
+            camera.AddComponent<Transform>();
+            camera.AddComponent<Camera>().fieldOfView = 60.0f;
+            camera.AddComponent<Controller>();
+            camera.transform.localPosition = new Vector3(0, 0, -0.5f);
+            camera.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
             GameObject gameObject = new GameObject();
             gameObject.AddComponent<Transform>();
             gameObject.AddComponent<Sample>();
-            gameObject.AddComponent<MeshFilter>().mesh = new Mesh("../../../../Resources/bunny/reconstruction/bun_zipper_res4.ply");
+            gameObject.AddComponent<MeshFilter>().mesh = new Mesh("../../../../Resources/dragon_recon/dragon_vrip_res3.ply");
+            gameObject.AddComponent<MeshRenderer>();
 
             Application.Run();
             Application.Uninitialize();

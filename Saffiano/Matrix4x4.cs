@@ -413,10 +413,6 @@ namespace Saffiano
             this = Matrix4x4.Rotated(r).inverse * this;
         }
 
-        //public static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar);
-
-        //public static Matrix4x4 Perspective(float fov, float aspect, float zNear, float zFar);
-
         internal void Scale(Vector3 s)
         {
             this = Matrix4x4.Scaled(s) * this;
@@ -549,11 +545,6 @@ namespace Saffiano
                 this[4],  this[5],  this[6],  this[7],
                 this[8],  this[9],  this[10], this[11],
                 this[12], this[13], this[14], this[15],};
-        }
-
-        internal float[] ToOpenGLStyleArray()
-        {
-            return this.inverse.ToArray();
         }
     }
 }

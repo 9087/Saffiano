@@ -4,11 +4,10 @@ namespace Saffiano
 {
     internal class Window
     {
-        public delegate void KeyboardEventHandler(KeyboardEvent args);
         public static event KeyboardEventHandler KeyboardEvent;
-
-        public delegate void MouseEventHandler(MouseEvent args);
         public static event MouseEventHandler MouseEvent;
+        public static event ResizedEventHandler Resized;
+        public static event CreatedEventHandler Created;
 
         public static Win32Window window
         {
@@ -21,6 +20,27 @@ namespace Saffiano
             window = new Win32Window();
             window.KeyboradEvent += OnWindowKeyboradEventDispatched;
             window.MouseEvent += OnWindowMouseEventDispatched;
+            window.Resized += OnWindowResized;
+            window.Created += OnWindowCreated;
+        }
+
+        private static void Uninitialize()
+        {
+            window.KeyboradEvent -= OnWindowKeyboradEventDispatched;
+            window.MouseEvent -= OnWindowMouseEventDispatched;
+            window.Resized -= OnWindowResized;
+            window.Created -= OnWindowCreated;
+            window = null;
+        }
+
+        private static void OnWindowCreated()
+        {
+            Created?.Invoke();
+        }
+
+        private static void OnWindowResized(Vector2 size)
+        {
+            Resized?.Invoke(size);
         }
 
         private static void OnWindowMouseEventDispatched(MouseEvent args)
@@ -31,11 +51,6 @@ namespace Saffiano
         private static void OnWindowKeyboradEventDispatched(KeyboardEvent args)
         {
             KeyboardEvent?.Invoke(args);
-        }
-
-        private static void Uninitialize()
-        {
-            window = null;
         }
 
         private static bool Update()
@@ -51,6 +66,11 @@ namespace Saffiano
         public static Vector3 GetMousePosition()
         {
             return window.GetMousePosition();
+        }
+
+        public static Vector2 GetSize()
+        {
+            return window.GetSize();
         }
     }
 }

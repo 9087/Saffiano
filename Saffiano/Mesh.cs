@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Saffiano
 {
-    public class Mesh : Asset
+    public class Mesh : Asset, IDisposable
     {
         internal Vector3[] vertices
         {
@@ -47,6 +47,12 @@ namespace Saffiano
                 default:
                     throw new NotImplementedException();
             }
+            Rendering.RegisterMesh(this);
+        }
+
+        public void Dispose()
+        {
+            Rendering.UnregisterMesh(this);
         }
 
         private void PLY(string filePath)

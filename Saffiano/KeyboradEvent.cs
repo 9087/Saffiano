@@ -2,7 +2,7 @@
 
 namespace Saffiano
 {
-    public enum KeyboardEventType : uint
+    internal enum KeyboardEventType : uint
     {
         KeyDown = 1,
         KeyUp = 2,
@@ -10,7 +10,7 @@ namespace Saffiano
         DeadChar = 4,
     }
 
-    class KeyboardEvent
+    internal class KeyboardEvent
     {
         public KeyboardEventType eventType;
         public KeyCode keyCode;

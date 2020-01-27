@@ -1,2 +1,2 @@
 # Saffiano
-An Unity-style game engine in .NET Core platform.
+An Unity-style game framework on .NET Core platform.

@@ -2,6 +2,14 @@
 {
     public class Component : Object
     {
+        public Transform transform
+        {
+            get
+            {
+                return this.gameObject.transform;
+            }
+        }
+
         public GameObject gameObject
         {
             get;

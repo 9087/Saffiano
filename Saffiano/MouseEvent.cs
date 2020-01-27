@@ -2,13 +2,13 @@
 
 namespace Saffiano
 {
-    public enum MouseEventType
+    internal enum MouseEventType
     {
         MouseDown = 0,
         MouseUp = 1,
     }
 
-    public class MouseEvent
+    internal class MouseEvent
     {
         public MouseEventType eventType;
         public KeyCode keyCode;
