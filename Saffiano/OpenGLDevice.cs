@@ -9,6 +9,7 @@ namespace Saffiano
     {
         private DeviceContext deviceContext;
         private IntPtr glContext;
+        private HashSet<Mesh> requestedMeshes = new HashSet<Mesh>();
 
         static OpenGLDevice()
         {
@@ -71,6 +72,8 @@ namespace Saffiano
 
         public override void Dispose()
         {
+            UnregisterAllMeshes();
+
             if (this.glContext == IntPtr.Zero)
             {
                 return;
@@ -105,12 +108,25 @@ namespace Saffiano
         public override void BeginScene()
         {
             MakeCurrent();
+            requestedMeshes.Clear();
         }
 
         public override void EndScene()
         {
             SwapBuffers();
             Gl.Flush();
+            List<Mesh> discardedMeshes = new List<Mesh>();
+            foreach (var mesh in vertexCache.Keys)
+            {
+                if (!requestedMeshes.Contains(mesh))
+                {
+                    discardedMeshes.Add(mesh);
+                }
+            }
+            foreach (var mesh in discardedMeshes)
+            {
+                UnregisterMesh(mesh);
+            }
         }
 
         public override void SetViewport(Viewport viewport)
@@ -140,11 +156,11 @@ namespace Saffiano
 
         #region OpenGL vertex array buffer
 
-        Dictionary<Guid, uint> vertexCache = new Dictionary<Guid, uint>();
+        Dictionary<Mesh, uint> vertexCache = new Dictionary<Mesh, uint>();
 
         public override void RegisterMesh(Mesh mesh)
         {
-            if (vertexCache.ContainsKey(mesh.id))
+            if (vertexCache.ContainsKey(mesh))
             {
                 throw new Exception();
             }
@@ -189,18 +205,26 @@ namespace Saffiano
             Gl.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
             Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint)(sizeof(uint) * mesh.indices.Length), mesh.indices, BufferUsage.StaticDraw);
 
-            vertexCache.Add(mesh.id, vao);
+            vertexCache.Add(mesh, vao);
         }
 
         public override void UnregisterMesh(Mesh mesh)
         {
-            if (!vertexCache.ContainsKey(mesh.id))
+            if (!vertexCache.ContainsKey(mesh))
             {
                 throw new Exception();
             }
 
-            Gl.DeleteVertexArrays(new uint[] { vertexCache[mesh.id] });
-            vertexCache.Remove(mesh.id);
+            Gl.DeleteVertexArrays(new uint[] { vertexCache[mesh] });
+            vertexCache.Remove(mesh);
+        }
+
+        private void UnregisterAllMeshes()
+        {
+            foreach (var mesh in new List<Mesh>(vertexCache.Keys))
+            {
+                UnregisterMesh(mesh);
+            }
         }
 
         #endregion
@@ -220,13 +244,14 @@ namespace Saffiano
 
         public override void DrawMesh(Mesh mesh)
         {
-            if (!vertexCache.ContainsKey(mesh.id))
+            if (!vertexCache.ContainsKey(mesh))
             {
-                throw new Exception();
+                RegisterMesh(mesh);
             }
+            requestedMeshes.Add(mesh);
             Gl.Enable(EnableCap.Lighting);
             Gl.Enable(EnableCap.DepthTest);
-            Gl.BindVertexArray(this.vertexCache[mesh.id]);
+            Gl.BindVertexArray(this.vertexCache[mesh]);
             OpenGL.PrimitiveType primitiveType = OpenGLDevice.ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
             Gl.DrawElements(OpenGL.PrimitiveType.Triangles, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
             Gl.BindTexture(TextureTarget.Texture2d, 0);

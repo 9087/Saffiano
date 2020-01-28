@@ -47,12 +47,10 @@ namespace Saffiano
                 default:
                     throw new NotImplementedException();
             }
-            Rendering.RegisterMesh(this);
         }
 
         public void Dispose()
         {
-            Rendering.UnregisterMesh(this);
         }
 
         private void PLY(string filePath)
