@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Dynamic;
 using System.Collections.Generic;
 
 namespace Saffiano
@@ -46,6 +45,10 @@ namespace Saffiano
                     break;
                 default:
                     throw new NotImplementedException();
+            }
+            if (normals == null)
+            {
+                normals = GenerateVertexNormals();
             }
         }
 
@@ -96,6 +99,38 @@ namespace Saffiano
             }
             fileStream.Close();
             GC.SuppressFinalize(fileStream);
+        }
+
+        public Vector3[] GenerateVertexNormals()
+        {
+            Dictionary<uint, List<Vector3>> normalsMap = new Dictionary<uint, List<Vector3>>();
+            for (uint i = 0; i < this.indices.Length / 3; i++)
+            {
+                Vector3 a = this.vertices[this.indices[i * 3 + 0]];
+                Vector3 b = this.vertices[this.indices[i * 3 + 1]];
+                Vector3 c = this.vertices[this.indices[i * 3 + 2]];
+                Vector3 normal = Vector3.Cross(a - b, a - c);
+                for (uint j = 0; j < 3; j++)
+                {
+                    uint index = this.indices[i * 3 + j];
+                    if (!normalsMap.ContainsKey(index))
+                    {
+                        normalsMap.Add(index, new List<Vector3>());
+                    }
+                    normalsMap[index].Add(normal);
+                }
+            }
+            Vector3[] result = new Vector3[this.vertices.Length];
+            foreach (KeyValuePair<uint, List<Vector3>> kv in normalsMap)
+            {
+                Vector3 sum = Vector3.zero;
+                foreach (Vector3 v in kv.Value)
+                {
+                    sum += v;
+                }
+                result[kv.Key] = (sum / (float)(kv.Value.Count)).normalized;
+            }
+            return result;
         }
     }
 }
