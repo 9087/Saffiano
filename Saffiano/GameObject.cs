@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Saffiano
 {
@@ -81,7 +82,14 @@ namespace Saffiano
                 {
                     continue;
                 }
-                behaviour.RequestUpdate();
+                try
+                {
+                    behaviour.RequestUpdate();
+                }
+                catch (TargetInvocationException tie)
+                {
+                    Debug.LogErrorFormat("Exception thrown: {0}\n{1}", tie.InnerException.ToString(), tie.InnerException.StackTrace);
+                }
                 foreach (Transform transform in this.transform.children)
                 {
                     transform.gameObject.RequestUpdate();
