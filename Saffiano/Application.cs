@@ -16,7 +16,16 @@ namespace Saffiano
 
     public sealed class Application
     {
-        private static Type[] systems = new Type[] { typeof(Time), typeof(Transform), typeof(Timer), typeof(Window), typeof(Input), typeof(Rendering), };
+        private static Type[] systems = new Type[]
+        {
+            typeof(Time),
+            typeof(Transform),
+            typeof(Timer),
+            typeof(Window),
+            typeof(Input),
+            typeof(Rendering),
+            typeof(Resources),
+        };
         private static MethodInfo[] updaters;
 
         static Application()

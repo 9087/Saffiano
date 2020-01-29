@@ -102,8 +102,14 @@ namespace Saffiano
             GameObject dragon = new GameObject();
             dragon.AddComponent<Transform>();
             dragon.AddComponent<MeshFilter>();
-            dragon.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip_res3.ply";
+            dragon.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip_res4.ply";
             dragon.AddComponent<MeshRenderer>();
+
+            GameObject dragon1 = new GameObject();
+            dragon1.AddComponent<Transform>();
+            dragon1.AddComponent<MeshFilter>();
+            dragon1.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip_res4.ply";
+            dragon1.AddComponent<MeshRenderer>();
 
             Application.Run();
             Application.Uninitialize();

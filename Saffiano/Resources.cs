@@ -7,7 +7,7 @@ namespace Saffiano
 {
     public sealed class Resources
     {
-        private static Dictionary<string, ResourceRequest> resourceRequsts = new Dictionary<string, ResourceRequest>();
+        private static List<ResourceRequest> resourceRequests = new List<ResourceRequest>();
         private static Dictionary<string, Type> extensionNames = new Dictionary<string, Type>();
         private static List<Type> supportedAssetTypes = new List<Type> { typeof(Mesh), typeof(Texture), };
 
@@ -25,9 +25,31 @@ namespace Saffiano
 
         public static ResourceRequest LoadAsync(string path)
         {
-            ResourceRequest resourceRequst = new ResourceRequest(path);
-            Resources.resourceRequsts.Add(path, resourceRequst);
-            return resourceRequst;
+            var resourceRequest = new ResourceRequest(path);
+            resourceRequests.Add(resourceRequest);
+            return resourceRequest;
+        }
+
+        private static bool Update()
+        {
+            List<ResourceRequest> list = new List<ResourceRequest>();
+            foreach (var resourceRequest in resourceRequests)
+            {
+                if (resourceRequest.interrupted)
+                {
+                    list.Add(resourceRequest);
+                }
+                else if (resourceRequest.progress >= 1.0)
+                {
+                    list.Add(resourceRequest);
+                    resourceRequest.Finish();
+                }
+            }
+            foreach (var resourceRequest in list)
+            {
+                resourceRequests.Remove(resourceRequest);
+            }
+            return true;
         }
 
         internal static Asset LoadInternal(string path)

@@ -156,11 +156,11 @@ namespace Saffiano
 
     public sealed class ResourceRequest : AsyncOperation
     {
-        private String path = null;
-        private Task<Object> task = null;
+        private string path = null;
+        private Task task = null;
         System.Threading.CancellationTokenSource cts = null;
 
-        public ResourceRequest(String path)
+        public ResourceRequest(string path)
         {
             this.path = path;
         }
@@ -179,12 +179,7 @@ namespace Saffiano
         internal override void Start()
         {
             this.cts = new System.Threading.CancellationTokenSource();
-            this.task = new Task<Object>(() => { var asset = Resources.LoadInternal(this.path); OnProgressChanged(1.0f); return asset; }, this.cts.Token);
-            this.task.ContinueWith((Task<Object> task) =>
-            {
-                this.asset = task.Result;
-                this.Finish();
-            });
+            this.task = new Task(() => { this.asset = Resources.LoadInternal(this.path); OnProgressChanged(1.0f); }, this.cts.Token);
             this.task.Start();
         }
 

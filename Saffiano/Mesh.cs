@@ -51,7 +51,7 @@ namespace Saffiano
         [FileFormat]
         private void PLY(string filePath)
         {
-            FileStream fileStream = new FileStream(filePath, FileMode.Open);
+            FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             PLY ply = new PLY(fileStream);
             var vertexDatas = ply.data.vertex;
             var faceDatas = ply.data.face;
