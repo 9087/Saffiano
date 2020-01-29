@@ -8,25 +8,15 @@ namespace Saffiano
     {
         private MeshFilter meshFilter
         {
-            get;
-            set;
-        }
-
-        internal override void OnComponentAdded(GameObject gameObject)
-        {
-            base.OnComponentAdded(gameObject);
-            meshFilter = gameObject.GetComponent<MeshFilter>();
-        }
-
-        internal override void OnComponentRemoved()
-        {
-            meshFilter = null;
-            base.OnComponentRemoved();
+            get
+            {
+                return gameObject.GetComponent<MeshFilter>();
+            }
         }
 
         internal override void Render()
         {
-            if (meshFilter.mesh == null)
+            if (meshFilter == null || meshFilter.mesh == null)
             {
                 return;
             }

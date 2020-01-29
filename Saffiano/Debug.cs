@@ -23,5 +23,15 @@ namespace Saffiano
         {
             Console.WriteLine("[ERROR] {0}", message);
         }
+
+        public static void LogWarningFormat(String message, params object[] objects)
+        {
+            Console.WriteLine("[WARNING] {0}", String.Format(message, objects));
+        }
+
+        public static void LogWarning(object message)
+        {
+            Console.WriteLine("[WARNING] {0}", message);
+        }
     }
 }

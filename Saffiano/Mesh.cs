@@ -36,16 +36,8 @@ namespace Saffiano
             private set;
         }
 
-        public Mesh(string filePath) : base()
+        public Mesh(string filePath) : base(filePath)
         {
-            switch (Path.GetExtension(filePath).ToUpper())
-            {
-                case ".PLY":
-                    PLY(filePath);
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
             if (normals == null)
             {
                 normals = GenerateVertexNormals();
@@ -56,6 +48,7 @@ namespace Saffiano
         {
         }
 
+        [FileFormat]
         private void PLY(string filePath)
         {
             FileStream fileStream = new FileStream(filePath, FileMode.Open);

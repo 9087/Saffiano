@@ -3,28 +3,51 @@ using System.Collections;
 
 namespace Saffiano
 {
-    class Sample : Behaviour
+    class AsyncResourceLoader : Behaviour
     {
+        IEnumerator reportingProgress = null;
+        public String path = null;
+        protected ResourceRequest resourceRequest;
+
         void Start()
         {
-            this.StartCoroutine(this.Count());
+            this.StartCoroutine(this.Load());
         }
 
-        IEnumerator Count()
+        public virtual IEnumerator Load()
+        {
+            yield return new WaitForSeconds(0.5f);
+            this.resourceRequest = Resources.LoadAsync(this.path);
+
+            this.reportingProgress = this.ReportingProgress(this.resourceRequest);
+            this.StartCoroutine(reportingProgress);
+            yield return this.resourceRequest;
+            this.StartCoroutine(this.StopReportingProgress());
+        }
+
+        IEnumerator ReportingProgress(ResourceRequest resourceRequest)
         {
             while (true)
             {
-                Debug.LogFormat("Time.time = {0}", Time.time);
+                Debug.LogFormat("Loading {0} progress: {1}", this.path, resourceRequest.progress);
                 yield return new WaitForSeconds(1);
             }
         }
 
-        void Update()
+        IEnumerator StopReportingProgress()
         {
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                Debug.Log("Key A pressed down");
-            }
+            yield return new WaitForSeconds(1.0f);
+            this.StopCoroutine(this.reportingProgress);
+        }
+    }
+
+    class MeshLoader : AsyncResourceLoader
+    {
+        public override IEnumerator Load()
+        {
+            yield return base.Load();
+            this.GetComponent<MeshFilter>().mesh = this.resourceRequest.asset as Mesh;
+            this.resourceRequest = null;
         }
     }
 
@@ -76,11 +99,11 @@ namespace Saffiano
             camera.transform.localPosition = new Vector3(0, 0, -0.5f);
             camera.transform.localRotation = Quaternion.Euler(0, 0, 0);
 
-            GameObject gameObject = new GameObject();
-            gameObject.AddComponent<Transform>();
-            gameObject.AddComponent<Sample>();
-            gameObject.AddComponent<MeshFilter>().mesh = new Mesh("../../../../Resources/dragon_recon/dragon_vrip_res3.ply");
-            gameObject.AddComponent<MeshRenderer>();
+            GameObject dragon = new GameObject();
+            dragon.AddComponent<Transform>();
+            dragon.AddComponent<MeshFilter>();
+            dragon.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip_res3.ply";
+            dragon.AddComponent<MeshRenderer>();
 
             Application.Run();
             Application.Uninitialize();

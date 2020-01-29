@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Saffiano
 {
@@ -147,9 +148,63 @@ namespace Saffiano
         public float progress
         {
             get;
-            private set;
+            protected set;
         }
 
         internal abstract void Wait();
+    }
+
+    public sealed class ResourceRequest : AsyncOperation
+    {
+        private String path = null;
+        private Task<Object> task = null;
+        System.Threading.CancellationTokenSource cts = null;
+
+        public ResourceRequest(String path)
+        {
+            this.path = path;
+        }
+
+        public Object asset
+        {
+            get;
+            private set;
+        }
+
+        internal void OnProgressChanged(float progress)
+        {
+            this.progress = progress;
+        }
+
+        internal override void Start()
+        {
+            this.cts = new System.Threading.CancellationTokenSource();
+            this.task = new Task<Object>(() => { var asset = Resources.LoadInternal(this.path); OnProgressChanged(1.0f); return asset; }, this.cts.Token);
+            this.task.ContinueWith((Task<Object> task) =>
+            {
+                this.asset = task.Result;
+                this.Finish();
+            });
+            this.task.Start();
+        }
+
+        internal override void Wait()
+        {
+            if (this.finished)
+            {
+                return;
+            }
+            if (this.task is null)
+            {
+                this.Start();
+            }
+            this.task.Wait();
+        }
+
+        internal override void Interrupt()
+        {
+            base.Interrupt();
+            this.cts.Cancel();
+        }
     }
 }
