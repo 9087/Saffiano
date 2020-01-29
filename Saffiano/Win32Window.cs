@@ -846,6 +846,11 @@ namespace Saffiano
 
         protected void DispatchMouseEvent(MouseEventType mouseEventType, VirtualKeys virtualKey)
         {
+            if (!virtualKeyToKeyCodeMap.ContainsKey(virtualKey))
+            {
+                Debug.LogErrorFormat("Unknown virtual key detected: {0}", virtualKey);
+                return;
+            }
             this.MouseEvent?.Invoke(new MouseEvent(mouseEventType, virtualKeyToKeyCodeMap[virtualKey]));
         }
 
@@ -853,6 +858,11 @@ namespace Saffiano
 
         protected void DispatchKeyboradEvent(KeyboardEventType keyboradEventType, VirtualKeys virtualKey)
         {
+            if (!virtualKeyToKeyCodeMap.ContainsKey(virtualKey))
+            {
+                Debug.LogErrorFormat("Unknown virtual key detected: {0}", virtualKey);
+                return;
+            }
             this.KeyboradEvent?.Invoke(new KeyboardEvent(keyboradEventType, virtualKeyToKeyCodeMap[virtualKey]));
         }
 
