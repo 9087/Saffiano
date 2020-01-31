@@ -22,19 +22,35 @@ namespace Saffiano
 
         public Vector3 position
         {
-            get => this.internalParent is null ? this.localPosition : (this.localPosition + this.internalParent.position);
-            set => this.localPosition = this.internalParent is null ? value : (value - this.internalParent.position);
+            get
+            {
+                var p = matrix * new Vector4(0, 0, 0, 1);
+                return new Vector3(p.x, p.y, p.z);
+            }
         }
 
         public Quaternion localRotation { get; set; } = Quaternion.Euler(0, 0, 0);
-
+        
         public Quaternion rotation
         {
-            get => this.internalParent is null ? this.localRotation : (this.localRotation * this.internalParent.rotation);
-            set => this.localRotation = this.internalParent is null ? value : (value * Quaternion.Inverse(this.internalParent.rotation));
+            get
+            {
+                // Reference: Maths - Conversion Matrix to Quaternion
+                // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+                // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/christian.htm
+                var matrix = this.matrix;
+                var absQ2 = MathF.Pow(matrix.determinant, 1.0f / 3.0f);
+                var w = Mathf.Sqrt(Mathf.Max(0, absQ2 + matrix.m00 + matrix.m11 + matrix.m22)) / 2;
+                var x = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 - matrix.m11 - matrix.m22)) / 2 * Mathf.Sign(matrix.m21 - matrix.m12);
+                var y = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 + matrix.m11 - matrix.m22)) / 2 * Mathf.Sign(matrix.m02 - matrix.m20);
+                var z = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 - matrix.m11 + matrix.m22)) / 2 * Mathf.Sign(matrix.m10 - matrix.m01);
+                return new Quaternion(x, y, z, w);
+            }
         }
 
         public Vector3 scale => new Vector3(1, 1, 1);
+
+        public Vector3 localScale => new Vector3(1, 1, 1);
 
         public Vector3 right => this.rotation * Vector3.right;
 
@@ -64,6 +80,23 @@ namespace Saffiano
         }
 
         public Matrix4x4 worldToLocalMatrix => Matrix4x4.TRS(this.position, this.rotation, this.scale);
+
+        internal Matrix4x4 localMatrix => Matrix4x4.TRS(this.localPosition, this.localRotation, this.localScale);
+
+        internal Matrix4x4 matrix
+        {
+            get
+            {
+                if (parent == null)
+                {
+                    return localMatrix;
+                }
+                else
+                {
+                    return parent.localMatrix * localMatrix;
+                }
+            }
+        }
 
         internal static Transform CreateRoot()
         {

@@ -17,6 +17,11 @@ namespace Saffiano
             this.w = w;
         }
 
+        public override string ToString()
+        {
+            return String.Format("({0}, {1}, {2}, {3})", this.x, this.y, this.z, this.w);
+        }
+
         public float this[int index]
         {
             get
@@ -96,7 +101,7 @@ namespace Saffiano
             Quaternion qx = Quaternion.AngleAxis(x, new Vector3(1, 0, 0));
             Quaternion qy = Quaternion.AngleAxis(y, new Vector3(0, 1, 0));
             Quaternion qz = Quaternion.AngleAxis(z, new Vector3(0, 0, 1));
-            return qx * qy * qz;
+            return qy * qx * qz;
         }
 
         public static Quaternion Euler(Vector3 eulerAngles)

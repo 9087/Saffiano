@@ -489,7 +489,7 @@ namespace Saffiano
 
         public override string ToString()
         {
-            return String.Format("({0},\n {1},\n {2},\n {3})", this.GetRow(0), this.GetRow(1), this.GetRow(2), this.GetRow(3));
+            return String.Format("({0}, {1}, {2}, {3})", this.GetRow(0), this.GetRow(1), this.GetRow(2), this.GetRow(3));
         }
 
         public static Matrix4x4 operator *(Matrix4x4 lhs, Matrix4x4 rhs)
@@ -545,6 +545,28 @@ namespace Saffiano
                 this[4],  this[5],  this[6],  this[7],
                 this[8],  this[9],  this[10], this[11],
                 this[12], this[13], this[14], this[15],};
+        }
+
+        public float determinant
+        {
+            get
+            {
+                // Reference: Maths - Matrix algebra - Determinants 4D 
+                // http://euclideanspace.com/maths/algebra/matrix/functions/determinant/fourD/index.htm
+                return
+                    m03 * m12 * m21 * m30 - m02 * m13 * m21 * m30 -
+                    m03 * m11 * m22 * m30 + m01 * m13 * m22 * m30 +
+                    m02 * m11 * m23 * m30 - m01 * m12 * m23 * m30 -
+                    m03 * m12 * m20 * m31 + m02 * m13 * m20 * m31 +
+                    m03 * m10 * m22 * m31 - m00 * m13 * m22 * m31 -
+                    m02 * m10 * m23 * m31 + m00 * m12 * m23 * m31 +
+                    m03 * m11 * m20 * m32 - m01 * m13 * m20 * m32 -
+                    m03 * m10 * m21 * m32 + m00 * m13 * m21 * m32 +
+                    m01 * m10 * m23 * m32 - m00 * m11 * m23 * m32 -
+                    m02 * m11 * m20 * m33 + m01 * m12 * m20 * m33 +
+                    m02 * m10 * m21 * m33 - m00 * m12 * m21 * m33 -
+                    m01 * m10 * m22 * m33 + m00 * m11 * m22 * m33;
+            }
         }
     }
 }

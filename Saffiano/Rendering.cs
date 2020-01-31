@@ -32,10 +32,11 @@
             device = null;
         }
 
-        private static void Traverse(Transform root)
+        private static void Traverse(Transform transform)
         {
+            device.SetTransform(TransformStateType.View, transform.matrix);
             root.GetComponent<Renderer>()?.Render();
-            foreach (Transform child in root)
+            foreach (Transform child in transform)
             {
                 Traverse(child);
             }

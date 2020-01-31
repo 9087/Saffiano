@@ -19,7 +19,7 @@ namespace Saffiano
 
         public override string ToString()
         {
-            return String.Format("({0}, {1}, {2}, {3})", this.x, this.y, this.z, this.w);
+            return String.Format("({0:F2}, {1:F2}, {2:F2}, {3:F2})", this.x, this.y, this.z, this.w);
         }
     }
 }

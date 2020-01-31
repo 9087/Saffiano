@@ -70,7 +70,7 @@ namespace Saffiano
         {
             get
             {
-                return Matrix4x4.Scaled(this.transform.scale) * Matrix4x4.Rotated(this.transform.rotation) * Matrix4x4.Translated(this.transform.position);
+                return this.transform.worldToLocalMatrix;
             }
         }
 

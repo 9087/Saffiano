@@ -42,5 +42,15 @@ namespace Saffiano
         {
             return MathF.Acos(f);
         }
+
+        public static float Sign(float f)
+        {
+            return MathF.Sign(f);
+        }
+
+        public static float Max(float x, float y)
+        {
+            return MathF.Max(x, y);
+        }
     }
 }

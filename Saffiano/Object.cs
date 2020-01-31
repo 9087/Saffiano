@@ -4,15 +4,15 @@ namespace Saffiano
 {
     public class Object
     {
-        public String name { get; set; }
+        public string name { get; set; } = "Unnamed";
 
         public Object()
         {
         }
 
-        public override String ToString()
+        public override string ToString()
         {
-            return String.Format("({0}: {1})", this.GetType().Name, this.GetHashCode());
+            return string.Format("({0}: {1})", this.GetType().Name, this.name);
         }
 
         public static void Destroy(Object obj)
