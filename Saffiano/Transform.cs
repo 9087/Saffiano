@@ -81,19 +81,17 @@ namespace Saffiano
 
         public Matrix4x4 worldToLocalMatrix => Matrix4x4.TRS(this.position, this.rotation, this.scale);
 
-        internal Matrix4x4 localMatrix => Matrix4x4.TRS(this.localPosition, this.localRotation, this.localScale);
-
         internal Matrix4x4 matrix
         {
             get
             {
                 if (parent == null)
                 {
-                    return localMatrix;
+                    return Matrix4x4.TRS(this.localPosition, this.localRotation, this.localScale);
                 }
                 else
                 {
-                    return parent.localMatrix * localMatrix;
+                    return parent.matrix * Matrix4x4.TRS(this.localPosition, this.localRotation, this.localScale);
                 }
             }
         }
