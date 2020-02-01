@@ -35,7 +35,7 @@
         private static void Traverse(Transform transform)
         {
             device.SetTransform(TransformStateType.View, transform.matrix);
-            root.GetComponent<Renderer>()?.Render();
+            transform.GetComponent<Renderer>()?.Render();
             foreach (Transform child in transform)
             {
                 Traverse(child);

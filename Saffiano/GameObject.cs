@@ -90,10 +90,10 @@ namespace Saffiano
                 {
                     Debug.LogErrorFormat("Exception thrown: {0}\n{1}", tie.InnerException.ToString(), tie.InnerException.StackTrace);
                 }
-                foreach (Transform transform in this.transform.children)
-                {
-                    transform.gameObject.RequestUpdate();
-                }
+            }
+            foreach (Transform transform in this.transform.children)
+            {
+                transform.gameObject.RequestUpdate();
             }
         }
     }
