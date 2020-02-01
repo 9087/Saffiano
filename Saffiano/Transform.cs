@@ -39,7 +39,8 @@ namespace Saffiano
                 // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
                 // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/christian.htm
                 var matrix = this.matrix;
-                var absQ2 = MathF.Pow(matrix.determinant, 1.0f / 3.0f);
+                var determinant = matrix.determinant;
+                var absQ2 = MathF.Pow(Mathf.Abs(determinant), 1.0f / 3.0f) * Mathf.Sign(determinant);
                 var w = Mathf.Sqrt(Mathf.Max(0, absQ2 + matrix.m00 + matrix.m11 + matrix.m22)) / 2;
                 var x = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 - matrix.m11 - matrix.m22)) / 2 * Mathf.Sign(matrix.m21 - matrix.m12);
                 var y = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 + matrix.m11 - matrix.m22)) / 2 * Mathf.Sign(matrix.m02 - matrix.m20);
@@ -79,19 +80,39 @@ namespace Saffiano
             }
         }
 
-        public Matrix4x4 worldToLocalMatrix => Matrix4x4.TRS(this.position, this.rotation, this.scale);
+        public Matrix4x4 worldToLocalMatrix
+        {
+            get
+            {
+                return GenerateWorldToLocalMatrix(CoordinateSystems.LeftHand);
+            }
+        }
+
+        internal Matrix4x4 GenerateWorldToLocalMatrix(CoordinateSystems coordinateSystem)
+        {
+            Matrix4x4 local = Matrix4x4.TRS(localPosition, localRotation, localScale, coordinateSystem).inverse;
+            if (parent == null)
+            {
+                return local;
+            }
+            else
+            {
+                return local * parent.GenerateWorldToLocalMatrix(coordinateSystem);
+            }
+        }
 
         internal Matrix4x4 matrix
         {
             get
             {
+                Matrix4x4 local = Matrix4x4.TRS(this.localPosition, this.localRotation, this.localScale);
                 if (parent == null)
                 {
-                    return Matrix4x4.TRS(this.localPosition, this.localRotation, this.localScale);
+                    return local;
                 }
                 else
                 {
-                    return parent.matrix * Matrix4x4.TRS(this.localPosition, this.localRotation, this.localScale);
+                    return parent.matrix * local;
                 }
             }
         }

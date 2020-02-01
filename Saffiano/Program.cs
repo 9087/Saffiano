@@ -104,9 +104,19 @@ namespace Saffiano
                 Debug.LogFormat("Camera.main.transform.localRotation = {0}", Camera.main.transform.localRotation.eulerAngles);
             }
 
-            //rotateX.transform.rotation = Quaternion.Euler(rotateX.transform.rotation.eulerAngles + new Vector3(1, 0, 0));
-            //rotateY.transform.rotation = Quaternion.Euler(rotateY.transform.rotation.eulerAngles + new Vector3(0, 1, 0));
-            //rotateZ.transform.rotation = Quaternion.Euler(rotateZ.transform.rotation.eulerAngles + new Vector3(0, 0, 1));
+            if (rotateX != null)
+            {
+                rotateX.transform.localRotation = Quaternion.Euler(rotateX.transform.localRotation.eulerAngles + new Vector3(1, 0, 0));
+            }
+            if (rotateY != null)
+            {
+                rotateY.transform.localRotation = Quaternion.Euler(rotateY.transform.localRotation.eulerAngles + new Vector3(0, 1, 0));
+            }
+            if (rotateZ != null)
+            {
+                rotateZ.transform.localRotation = Quaternion.Euler(rotateZ.transform.localRotation.eulerAngles + new Vector3(0, 0, 1));
+            }
+            
         }
     }
 
@@ -178,15 +188,15 @@ namespace Saffiano
 
             GameObject parent = new GameObject("Parent");
             parent.AddComponent<Transform>();
-            parent.transform.localPosition = new Vector3(0, 0, -0.5f);
-            controller.rotateZ = parent;
+            parent.transform.localPosition = new Vector3(0, 0, 0.5f);
+            //controller.rotateX = parent;
 
             GameObject dragon0 = new GameObject("Dragon0");
             dragon0.AddComponent<Transform>().parent = parent.transform;
             dragon0.AddComponent<MeshFilter>();
             dragon0.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip_res4.ply";
             dragon0.AddComponent<MeshRenderer>();
-            dragon0.transform.localPosition = new Vector3(0, 0, -0.5f);
+            dragon0.transform.localPosition = new Vector3(0, 0, 0.5f);
             dragon0.transform.localRotation = Quaternion.Euler(0, 0, 0);
             controller.rotateY = dragon0;
 
@@ -197,6 +207,7 @@ namespace Saffiano
             dragon1.AddComponent<MeshRenderer>();
             dragon1.transform.localPosition = new Vector3(0.1f, 0.1f, 0);
             dragon1.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            controller.rotateZ = dragon1;
 
             GameObject dragon2 = new GameObject("Dragon2");
             dragon2.AddComponent<Transform>().parent = parent.transform;
@@ -205,7 +216,6 @@ namespace Saffiano
             dragon2.AddComponent<MeshRenderer>();
             dragon2.transform.localPosition = new Vector3(-0.1f, -0.1f, 0);
             dragon2.transform.localRotation = Quaternion.Euler(90, 0, 0);
-            controller.rotateX = dragon2;
 
             Application.Run();
             Application.Uninitialize();

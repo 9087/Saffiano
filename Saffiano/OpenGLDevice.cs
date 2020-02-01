@@ -150,13 +150,15 @@ namespace Saffiano
                     throw new Exception();
             }
             Gl.LoadIdentity();
-            Gl.LoadMatrix(matrix.inverse.ToArray());
+            Gl.LoadMatrix(matrix.transpose.ToArray());
             
         }
 
         #region OpenGL vertex array buffer
 
         Dictionary<Mesh, uint> vertexCache = new Dictionary<Mesh, uint>();
+
+        public override CoordinateSystems coordinateSystem => CoordinateSystems.RightHand;
 
         public override void RegisterMesh(Mesh mesh)
         {

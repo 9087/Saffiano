@@ -34,7 +34,7 @@
 
         private static void Traverse(Transform transform)
         {
-            device.SetTransform(TransformStateType.View, transform.matrix);
+            device.SetTransform(TransformStateType.View, Matrix4x4.TRS(transform.position, transform.rotation, transform.scale, device.coordinateSystem));
             transform.GetComponent<Renderer>()?.Render();
             foreach (Transform child in transform)
             {
@@ -46,7 +46,7 @@
         {
             device.BeginScene();
             device.Clear();
-            device.SetTransform(TransformStateType.Projection, Camera.main.projectionMatrix * Camera.main.worldToCameraMatrix);
+            device.SetTransform(TransformStateType.Projection, Camera.main.projectionMatrix * Camera.main.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));
             device.SetTransform(TransformStateType.View, Matrix4x4.identity);
             Traverse(Transform.root);
             device.EndScene();

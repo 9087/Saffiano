@@ -5,6 +5,12 @@ using System.Text;
 
 namespace Saffiano
 {
+    internal enum CoordinateSystems
+    {
+        LeftHand,
+        RightHand,
+    }
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Matrix4x4
     {
@@ -305,7 +311,7 @@ namespace Saffiano
             }
         }
 
-        public Matrix4x4 inverse
+        public Matrix4x4 transpose
         {
             get
             {
@@ -410,7 +416,7 @@ namespace Saffiano
 
         internal void Rotate(Quaternion r)
         {
-            this = Matrix4x4.Rotated(r).inverse * this;
+            this = Matrix4x4.Rotated(r).transpose * this;
         }
 
         internal void Scale(Vector3 s)
@@ -418,19 +424,37 @@ namespace Saffiano
             this = Matrix4x4.Scaled(s) * this;
         }
 
-        public static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s)
+        internal static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s, CoordinateSystems coordinateSystem)
         {
             Matrix4x4 matrix = new Matrix4x4();
-            matrix.SetTRS(pos, q, s);
+            matrix.SetTRS(pos, q, s, coordinateSystem);
             return matrix;
+        }
+
+        public static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s)
+        {
+            return TRS(pos, q, s, CoordinateSystems.LeftHand);
+        }
+
+        internal void SetTRS(Vector3 pos, Quaternion q, Vector3 s, CoordinateSystems coordinateSystem)
+        {
+
+            this = Matrix4x4.identity;
+            if (coordinateSystem == CoordinateSystems.RightHand)
+            {
+                pos = new Vector3(pos.x, pos.y, -pos.z);
+                var eulerAngles = q.eulerAngles;
+                q = Quaternion.Euler(new Vector3(-eulerAngles.x, -eulerAngles.y, eulerAngles.z));
+            }
+            this.Scale(s);
+            this.Rotate(q);
+            this.Translate(pos);
+          
         }
 
         public void SetTRS(Vector3 pos, Quaternion q, Vector3 s)
         {
-            this = Matrix4x4.identity;
-            this.Scale(s);
-            this.Rotate(q);
-            this.Translate(pos);
+            SetTRS(pos, q, s, CoordinateSystems.LeftHand);
         }
 
         public override bool Equals(object obj)
@@ -524,6 +548,21 @@ namespace Saffiano
             );
         }
 
+        public static Matrix4x4 operator *(Matrix4x4 lhs, float f)
+        {
+            Matrix4x4 matrix = new Matrix4x4();
+            matrix.m00 = lhs.m00 * f; matrix.m01 = lhs.m01 * f; matrix.m02 = lhs.m02 * f; matrix.m03 = lhs.m03 * f;
+            matrix.m10 = lhs.m10 * f; matrix.m11 = lhs.m11 * f; matrix.m12 = lhs.m12 * f; matrix.m13 = lhs.m13 * f;
+            matrix.m20 = lhs.m20 * f; matrix.m21 = lhs.m21 * f; matrix.m22 = lhs.m22 * f; matrix.m23 = lhs.m23 * f;
+            matrix.m30 = lhs.m30 * f; matrix.m31 = lhs.m31 * f; matrix.m32 = lhs.m32 * f; matrix.m33 = lhs.m33 * f;
+            return matrix;
+        }
+
+        public static Matrix4x4 operator /(Matrix4x4 lhs, float f)
+        {
+            return lhs * (1.0f / f);
+        }
+
         public static bool operator ==(Matrix4x4 lhs, Matrix4x4 rhs)
         {
             return
@@ -566,6 +605,33 @@ namespace Saffiano
                     m02 * m11 * m20 * m33 + m01 * m12 * m20 * m33 +
                     m02 * m10 * m21 * m33 - m00 * m12 * m21 * m33 -
                     m01 * m10 * m22 * m33 + m00 * m11 * m22 * m33;
+            }
+        }
+
+        public Matrix4x4 inverse
+        {
+            get
+            {
+                // Reference: Calculate inverse matrix
+                // http://euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
+                Matrix4x4 matrix = new Matrix4x4();
+                matrix.m00 = m12 * m23 * m31 - m13 * m22 * m31 + m13 * m21 * m32 - m11 * m23 * m32 - m12 * m21 * m33 + m11 * m22 * m33;
+                matrix.m01 = m03 * m22 * m31 - m02 * m23 * m31 - m03 * m21 * m32 + m01 * m23 * m32 + m02 * m21 * m33 - m01 * m22 * m33;
+                matrix.m02 = m02 * m13 * m31 - m03 * m12 * m31 + m03 * m11 * m32 - m01 * m13 * m32 - m02 * m11 * m33 + m01 * m12 * m33;
+                matrix.m03 = m03 * m12 * m21 - m02 * m13 * m21 - m03 * m11 * m22 + m01 * m13 * m22 + m02 * m11 * m23 - m01 * m12 * m23;
+                matrix.m10 = m13 * m22 * m30 - m12 * m23 * m30 - m13 * m20 * m32 + m10 * m23 * m32 + m12 * m20 * m33 - m10 * m22 * m33;
+                matrix.m11 = m02 * m23 * m30 - m03 * m22 * m30 + m03 * m20 * m32 - m00 * m23 * m32 - m02 * m20 * m33 + m00 * m22 * m33;
+                matrix.m12 = m03 * m12 * m30 - m02 * m13 * m30 - m03 * m10 * m32 + m00 * m13 * m32 + m02 * m10 * m33 - m00 * m12 * m33;
+                matrix.m13 = m02 * m13 * m20 - m03 * m12 * m20 + m03 * m10 * m22 - m00 * m13 * m22 - m02 * m10 * m23 + m00 * m12 * m23;
+                matrix.m20 = m11 * m23 * m30 - m13 * m21 * m30 + m13 * m20 * m31 - m10 * m23 * m31 - m11 * m20 * m33 + m10 * m21 * m33;
+                matrix.m21 = m03 * m21 * m30 - m01 * m23 * m30 - m03 * m20 * m31 + m00 * m23 * m31 + m01 * m20 * m33 - m00 * m21 * m33;
+                matrix.m22 = m01 * m13 * m30 - m03 * m11 * m30 + m03 * m10 * m31 - m00 * m13 * m31 - m01 * m10 * m33 + m00 * m11 * m33;
+                matrix.m23 = m03 * m11 * m20 - m01 * m13 * m20 - m03 * m10 * m21 + m00 * m13 * m21 + m01 * m10 * m23 - m00 * m11 * m23;
+                matrix.m30 = m12 * m21 * m30 - m11 * m22 * m30 - m12 * m20 * m31 + m10 * m22 * m31 + m11 * m20 * m32 - m10 * m21 * m32;
+                matrix.m31 = m01 * m22 * m30 - m02 * m21 * m30 + m02 * m20 * m31 - m00 * m22 * m31 - m01 * m20 * m32 + m00 * m21 * m32;
+                matrix.m32 = m02 * m11 * m30 - m01 * m12 * m30 - m02 * m10 * m31 + m00 * m12 * m31 + m01 * m10 * m32 - m00 * m11 * m32;
+                matrix.m33 = m01 * m12 * m20 - m02 * m11 * m20 + m02 * m10 * m21 - m00 * m12 * m21 - m01 * m10 * m22 + m00 * m11 * m22;
+                return matrix / determinant;
             }
         }
     }

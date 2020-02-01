@@ -75,5 +75,10 @@ namespace Saffiano
         public abstract void UnregisterMesh(Mesh mesh);
 
         public abstract void DrawMesh(Mesh mesh);
+
+        public abstract CoordinateSystems coordinateSystem
+        {
+            get;
+        }
     }
 }
