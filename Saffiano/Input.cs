@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Saffiano
 {
@@ -15,16 +16,15 @@ namespace Saffiano
 
         public static Vector3 mousePosition
         {
-            get
-            {
-                return Window.GetMousePosition();
-            }
+            get;
+            private set;
         }
 
         private static void Initialize()
         {
             Window.KeyboardEvent += OnWindowKeyboardEventDispatched;
             Window.MouseEvent += OnWindowMouseEventDispatched;
+            mousePosition = Window.GetMousePosition();
         }
 
         private static void OnWindowMouseEventDispatched(MouseEvent args)
@@ -76,9 +76,37 @@ namespace Saffiano
 
         private static bool Update()
         {
-            Input.inputContext = Input.nextFrameInputContext;
-            Input.nextFrameInputContext = new InputContext();
+            inputContext = nextFrameInputContext;
+            nextFrameInputContext = new InputContext();
+            mousePosition = Window.GetMousePosition();
             return true;
+        }
+
+        public static bool GetMouseButton(int button)
+        {
+            if (button < 0 || button > KeyCode.Mouse6 - KeyCode.Mouse0)
+            {
+                throw new Exception();
+            }
+            return Window.GetKey(KeyCode.Mouse0 + button);
+        }
+
+        public static bool GetMouseButtonDown(int button)
+        {
+            if (button < 0 || button > KeyCode.Mouse6 - KeyCode.Mouse0)
+            {
+                throw new Exception();
+            }
+            return Input.inputContext.downs.Contains(KeyCode.Mouse0 + button);
+        }
+
+        public static bool GetMouseButtonUp(int button)
+        {
+            if (button < 0 || button > KeyCode.Mouse6 - KeyCode.Mouse0)
+            {
+                throw new Exception();
+            }
+            return Input.inputContext.ups.Contains(KeyCode.Mouse0 + button);
         }
     }
 }

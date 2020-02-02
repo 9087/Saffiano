@@ -12,9 +12,16 @@ namespace Saffiano
             private set;
         }
 
+        public static float deltaTime
+        {
+            get;
+            private set;
+        }
+
         private static void Initialize()
         {
             Time.ticks = DateTime.Now.Ticks;
+            time = 0;
         }
 
         private static void Uninitialize()
@@ -23,7 +30,9 @@ namespace Saffiano
 
         private static bool Update()
         {
-            Time.time = (DateTime.Now.Ticks - Time.ticks) / 10000000.0f;
+            var current = (DateTime.Now.Ticks - Time.ticks) / 10000000.0f;
+            deltaTime = current - time;
+            time = current;
             return true;
         }
     }
