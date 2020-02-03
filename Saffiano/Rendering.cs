@@ -35,6 +35,7 @@
         private static void Traverse(Transform transform)
         {
             device.SetTransform(TransformStateType.View, Matrix4x4.TRS(transform.position, transform.rotation, transform.scale, device.coordinateSystem));
+            transform.GetComponent<LODGroup>()?.Update(Camera.main);
             transform.GetComponent<Renderer>()?.Render();
             foreach (Transform child in transform)
             {

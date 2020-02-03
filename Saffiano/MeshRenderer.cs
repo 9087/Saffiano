@@ -14,7 +14,7 @@ namespace Saffiano
             }
         }
 
-        internal override void Render()
+        protected override void OnRender()
         {
             if (meshFilter == null || meshFilter.mesh == null)
             {
