@@ -5,11 +5,90 @@ using System.Runtime.InteropServices;
 
 namespace Saffiano
 {
+    internal class VertexCache : Cache<Mesh, uint>
+    {
+        protected override uint OnRegister(Mesh mesh)
+        {
+            uint vao = Gl.GenVertexArray();
+            Gl.BindVertexArray(vao);
+
+            uint vbo = Gl.GenBuffer();
+
+            if (mesh.vertices == null)
+            {
+                throw new Exception();
+            }
+            Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.vertices.Length), mesh.vertices, BufferUsage.StaticDraw);
+            Gl.EnableClientState(EnableCap.VertexArray);
+            Gl.VertexPointer(3, VertexPointerType.Float, 0, IntPtr.Zero);
+
+            if (mesh.normals != null)
+            {
+                uint nbo = Gl.GenBuffer();
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, nbo);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.normals.Length), mesh.normals, BufferUsage.StaticDraw);
+                Gl.EnableClientState(EnableCap.NormalArray);
+                Gl.NormalPointer(NormalPointerType.Float, 0, IntPtr.Zero);
+            }
+
+            if (mesh.uv != null)
+            {
+                uint uvbo = Gl.GenBuffer();
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, uvbo);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector2)) * mesh.uv.Length), mesh.uv, BufferUsage.StaticDraw);
+                Gl.EnableClientState(EnableCap.TextureCoordArray);
+                Gl.TexCoordPointer(2, TexCoordPointerType.Float, 0, IntPtr.Zero);
+            }
+
+            if (mesh.indices == null)
+            {
+                throw new Exception();
+            }
+            uint ebo = Gl.GenBuffer();
+            Gl.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
+            Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint)(sizeof(uint) * mesh.indices.Length), mesh.indices, BufferUsage.StaticDraw);
+
+            return vao;
+        }
+
+        protected override void OnUnregister(Mesh mesh)
+        {
+            Gl.DeleteVertexArrays(new uint[] { this[mesh] });
+        }
+    }
+
+    internal class TextureCache : Cache<Texture, uint>
+    {
+        protected override uint OnRegister(Texture texture)
+        {
+            uint textureID = Gl.GenTexture();
+            Gl.BindTexture(TextureTarget.Texture2d, textureID);
+            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, (int)texture.width, (int)texture.height, 0, PixelFormat.Rgba, PixelType.Float, texture.pixels);
+            Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, new int[] { Gl.NEAREST });
+            Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, new int[] { Gl.NEAREST });
+            Gl.GenerateMipmap(TextureTarget.Texture2d);
+            return textureID;
+        }
+
+        protected override void OnUnregister(Texture texture)
+        {
+            Gl.DeleteTextures(this[texture]);
+        }
+    }
+
     internal class OpenGLDevice : Device
     {
         private DeviceContext deviceContext;
         private IntPtr glContext;
+
         private HashSet<Mesh> requestedMeshes = new HashSet<Mesh>();
+        VertexCache vertexCache = new VertexCache();
+
+        private HashSet<Texture> requestedTextures = new HashSet<Texture>();
+        TextureCache textureCache = new TextureCache();
+
+        public override CoordinateSystems coordinateSystem => CoordinateSystems.RightHand;
 
         static OpenGLDevice()
         {
@@ -72,7 +151,7 @@ namespace Saffiano
 
         public override void Dispose()
         {
-            UnregisterAllMeshes();
+            vertexCache.UnregisterAll();
 
             if (this.glContext == IntPtr.Zero)
             {
@@ -109,24 +188,14 @@ namespace Saffiano
         {
             MakeCurrent();
             requestedMeshes.Clear();
+            requestedTextures.Clear();
         }
 
         public override void EndScene()
         {
             SwapBuffers();
             Gl.Flush();
-            List<Mesh> discardedMeshes = new List<Mesh>();
-            foreach (var mesh in vertexCache.Keys)
-            {
-                if (!requestedMeshes.Contains(mesh))
-                {
-                    discardedMeshes.Add(mesh);
-                }
-            }
-            foreach (var mesh in discardedMeshes)
-            {
-                UnregisterMesh(mesh);
-            }
+            vertexCache.Keep(requestedMeshes);
         }
 
         public override void SetViewport(Viewport viewport)
@@ -154,83 +223,6 @@ namespace Saffiano
             
         }
 
-        #region OpenGL vertex array buffer
-
-        Dictionary<Mesh, uint> vertexCache = new Dictionary<Mesh, uint>();
-
-        public override CoordinateSystems coordinateSystem => CoordinateSystems.RightHand;
-
-        public override void RegisterMesh(Mesh mesh)
-        {
-            if (vertexCache.ContainsKey(mesh))
-            {
-                throw new Exception();
-            }
-
-            uint vao = Gl.GenVertexArray();
-            Gl.BindVertexArray(vao);
-
-            uint vbo = Gl.GenBuffer();
-
-            if (mesh.vertices == null)
-            {
-                throw new Exception();
-            }
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.vertices.Length), mesh.vertices, BufferUsage.StaticDraw);
-            Gl.EnableClientState(EnableCap.VertexArray);
-            Gl.VertexPointer(3, VertexPointerType.Float, 0, IntPtr.Zero);
-
-            if (mesh.normals != null)
-            {
-                uint nbo = Gl.GenBuffer();
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, nbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.normals.Length), mesh.normals, BufferUsage.StaticDraw);
-                Gl.EnableClientState(EnableCap.NormalArray);
-                Gl.NormalPointer(NormalPointerType.Float, 0, IntPtr.Zero);
-            }
-
-            if (mesh.uv != null)
-            {
-                uint uvbo = Gl.GenBuffer();
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, uvbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector2)) * mesh.uv.Length), mesh.uv, BufferUsage.StaticDraw);
-                Gl.EnableClientState(EnableCap.TextureCoordArray);
-                Gl.TexCoordPointer(2, TexCoordPointerType.Float, 0, IntPtr.Zero);
-            }
-
-            if (mesh.indices == null)
-            {
-                throw new Exception();
-            }
-            uint ebo = Gl.GenBuffer();
-            Gl.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
-            Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint)(sizeof(uint) * mesh.indices.Length), mesh.indices, BufferUsage.StaticDraw);
-
-            vertexCache.Add(mesh, vao);
-        }
-
-        public override void UnregisterMesh(Mesh mesh)
-        {
-            if (!vertexCache.ContainsKey(mesh))
-            {
-                throw new Exception();
-            }
-
-            Gl.DeleteVertexArrays(new uint[] { vertexCache[mesh] });
-            vertexCache.Remove(mesh);
-        }
-
-        private void UnregisterAllMeshes()
-        {
-            foreach (var mesh in new List<Mesh>(vertexCache.Keys))
-            {
-                UnregisterMesh(mesh);
-            }
-        }
-
-        #endregion
-
         private static OpenGL.PrimitiveType ConvertPrimitiveTypeToOpenGL(PrimitiveType primitiveType)
         {
             switch (primitiveType)
@@ -244,19 +236,44 @@ namespace Saffiano
             }
         }
 
-        public override void DrawMesh(Mesh mesh)
+        private void BindVertex(Mesh mesh)
         {
-            if (!vertexCache.ContainsKey(mesh))
-            {
-                RegisterMesh(mesh);
-            }
+            Gl.BindVertexArray(vertexCache.TryRegister(mesh));
             requestedMeshes.Add(mesh);
-            Gl.Enable(EnableCap.Lighting);
-            Gl.Enable(EnableCap.DepthTest);
-            Gl.BindVertexArray(this.vertexCache[mesh]);
-            OpenGL.PrimitiveType primitiveType = OpenGLDevice.ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
-            Gl.DrawElements(OpenGL.PrimitiveType.Triangles, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
-            Gl.BindTexture(TextureTarget.Texture2d, 0);
+        }
+
+        private void BindTexture(Texture texture)
+        {
+            if (texture == null)
+            {
+                Gl.BindTexture(TextureTarget.Texture2d, 0);
+                return;
+            }
+            Gl.BindTexture(TextureTarget.Texture2d, textureCache.TryRegister(texture));
+            requestedTextures.Add(texture);
+        }
+
+        private void Enable(EnableCap cap, bool value)
+        {
+            if (value)
+            {
+                Gl.Enable(cap);
+            }
+            else
+            {
+                Gl.Disable(cap);
+            }
+        }
+
+        public override void Draw(Command command)
+        {
+            var mesh = command.mesh;
+            BindVertex(mesh);
+            BindTexture(command.texture);
+            Enable(EnableCap.Lighting, command.lighting);
+            Enable(EnableCap.DepthTest, command.depthTest);
+            OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
+            Gl.DrawElements(primitiveType, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
     }
 }

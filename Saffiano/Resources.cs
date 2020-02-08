@@ -30,6 +30,11 @@ namespace Saffiano
             return resourceRequest;
         }
 
+        public static Asset Load(string path)
+        {
+            return LoadInternal(path);
+        }
+
         private static bool Update()
         {
             List<ResourceRequest> list = new List<ResourceRequest>();

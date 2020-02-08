@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Saffiano
+﻿namespace Saffiano
 {
     public sealed class MeshRenderer : Renderer
     {
-        private MeshFilter meshFilter
-        {
-            get
-            {
-                return gameObject.GetComponent<MeshFilter>();
-            }
-        }
+        private MeshFilter meshFilter => gameObject.GetComponent<MeshFilter>();
 
         protected override void OnRender()
         {
@@ -20,7 +10,9 @@ namespace Saffiano
             {
                 return;
             }
-            Rendering.DrawMesh(meshFilter.mesh);
+            var command = new Command();
+            command.mesh = meshFilter.mesh;
+            Rendering.Draw(command);
         }
     }
 }

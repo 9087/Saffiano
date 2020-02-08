@@ -6,6 +6,20 @@ namespace Saffiano
 {
     public class Mesh : Asset, IDisposable
     {
+        internal static Mesh plane
+        {
+            get
+            {
+                return new Mesh()
+                {
+                    vertices = new Vector3[] { new Vector3(-1, 1), new Vector3(1, 1), new Vector3(1, -1), new Vector3(-1, -1), },
+                    indices = new uint[] { 0, 1, 2, 2, 3, 0, },
+                    uv = new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0), new Vector2(0, 0), },
+                    primitiveType = PrimitiveType.Triangles,
+                };
+            }
+        }
+
         internal Vector3[] vertices
         {
             get;
@@ -40,8 +54,12 @@ namespace Saffiano
         {
             if (normals == null)
             {
-                normals = GenerateVertexNormals();
+                normals = RecalculateNormals();
             }
+        }
+
+        private Mesh() : base()
+        {
         }
 
         public void Dispose()
@@ -94,7 +112,7 @@ namespace Saffiano
             GC.SuppressFinalize(fileStream);
         }
 
-        public Vector3[] GenerateVertexNormals()
+        public Vector3[] RecalculateNormals()
         {
             Dictionary<uint, List<Vector3>> normalsMap = new Dictionary<uint, List<Vector3>>();
             for (uint i = 0; i < this.indices.Length / 3; i++)

@@ -70,11 +70,7 @@ namespace Saffiano
 
         public abstract void Dispose();
 
-        public abstract void RegisterMesh(Mesh mesh);
-
-        public abstract void UnregisterMesh(Mesh mesh);
-
-        public abstract void DrawMesh(Mesh mesh);
+        public abstract void Draw(Command command);
 
         public abstract CoordinateSystems coordinateSystem
         {

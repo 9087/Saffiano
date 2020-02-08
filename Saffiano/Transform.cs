@@ -27,6 +27,18 @@ namespace Saffiano
                 var p = matrix * new Vector4(0, 0, 0, 1);
                 return new Vector3(p.x, p.y, p.z);
             }
+            set
+            {
+                if (parent == null)
+                {
+                    localPosition = new Vector3(value.x, value.y, value.z);
+                }
+                else
+                {
+                    var p = parent.worldToLocalMatrix * new Vector4(value.x, value.y, value.z, 1);
+                    localPosition = new Vector3(p.x, p.y, p.z);
+                }
+            }
         }
 
         public Quaternion localRotation { get; set; } = Quaternion.Euler(0, 0, 0);
@@ -184,6 +196,11 @@ namespace Saffiano
                 transform.gameObject.RequestUpdate();
             }
             return true;
+        }
+
+        internal virtual Matrix4x4 ToRenderingMatrix(CoordinateSystems coordinateSystem)
+        {
+            return Matrix4x4.TRS(position, rotation, scale, coordinateSystem);
         }
     }
 }

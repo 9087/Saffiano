@@ -1,8 +1,29 @@
-﻿namespace Saffiano
+﻿using System;
+using System.Collections.Generic;
+
+namespace Saffiano
 {
     internal sealed class Rendering
     {
         private static Device device;
+
+        private static Stack<Matrix4x4> projections = new Stack<Matrix4x4>();
+
+        private static void PushProjection(Matrix4x4 matrix)
+        {
+            projections.Push(matrix);
+            device.SetTransform(TransformStateType.Projection, projections.Peek());
+        }
+
+        private static void PopProjection()
+        {
+            projections.Pop();
+            if (projections.Count > 0)
+            {
+                var peek = projections.Peek();
+                device.SetTransform(TransformStateType.Projection, peek);
+            }
+        }
 
         public static Viewport viewport
         {
@@ -32,13 +53,31 @@
             device = null;
         }
 
+        private static void TraverseScreenSpaceCanvas(Transform transform)
+        {
+            var size = Window.GetSize();
+            PushProjection(Matrix4x4.Scaled(new Vector3(2.0f / size.x, 2.0f / size.y, 0)));
+            Traverse(transform);
+            PopProjection();
+        }
+
         private static void Traverse(Transform transform)
         {
-            device.SetTransform(TransformStateType.View, Matrix4x4.TRS(transform.position, transform.rotation, transform.scale, device.coordinateSystem));
+            device.SetTransform(TransformStateType.View, transform.ToRenderingMatrix(device.coordinateSystem));
             transform.GetComponent<LODGroup>()?.Update(Camera.main);
             transform.GetComponent<Renderer>()?.Render();
             foreach (Transform child in transform)
             {
+                var canvas = child.GetComponent<Canvas>();
+                switch (canvas?.renderMode)
+                {
+                    case RenderMode.ScreenSpaceCamera:
+                        TraverseScreenSpaceCanvas(child);
+                        continue;
+                    case RenderMode.ScreenSpaceOverlay:
+                        Canvas.overlayCanvases.Add(canvas);
+                        continue;
+                }
                 Traverse(child);
             }
         }
@@ -47,26 +86,22 @@
         {
             device.BeginScene();
             device.Clear();
-            device.SetTransform(TransformStateType.Projection, Camera.main.projectionMatrix * Camera.main.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));
+            PushProjection(Camera.main.projectionMatrix * Camera.main.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));
             device.SetTransform(TransformStateType.View, Matrix4x4.identity);
             Traverse(Transform.root);
+            PopProjection();
+            foreach (var canvas in Canvas.overlayCanvases)
+            {
+                TraverseScreenSpaceCanvas(canvas.transform);
+            }
+            Canvas.overlayCanvases.Clear();
             device.EndScene();
             return true;
         }
 
-        public static void RegisterMesh(Mesh mesh)
+        public static void Draw(Command command)
         {
-            device.RegisterMesh(mesh);
-        }
-
-        public static void UnregisterMesh(Mesh mesh)
-        {
-            device.UnregisterMesh(mesh);
-        }
-
-        public static void DrawMesh(Mesh mesh)
-        {
-            device.DrawMesh(mesh);
+            device.Draw(command);
         }
     }
 }

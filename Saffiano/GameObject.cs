@@ -88,7 +88,7 @@ namespace Saffiano
                 }
                 catch (TargetInvocationException tie)
                 {
-                    Debug.LogErrorFormat("Exception thrown: {0}\n{1}", tie.InnerException.ToString(), tie.InnerException.StackTrace);
+                    Debug.LogException(tie);
                 }
             }
             foreach (Transform transform in this.transform.children)

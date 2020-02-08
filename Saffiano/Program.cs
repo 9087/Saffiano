@@ -85,6 +85,25 @@ namespace Saffiano
             editor.AddComponent<Transform>();
             editor.AddComponent<Editor>();
 
+            // Lena
+
+            GameObject canvas = new GameObject("Canvas");
+            canvas.AddComponent<Canvas>();
+            canvas.AddComponent<RectTransform>();
+
+            GameObject lena = new GameObject("Lena");
+            var rectTransform = lena.AddComponent<RectTransform>();
+            rectTransform.pivot = new Vector2(0, 0.5f);
+            rectTransform.anchorMin = new Vector2(0, 0.5f);
+            rectTransform.anchorMax = new Vector2(0, 0.5f);
+            rectTransform.offsetMin = new Vector2(0, -128);
+            rectTransform.offsetMax = new Vector2(256, 128);
+            lena.transform.parent = canvas.transform;
+            lena.AddComponent<CanvasRenderer>();
+            lena.AddComponent<Image>().sprite = Sprite.Create(Resources.Load("../../../../Resources/lena.png") as Texture);
+
+            // Bunny
+
             GameObject bunny = new GameObject("Bunny");
             bunny.AddComponent<Transform>();
             List<LOD> lods = new List<LOD>();

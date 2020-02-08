@@ -62,9 +62,17 @@ namespace Saffiano
         {
             foreach (var updater in updaters)
             {
-                bool success = (bool)updater.Invoke(null, new object[] { });
-                if (!success)
+                try
                 {
+                    bool success = (bool)updater.Invoke(null, new object[] { });
+                    if (!success)
+                    {
+                        return false;
+                    }
+                }
+                catch (TargetInvocationException tie)
+                {
+                    Debug.LogException(tie);
                     return false;
                 }
             }

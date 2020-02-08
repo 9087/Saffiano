@@ -55,6 +55,16 @@ namespace Saffiano
             }
         }
 
+        public static Vector2 operator+(Vector2 a, Vector2 b)
+        {
+            return new Vector2(a.x + b.x, a.y + b.y);
+        }
+
+        public static Vector2 operator-(Vector2 a, Vector2 b)
+        {
+            return new Vector2(a.x - b.x, a.y - b.y);
+        }
+
         public override String ToString()
         {
             return String.Format("({0}, {1})", this.x, this.y);
