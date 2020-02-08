@@ -88,8 +88,8 @@ namespace Saffiano
             // Lena
 
             GameObject canvas = new GameObject("Canvas");
-            canvas.AddComponent<Canvas>();
             canvas.AddComponent<RectTransform>();
+            canvas.AddComponent<Canvas>();
 
             GameObject lena = new GameObject("Lena");
             var rectTransform = lena.AddComponent<RectTransform>();

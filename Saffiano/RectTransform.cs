@@ -1,7 +1,23 @@
-﻿namespace Saffiano
+﻿using System;
+
+namespace Saffiano
 {
     public sealed class RectTransform : Transform
     {
+        public enum Axis
+        {
+            Horizontal = 0,
+            Vertical = 1,
+        }
+
+        public enum Edge
+        {
+            Left = 0,
+            Right = 1,
+            Top = 2,
+            Bottom = 3,
+        }
+
         private struct InternalData
         {
             public Vector2 anchorMax;
@@ -85,15 +101,35 @@
             }
         }
 
-        public Rect rect
+        public Rect rect { get; private set; } = Rect.zero;
+
+        protected override void OnParentChanged(Transform lastParent, Transform parent)
         {
-            get;
-            private set;
+            ForceUpdateRectTransforms();
+        }
+
+        internal void OnParentResized(Vector2 size)
+        {
+            ForceUpdateRectTransforms();
         }
 
         public void ForceUpdateRectTransforms()
         {
-            Vector2 windowSize = Window.GetSize();
+            RectTransform parent = this.parent as RectTransform;
+            Vector2 windowSize = Vector2.zero;
+            Canvas canvas = GetComponent<Canvas>();
+            if (canvas == null && parent == null)
+            {
+                return;
+            }
+            if (canvas == null)
+            {
+                windowSize = parent.rect.size;
+            }
+            else
+            {
+                windowSize = Window.GetSize();
+            }
             var anchorSize = anchorMax - anchorMin;
             Rect anchor = new Rect()
             {
@@ -113,7 +149,16 @@
             rect.right = (1 - pivot.x) * screenRect.width;
             rect.bottom = -pivot.y * screenRect.height;
             rect.top = (1 - pivot.y) * screenRect.height;
+            var lastSize = this.rect.size;
+            var currentSize = rect.size;
             this.rect = rect;
+            if (lastSize != currentSize)
+            {
+                foreach (RectTransform child in this)
+                {
+                    child.OnParentResized(currentSize);
+                }
+            }
         }
 
         internal override Matrix4x4 ToRenderingMatrix(CoordinateSystems coordinateSystem)
@@ -129,21 +174,14 @@
             }
         }
 
-        internal override void OnComponentAdded(GameObject gameObject)
+        public void SetInsetAndSizeFromParentEdge(Edge edge, float inset, float size)
         {
-            base.OnComponentAdded(gameObject);
-            Window.Resized += OnWindowResized;
+            throw new NotImplementedException();
         }
 
-        private void OnWindowResized(Vector2 size)
+        public void SetSizeWithCurrentAnchors(Axis axis, float size)
         {
-            ForceUpdateRectTransforms();
-        }
-
-        internal override void OnComponentRemoved()
-        {
-            Window.Resized -= OnWindowResized;
-            base.OnComponentRemoved();
+            throw new NotImplementedException();
         }
     }
 }

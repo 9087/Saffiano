@@ -83,13 +83,29 @@ namespace Saffiano
                 if (this.internalParent != null)
                 {
                     this.internalParent.children.Remove(this);
+                    this.internalParent.OnChildRemoved(this);
                 }
+                var lastParent = this.parent;
                 this.internalParent = value;
+                OnParentChanged(lastParent, this.parent);
                 if (this.internalParent != null)
                 {
                     this.internalParent.children.Add(this);
+                    this.internalParent.OnChildAdded(this);
                 }
             }
+        }
+
+        protected virtual void OnChildAdded(Transform child)
+        {
+        }
+
+        protected virtual void OnChildRemoved(Transform child)
+        {
+        }
+
+        protected virtual void OnParentChanged(Transform lastParent, Transform parent)
+        {
         }
 
         public Matrix4x4 worldToLocalMatrix

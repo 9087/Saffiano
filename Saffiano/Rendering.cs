@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Saffiano
 {
@@ -9,13 +10,13 @@ namespace Saffiano
 
         private static Stack<Matrix4x4> projections = new Stack<Matrix4x4>();
 
-        private static void PushProjection(Matrix4x4 matrix)
+        internal static void PushProjection(Matrix4x4 matrix)
         {
             projections.Push(matrix);
             device.SetTransform(TransformStateType.Projection, projections.Peek());
         }
 
-        private static void PopProjection()
+        internal static void PopProjection()
         {
             projections.Pop();
             if (projections.Count > 0)
@@ -53,31 +54,18 @@ namespace Saffiano
             device = null;
         }
 
-        private static void TraverseScreenSpaceCanvas(Transform transform)
+        internal static void SetTransform(TransformStateType transformStateType, Transform transform)
         {
-            var size = Window.GetSize();
-            PushProjection(Matrix4x4.Scaled(new Vector3(2.0f / size.x, 2.0f / size.y, 0)));
-            Traverse(transform);
-            PopProjection();
+            device.SetTransform(transformStateType, transform.ToRenderingMatrix(device.coordinateSystem));
         }
 
         private static void Traverse(Transform transform)
         {
-            device.SetTransform(TransformStateType.View, transform.ToRenderingMatrix(device.coordinateSystem));
+            SetTransform(TransformStateType.View, transform);
             transform.GetComponent<LODGroup>()?.Update(Camera.main);
-            transform.GetComponent<Renderer>()?.Render();
+            transform.GetComponent<MeshRenderer>()?.Render();
             foreach (Transform child in transform)
             {
-                var canvas = child.GetComponent<Canvas>();
-                switch (canvas?.renderMode)
-                {
-                    case RenderMode.ScreenSpaceCamera:
-                        TraverseScreenSpaceCanvas(child);
-                        continue;
-                    case RenderMode.ScreenSpaceOverlay:
-                        Canvas.overlayCanvases.Add(canvas);
-                        continue;
-                }
                 Traverse(child);
             }
         }
@@ -90,11 +78,7 @@ namespace Saffiano
             device.SetTransform(TransformStateType.View, Matrix4x4.identity);
             Traverse(Transform.root);
             PopProjection();
-            foreach (var canvas in Canvas.overlayCanvases)
-            {
-                TraverseScreenSpaceCanvas(canvas.transform);
-            }
-            Canvas.overlayCanvases.Clear();
+            Canvas.Render(Camera.main);
             device.EndScene();
             return true;
         }

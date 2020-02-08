@@ -22,6 +22,7 @@ namespace Saffiano
             typeof(Transform),
             typeof(Timer),
             typeof(Window),
+            typeof(Canvas),
             typeof(Input),
             typeof(Rendering),
             typeof(Resources),
