@@ -176,12 +176,40 @@ namespace Saffiano
 
         public void SetInsetAndSizeFromParentEdge(Edge edge, float inset, float size)
         {
-            throw new NotImplementedException();
-        }
-
-        public void SetSizeWithCurrentAnchors(Axis axis, float size)
-        {
-            throw new NotImplementedException();
+            switch (edge)
+            {
+                case Edge.Bottom:
+                    anchorMin = new Vector2(anchorMin.x, 0);
+                    anchorMax = new Vector2(anchorMax.x, 0);
+                    offsetMin = new Vector2(offsetMin.x, inset);
+                    offsetMax = new Vector2(offsetMax.x, inset + size);
+                    pivot = new Vector2(pivot.x, 0);
+                    break;
+                case Edge.Left:
+                    anchorMin = new Vector2(0, anchorMin.y);
+                    anchorMax = new Vector2(0, anchorMax.y);
+                    offsetMin = new Vector2(inset, offsetMin.y);
+                    offsetMax = new Vector2(inset + size, offsetMin.y);
+                    pivot = new Vector2(0, pivot.y);
+                    break;
+                case Edge.Right:
+                    anchorMin = new Vector2(1, anchorMin.y);
+                    anchorMax = new Vector2(1, anchorMax.y);
+                    offsetMin = new Vector2(-inset - size, offsetMin.y);
+                    offsetMax = new Vector2(-inset, offsetMin.y);
+                    pivot = new Vector2(1, pivot.y);
+                    break;
+                case Edge.Top:
+                    anchorMin = new Vector2(anchorMin.x, 1);
+                    anchorMax = new Vector2(anchorMax.x, 1);
+                    offsetMin = new Vector2(offsetMin.x, -inset - size);
+                    offsetMax = new Vector2(offsetMax.x, -inset);
+                    pivot = new Vector2(pivot.x, 1);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            ForceUpdateRectTransforms();
         }
     }
 }
