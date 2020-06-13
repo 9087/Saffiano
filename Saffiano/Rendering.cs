@@ -85,7 +85,16 @@ namespace Saffiano
 
         public static void Draw(Command command)
         {
+            if (command != null && command.texture != null && command.texture.atlas != null)
+            {
+                throw new NotImplementedException();
+            }
             device.Draw(command);
+        }
+
+        public static void UpdateTexture(Texture texture, uint x, uint y, uint blockWidth, uint blockHeight)
+        {
+            throw new NotImplementedException();
         }
     }
 }

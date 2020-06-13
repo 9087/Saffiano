@@ -121,9 +121,30 @@ namespace Saffiano
             return this.x == other.x && this.y == other.y && this.width == other.width && this.height == other.height;
         }
 
+        public override bool Equals(object other)
+        {
+            if (!(other is Rect))
+            {
+                return false;
+            }
+            return this.Equals((Rect)other);
+        }
+
+        public static bool operator ==(Rect a, Rect b) => a.Equals(b);
+
+        public static bool operator !=(Rect a, Rect b) => !a.Equals(b);
+
         public override string ToString()
         {
             return String.Format("({0}, {1}, {2}, {3})", this.x, this.y, this.width, this.height);
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 1804577526;
+            hashCode = hashCode * -1521134295 + position.GetHashCode();
+            hashCode = hashCode * -1521134295 + size.GetHashCode();
+            return hashCode;
         }
     }
 }

@@ -1,25 +1,116 @@
 ﻿using FreeImageAPI;
+using System;
 
 namespace Saffiano
 {
     public class Texture : Asset
     {
-        public Color[] pixels
+        private Color[] pixels { get; set; } = null;
+
+        internal Atlas.ReferenceDescriptor referenceDescriptor { get; set; }
+
+        internal Atlas atlas
         {
-            get;
-            private set;
+            get => referenceDescriptor != null ? referenceDescriptor.atlas : null;
         }
 
-        public uint width
+        private uint x = 0;
+        private uint y = 0;
+
+        public uint width { get; private set; }
+
+        public uint height { get; private set; }
+
+        internal bool registered { get; set; }
+
+        internal Vector2 uvBottomRight
         {
-            get;
-            private set;
+            get
+            {
+                if (this.atlas != null)
+                {
+                    return new Vector2((float)(this.x + this.width) / this.atlas.width, (float)(this.y) / this.atlas.height);
+                }
+                else
+                {
+                    return new Vector2(1.0f, 0);
+                }
+            }
         }
 
-        public uint height
+        internal Vector2 uvBottomLeft
         {
-            get;
-            private set;
+            get
+            {
+                if (this.atlas != null)
+                {
+                    return new Vector2((float)(this.x) / this.atlas.width, (float)(this.y) / this.atlas.height);
+                }
+                else
+                {
+                    return new Vector2(0, 0);
+                }
+            }
+        }
+
+        internal Vector2 uvTopRight
+        {
+            get
+            {
+                if (this.atlas != null)
+                {
+                    return new Vector2((float)(this.x + this.width) / this.atlas.width, (float)(this.y + this.height) / this.atlas.height);
+                }
+                else
+                {
+                    return new Vector2(1.0f, 1.0f);
+                }
+            }
+        }
+
+        internal Vector2 uvTopLeft
+        {
+            get
+            {
+                if (this.atlas != null)
+                {
+                    return new Vector2((float)(this.x) / this.atlas.width, (float)(this.y + this.height) / this.atlas.height);
+                }
+                else
+                {
+                    return new Vector2(0, 1.0f);
+                }
+            }
+        }
+
+        internal Texture(Atlas.ReferenceDescriptor referenceDescriptor)
+        {
+            this.referenceDescriptor = referenceDescriptor;
+            this.x = referenceDescriptor.x;
+            this.y = referenceDescriptor.y;
+            this.width = referenceDescriptor.width;
+            this.height = referenceDescriptor.height;
+        }
+
+        ~Texture()
+        {
+            if (this.registered)
+            {
+                throw new System.Exception();
+            }
+            if (this.referenceDescriptor != null)
+            {
+                this.referenceDescriptor.atlas.Free(this);
+                this.pixels = null;
+                this.referenceDescriptor = null;
+            }
+        }
+
+        public Texture(uint width, uint height)
+        {
+            this.width = width;
+            this.height = height;
+            this.pixels = new Color[width * height];
         }
 
         public Texture(string filePath) : base(filePath)
@@ -47,6 +138,60 @@ namespace Saffiano
                 }
             }
             FreeImage.UnloadEx(ref bitmap);
+        }
+
+        public void SetPixels(Color[] pixels)
+        {
+            if (atlas != null)
+            {
+                atlas.SetPixels(x, y, width, height, pixels);
+                return;
+            }
+            else
+            {
+                this.pixels = pixels;
+            }
+            if (this.registered)
+            {
+                Rendering.UpdateTexture(this, 0, 0, this.width, this.height);
+            }
+        }
+
+        public Color[] GetPixels()
+        {
+            return this.pixels;
+        }
+
+        public virtual void SetPixels(uint x, uint y, uint blockWidth, uint blockHeight, Color[] colors)
+        {
+            if (atlas != null)
+            {
+                atlas.SetPixels(x + this.x, y + this.y, width, height, colors);
+                return;
+            }
+            for (uint yi = 0; yi < blockHeight; yi++)
+            {
+                for (uint xi = 0; xi < blockWidth; xi++)
+                {
+                    uint sourceIndex = yi * blockWidth + xi;
+                    uint targetIndex = (y + yi) * width + (xi + x);
+                    pixels[targetIndex] = colors[sourceIndex];
+                }
+            }
+            if (this.registered)
+            {
+                Rendering.UpdateTexture(this, x, y, blockWidth, blockHeight);
+            }
+        }
+
+        internal virtual void OnRegister()
+        {
+            registered = true;
+        }
+
+        internal virtual void OnUnregister()
+        {
+            registered = false;
         }
     }
 }

@@ -5,56 +5,71 @@ using System.Runtime.InteropServices;
 
 namespace Saffiano
 {
-    internal class VertexCache : Cache<Mesh, uint>
+    internal class VertexData
     {
-        protected override uint OnRegister(Mesh mesh)
+        public uint vao { get; internal set; }
+
+        public uint vbo { get; internal set; }
+
+        public uint nbo { get; internal set; }
+
+        public uint uvbo { get; internal set; }
+
+        public uint ebo { get; internal set; }
+    }
+
+    internal class VertexCache : Cache<Mesh, VertexData>
+    {
+        protected override VertexData OnRegister(Mesh mesh)
         {
-            uint vao = Gl.GenVertexArray();
-            Gl.BindVertexArray(vao);
+            VertexData vertexData = new VertexData();
 
-            uint vbo = Gl.GenBuffer();
+            vertexData.vao = Gl.GenVertexArray();
+            Gl.BindVertexArray(vertexData.vao);
 
+            vertexData.vbo = Gl.GenBuffer();
             if (mesh.vertices == null)
             {
                 throw new Exception();
             }
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.vbo);
             Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.vertices.Length), mesh.vertices, BufferUsage.StaticDraw);
             Gl.EnableClientState(EnableCap.VertexArray);
             Gl.VertexPointer(3, VertexPointerType.Float, 0, IntPtr.Zero);
 
+            vertexData.nbo = Gl.GenBuffer();
             if (mesh.normals != null)
             {
-                uint nbo = Gl.GenBuffer();
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, nbo);
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.nbo);
                 Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.normals.Length), mesh.normals, BufferUsage.StaticDraw);
                 Gl.EnableClientState(EnableCap.NormalArray);
                 Gl.NormalPointer(NormalPointerType.Float, 0, IntPtr.Zero);
             }
 
+            vertexData.uvbo = Gl.GenBuffer();
             if (mesh.uv != null)
             {
-                uint uvbo = Gl.GenBuffer();
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, uvbo);
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.uvbo);
                 Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector2)) * mesh.uv.Length), mesh.uv, BufferUsage.StaticDraw);
                 Gl.EnableClientState(EnableCap.TextureCoordArray);
                 Gl.TexCoordPointer(2, TexCoordPointerType.Float, 0, IntPtr.Zero);
             }
 
+            vertexData.ebo = Gl.GenBuffer();
             if (mesh.indices == null)
             {
                 throw new Exception();
             }
-            uint ebo = Gl.GenBuffer();
-            Gl.BindBuffer(BufferTarget.ElementArrayBuffer, ebo);
+            Gl.BindBuffer(BufferTarget.ElementArrayBuffer, vertexData.ebo);
             Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint)(sizeof(uint) * mesh.indices.Length), mesh.indices, BufferUsage.StaticDraw);
 
-            return vao;
+            return vertexData;
         }
 
         protected override void OnUnregister(Mesh mesh)
         {
-            Gl.DeleteVertexArrays(new uint[] { this[mesh] });
+            Gl.DeleteBuffers(this[mesh].vbo, this[mesh].nbo, this[mesh].uvbo, this[mesh].ebo);
+            Gl.DeleteVertexArrays(this[mesh].vao);
         }
     }
 
@@ -64,15 +79,17 @@ namespace Saffiano
         {
             uint textureID = Gl.GenTexture();
             Gl.BindTexture(TextureTarget.Texture2d, textureID);
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, (int)texture.width, (int)texture.height, 0, PixelFormat.Rgba, PixelType.Float, texture.pixels);
+            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, (int)texture.width, (int)texture.height, 0, PixelFormat.Rgba, PixelType.Float, texture.GetPixels());
             Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, new int[] { Gl.NEAREST });
             Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, new int[] { Gl.NEAREST });
             Gl.GenerateMipmap(TextureTarget.Texture2d);
+            texture.OnRegister();
             return textureID;
         }
 
         protected override void OnUnregister(Texture texture)
         {
+            texture.OnUnregister();
             Gl.DeleteTextures(this[texture]);
         }
     }
@@ -238,7 +255,7 @@ namespace Saffiano
 
         private void BindVertex(Mesh mesh)
         {
-            Gl.BindVertexArray(vertexCache.TryRegister(mesh));
+            Gl.BindVertexArray(vertexCache.TryRegister(mesh).vao);
             requestedMeshes.Add(mesh);
         }
 
@@ -273,6 +290,15 @@ namespace Saffiano
             Enable(EnableCap.Lighting, command.lighting);
             Enable(EnableCap.DepthTest, command.depthTest);
             OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
+            if (command.blend)
+            {
+                Gl.Enable(EnableCap.Blend);
+                Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+            }
+            else
+            {
+                Gl.Disable(EnableCap.Blend);
+            }
             Gl.DrawElements(primitiveType, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
     }

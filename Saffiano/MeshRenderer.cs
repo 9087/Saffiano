@@ -10,8 +10,10 @@
             {
                 return;
             }
-            var command = new Command();
-            command.mesh = meshFilter.mesh;
+            var command = new Command()
+            {
+                mesh = meshFilter.mesh,
+            };
             Rendering.Draw(command);
         }
     }

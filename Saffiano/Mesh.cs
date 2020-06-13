@@ -23,31 +23,31 @@ namespace Saffiano
         internal Vector3[] vertices
         {
             get;
-            private set;
+            set;
         }
 
         internal Vector3[] normals
         {
             get;
-            private set;
+            set;
         }
 
         internal Vector2[] uv
         {
             get;
-            private set;
+            set;
         }
 
         internal uint[] indices
         {
             get;
-            private set;
+            set;
         }
 
         internal PrimitiveType primitiveType
         {
             get;
-            private set;
+            set;
         }
 
         public Mesh(string filePath) : base(filePath)
@@ -58,7 +58,7 @@ namespace Saffiano
             }
         }
 
-        private Mesh() : base()
+        internal Mesh() : base()
         {
         }
 

@@ -10,6 +10,8 @@
 
         public bool depthTest { get; set; } = true;
 
+        public bool blend { get; set; } = false;
+
         public Command()
         {
         }

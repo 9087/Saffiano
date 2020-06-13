@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Saffiano
@@ -58,7 +59,7 @@ namespace Saffiano
 
         public T[] GetComponents<T>() where T : Component
         {
-            return this.components.FindAll(c => c is T).ToArray() as T[];
+            return this.components.FindAll(c => c is T).Select((c) => c as T).ToArray();
         }
 
         internal override void RequestDestroy()

@@ -85,56 +85,60 @@ namespace Saffiano
             editor.AddComponent<Transform>();
             editor.AddComponent<Editor>();
 
-            // Lena
-
-            GameObject canvas = new GameObject("Canvas");
-            canvas.AddComponent<RectTransform>();
-            canvas.AddComponent<Canvas>();
-
-            GameObject lena = new GameObject("Lena");
-            var rectTransform = lena.AddComponent<RectTransform>();
-            rectTransform.pivot = new Vector2(0, 0.5f);
-            rectTransform.anchorMin = new Vector2(0, 0.5f);
-            rectTransform.anchorMax = new Vector2(0, 0.5f);
-            rectTransform.offsetMin = new Vector2(0, -128);
-            rectTransform.offsetMax = new Vector2(256, 128);
-            lena.transform.parent = canvas.transform;
-            lena.AddComponent<CanvasRenderer>();
-            lena.AddComponent<Image>().sprite = Sprite.Create(Resources.Load("../../../../Resources/lena.png") as Texture);
-
-            // Bunny
-
-            GameObject bunny = new GameObject("Bunny");
-            bunny.AddComponent<Transform>();
-            List<LOD> lods = new List<LOD>();
-
+            // UI
             {
-                GameObject lod0 = new GameObject("Bunny.LOD0");
-                lod0.AddComponent<Transform>();
-                lod0.AddComponent<MeshFilter>();
-                lod0.AddComponent<MeshRenderer>();
-                lod0.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper.ply";
-                lod0.transform.parent = bunny.transform;
-                lods.Add(new LOD(0.60f, new Renderer[] { lod0.GetComponent<Renderer>() }));
+                GameObject canvas = new GameObject("Canvas");
+                canvas.AddComponent<RectTransform>();
+                canvas.AddComponent<Canvas>();
 
-                GameObject lod1 = new GameObject("Bunny.LOD1");
-                lod1.AddComponent<Transform>();
-                lod1.AddComponent<MeshFilter>();
-                lod1.AddComponent<MeshRenderer>();
-                lod1.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res2.ply";
-                lod1.transform.parent = bunny.transform;
-                lods.Add(new LOD(0.30f, new Renderer[] { lod1.GetComponent<Renderer>() }));
-
-                GameObject lod2 = new GameObject("Bunny.LOD2");
-                lod2.AddComponent<Transform>();
-                lod2.AddComponent<MeshFilter>();
-                lod2.AddComponent<MeshRenderer>();
-                lod2.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res3.ply";
-                lod2.transform.parent = bunny.transform;
-                lods.Add(new LOD(0.10f, new Renderer[] { lod2.GetComponent<Renderer>() }));
+                GameObject lena = new GameObject("Lena");
+                var rectTransform = lena.AddComponent<RectTransform>();
+                rectTransform.pivot = new Vector2(0, 0.5f);
+                rectTransform.anchorMin = new Vector2(0, 0.5f);
+                rectTransform.anchorMax = new Vector2(0, 0.5f);
+                rectTransform.offsetMin = new Vector2(0, -129);
+                rectTransform.offsetMax = new Vector2(256, 128);
+                lena.transform.parent = canvas.transform;
+                lena.AddComponent<CanvasRenderer>();
+                lena.AddComponent<Image>().sprite = Sprite.Create(Resources.Load("../../../../Resources/lena.png") as Texture);
+                var text = lena.AddComponent<Text>();
+                text.text = "The quick brown fox jumps over a lazy dog. 1234567890 ~!@#$%^&*()";
+                text.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 18);
             }
 
-            bunny.AddComponent<LODGroup>().SetLODs(lods.ToArray());
+            // Bunny
+            {
+                GameObject bunny = new GameObject("Bunny");
+                bunny.AddComponent<Transform>();
+                List<LOD> lods = new List<LOD>();
+
+                {
+                    GameObject lod0 = new GameObject("Bunny.LOD0");
+                    lod0.AddComponent<Transform>();
+                    lod0.AddComponent<MeshFilter>();
+                    lod0.AddComponent<MeshRenderer>();
+                    lod0.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper.ply";
+                    lod0.transform.parent = bunny.transform;
+                    lods.Add(new LOD(0.60f, new Renderer[] { lod0.GetComponent<Renderer>() }));
+
+                    GameObject lod1 = new GameObject("Bunny.LOD1");
+                    lod1.AddComponent<Transform>();
+                    lod1.AddComponent<MeshFilter>();
+                    lod1.AddComponent<MeshRenderer>();
+                    lod1.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res2.ply";
+                    lod1.transform.parent = bunny.transform;
+                    lods.Add(new LOD(0.30f, new Renderer[] { lod1.GetComponent<Renderer>() }));
+
+                    GameObject lod2 = new GameObject("Bunny.LOD2");
+                    lod2.AddComponent<Transform>();
+                    lod2.AddComponent<MeshFilter>();
+                    lod2.AddComponent<MeshRenderer>();
+                    lod2.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res3.ply";
+                    lod2.transform.parent = bunny.transform;
+                    lods.Add(new LOD(0.10f, new Renderer[] { lod2.GetComponent<Renderer>() }));
+                }
+                bunny.AddComponent<LODGroup>().SetLODs(lods.ToArray());
+            }
 
             Application.Run();
             Application.Uninitialize();
