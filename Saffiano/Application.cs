@@ -29,6 +29,8 @@ namespace Saffiano
         };
         private static MethodInfo[] updaters;
 
+        public static int targetFrameRate { get; set; } = 60;
+
         static Application()
         {
             List<MethodInfo> methodInfos = new List<MethodInfo>();
@@ -82,8 +84,7 @@ namespace Saffiano
 
         public static void Run()
         {
-            const float fps = 60.0f;
-            int timePerFrame = (int)(1000.0f / fps);
+            Thread.CurrentThread.Priority = ThreadPriority.Highest;
             while (true)
             {
                 int begin = Environment.TickCount;
@@ -91,6 +92,7 @@ namespace Saffiano
                 {
                     break;
                 }
+                int timePerFrame = (int)(1000.0f / (float)targetFrameRate);
                 int phase = Environment.TickCount - begin;
                 if (phase < timePerFrame)
                 {

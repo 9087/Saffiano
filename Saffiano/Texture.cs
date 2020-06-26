@@ -150,10 +150,10 @@ namespace Saffiano
             else
             {
                 this.pixels = pixels;
-            }
-            if (this.registered)
-            {
-                Rendering.UpdateTexture(this, 0, 0, this.width, this.height);
+                if (this.registered)
+                {
+                    Rendering.UpdateTexture(this, 0, 0, this.width, this.height, this.pixels);
+                }
             }
         }
 
@@ -180,7 +180,7 @@ namespace Saffiano
             }
             if (this.registered)
             {
-                Rendering.UpdateTexture(this, x, y, blockWidth, blockHeight);
+                Rendering.UpdateTexture(this, x, y, blockWidth, blockHeight, colors);
             }
         }
 

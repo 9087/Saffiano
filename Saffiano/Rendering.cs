@@ -92,9 +92,9 @@ namespace Saffiano
             device.Draw(command);
         }
 
-        public static void UpdateTexture(Texture texture, uint x, uint y, uint blockWidth, uint blockHeight)
+        public static void UpdateTexture(Texture texture, uint x, uint y, uint blockWidth, uint blockHeight, Color[] pixels)
         {
-            throw new NotImplementedException();
+            device.UpdateTexture(texture, x, y, blockWidth, blockHeight, pixels);
         }
     }
 }

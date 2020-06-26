@@ -301,5 +301,15 @@ namespace Saffiano
             }
             Gl.DrawElements(primitiveType, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
+
+        public override void UpdateTexture(Texture texture, uint x, uint y, uint blockWidth, uint blockHeight, Color[] pixels)
+        {
+            if (!textureCache.TryGetValue(texture, out uint textureID))
+            {
+                throw new Exception("An unregisted texture is requesting for update");
+            }
+            Gl.BindTexture(TextureTarget.Texture2d, textureID);
+            Gl.TexSubImage2D(TextureTarget.Texture2d, 0, (int)x, (int)y, (int)blockWidth, (int)blockHeight, PixelFormat.Rgba, PixelType.Float, pixels);
+        }
     }
 }

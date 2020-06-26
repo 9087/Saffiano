@@ -72,6 +72,8 @@ namespace Saffiano
 
         public abstract void Draw(Command command);
 
+        public abstract void UpdateTexture(Texture texture, uint x, uint y, uint blockWidth, uint blockHeight, Color[] pixels);
+
         public abstract CoordinateSystems coordinateSystem
         {
             get;

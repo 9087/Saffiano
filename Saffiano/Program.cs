@@ -39,15 +39,45 @@ namespace Saffiano
         float rotateSpeed = 2.0f;
         Vector3 lastMousePosition;
         Camera targetCamera;
+        Text renderStatusText = null;
+        int frameCount = 0;
+        float lastFpsUpdateTimestamp = Time.time;
 
         void Awake()
         {
             lastMousePosition = Input.mousePosition;
             targetCamera = Camera.main;
+
+            var canvas = new GameObject("Canvas");
+            canvas.AddComponent<RectTransform>();
+            canvas.transform.parent = this.transform;
+            canvas.AddComponent<Canvas>();
+
+            var renderStatus = new GameObject("RenderStatus");
+            var rectTransform = renderStatus.AddComponent<RectTransform>();
+            rectTransform.pivot = new Vector2(0, 0);
+            rectTransform.anchorMin = new Vector2(0, 0);
+            rectTransform.anchorMax = new Vector2(0, 0);
+            rectTransform.offsetMin = new Vector2(0, 0);
+            rectTransform.offsetMax = new Vector2(128, 128);
+            renderStatus.transform.parent = canvas.transform;
+            renderStatus.AddComponent<CanvasRenderer>();
+            renderStatusText = renderStatus.AddComponent<Text>();
+            renderStatusText.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 18);
         }
 
         void Update()
         {
+            frameCount++;
+            float duration = Time.time - lastFpsUpdateTimestamp;
+            float threadhold = 0.5f;
+            if (duration > threadhold)
+            {
+                renderStatusText.text = string.Format("FPS: {0:F2}", (float)frameCount / duration);
+                frameCount = 0;
+                lastFpsUpdateTimestamp = Time.time;
+            }
+
             Vector3 deltaMousePosition = Input.mousePosition - lastMousePosition;
             viewState = Input.GetMouseButton(1);
             if (viewState)
