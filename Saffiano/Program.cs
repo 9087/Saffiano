@@ -70,7 +70,7 @@ namespace Saffiano
         {
             frameCount++;
             float duration = Time.time - lastFpsUpdateTimestamp;
-            float threadhold = 0.5f;
+            float threadhold = 1;
             if (duration > threadhold)
             {
                 renderStatusText.text = string.Format("FPS: {0:F2}", (float)frameCount / duration);

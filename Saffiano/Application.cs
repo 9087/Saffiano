@@ -27,6 +27,7 @@ namespace Saffiano
             typeof(Rendering),
             typeof(Resources),
         };
+
         private static MethodInfo[] updaters;
 
         public static int targetFrameRate { get; set; } = 60;
@@ -87,16 +88,16 @@ namespace Saffiano
             Thread.CurrentThread.Priority = ThreadPriority.Highest;
             while (true)
             {
-                int begin = Environment.TickCount;
+                double begin = Window.GetTickCount();
                 if (!Update())
                 {
                     break;
                 }
-                int timePerFrame = (int)(1000.0f / (float)targetFrameRate);
-                int phase = Environment.TickCount - begin;
-                if (phase < timePerFrame)
+                double millisecondsPerFrame = 1000.0 / (double)targetFrameRate;
+                double phase = Window.GetTickCount() - begin;
+                if (phase < millisecondsPerFrame)
                 {
-                    Thread.Sleep((int)(timePerFrame - phase));
+                    Window.Sleep(millisecondsPerFrame - phase);
                 }
             };
         }

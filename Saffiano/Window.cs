@@ -15,6 +15,16 @@ namespace Saffiano
             private set;
         }
 
+        internal static double GetTickCount()
+        {
+            return Win32Window.GetTickCount();
+        }
+
+        internal static void Sleep(double millisecondsTimeout)
+        {
+            Win32Window.Sleep(millisecondsTimeout);
+        }
+
         private static void Initialize()
         {
             window = new Win32Window();

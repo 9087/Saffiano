@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace Saffiano
 {
@@ -775,6 +776,65 @@ namespace Saffiano
             return new Vector2(rect.Width, rect.Height);
         }
 
+        [DllImport("kernel32.dll")]
+        public extern static short QueryPerformanceCounter(ref long x);
+
+        [DllImport("kernel32.dll")]
+        public extern static short QueryPerformanceFrequency(ref long x);
+
+        [DllImport("kernel32.dll")]
+        static extern IntPtr CreateWaitableTimer(IntPtr lpTimerAttributes, bool bManualReset, string lpTimerName);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool SetWaitableTimer(IntPtr hTimer, [In] ref long pDueTime, int lPeriod, IntPtr pfnCompletionRoutine, IntPtr lpArgToCompletionRoutine, [MarshalAs(UnmanagedType.Bool)] bool fResume);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern Int32 WaitForSingleObject(IntPtr Handle, Int32 Wait);
+
+        public const Int32 INFINITE = -1;
+        public const Int32 WAIT_ABANDONED = 0x80;
+        public const Int32 WAIT_OBJECT_0 = 0x00;
+        public const Int32 WAIT_TIMEOUT = 0x102;
+        public const Int32 WAIT_FAILED = -1;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool CloseHandle(IntPtr hHandle);
+
+        #endregion
+
+        #region Common system call
+
+        private static long frequency = 0;
+        private static long tickCount = 0;
+        private static double error = 0;
+
+        public static double GetTickCount()
+        {
+            QueryPerformanceCounter(ref tickCount);
+            return (double)tickCount / (double)(frequency) * 1000;
+        }
+
+        internal static void Sleep(double millisecondsTimeout)
+        {
+            millisecondsTimeout -= error;
+            if (millisecondsTimeout < 0)
+            {
+                error = -millisecondsTimeout;
+                return;
+            }
+            var begin = GetTickCount();
+            long duration = (long)(millisecondsTimeout * -10000);
+            var sleeping = CreateWaitableTimer(IntPtr.Zero, true, null);
+            if (!SetWaitableTimer(sleeping, ref duration, 0, IntPtr.Zero, IntPtr.Zero, false))
+            {
+                throw new Exception();
+            }
+            WaitForSingleObject(sleeping, INFINITE);
+            CloseHandle(sleeping);
+            error = GetTickCount() - begin - millisecondsTimeout;
+        }
+
         #endregion
 
         #region Key events
@@ -891,6 +951,7 @@ namespace Saffiano
         static Win32Window()
         {
             MakeVirtualKeyTokeyCodeMap();
+            QueryPerformanceFrequency(ref frequency);
         }
 
         public Win32Window()
