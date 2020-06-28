@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Saffiano;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Saffiano
+namespace Saffiano.Sample
 {
     class AsyncResourceLoader : Behaviour
     {
@@ -129,7 +129,7 @@ namespace Saffiano
                 rectTransform.offsetMin = new Vector2(0, -129);
                 rectTransform.offsetMax = new Vector2(256, 128);
                 lena.transform.parent = canvas.transform;
-                lena.AddComponent<CanvasRenderer>();
+                lena.AddComponent<CanvasRenderer>().enabled = false;
                 lena.AddComponent<Image>().sprite = Sprite.Create(Resources.Load("../../../../Resources/lena.png") as Texture);
                 var text = lena.AddComponent<Text>();
                 text.text = "The quick brown fox jumps over a lazy dog. 1234567890 ~!@#$%^&*()";
@@ -146,7 +146,7 @@ namespace Saffiano
                     GameObject lod0 = new GameObject("Bunny.LOD0");
                     lod0.AddComponent<Transform>();
                     lod0.AddComponent<MeshFilter>();
-                    lod0.AddComponent<MeshRenderer>();
+                    lod0.AddComponent<MeshRenderer>().enabled = false;
                     lod0.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper.ply";
                     lod0.transform.parent = bunny.transform;
                     lods.Add(new LOD(0.60f, new Renderer[] { lod0.GetComponent<Renderer>() }));
@@ -168,6 +168,16 @@ namespace Saffiano
                     lods.Add(new LOD(0.10f, new Renderer[] { lod2.GetComponent<Renderer>() }));
                 }
                 bunny.AddComponent<LODGroup>().SetLODs(lods.ToArray());
+            }
+
+            // Dragon
+            {
+                GameObject dragon = new GameObject("Dragon");
+                dragon.AddComponent<Transform>();
+                dragon.AddComponent<Transform>();
+                dragon.AddComponent<MeshFilter>();
+                dragon.AddComponent<MeshRenderer>();
+                dragon.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip.ply";
             }
 
             Application.Run();

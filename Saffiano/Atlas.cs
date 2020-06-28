@@ -69,7 +69,7 @@
             {
                 if (n == 0)
                 {
-                    throw new NotImplementedException("N of 0 is irrelevant");
+                    throw new NotImplementedException("n of 0 is irrelevant");
                 }
                 uint result = 1;
                 while (result < n)
@@ -329,7 +329,7 @@
         {
             if (texture.atlas != this)
             {
-                throw new Exception("The atlas does not contain the texture");
+                throw new Exception("the atlas does not contain the texture");
             }
             allocator.Free(texture.referenceDescriptor);
         }

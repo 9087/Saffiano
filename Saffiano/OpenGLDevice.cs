@@ -161,7 +161,6 @@ namespace Saffiano
 
             Gl.Enable(EnableCap.Texture2d);
             Gl.Enable(EnableCap.TextureCoordArray);
-            Gl.Enable(EnableCap.Blend);
             Gl.ShadeModel(ShadingModel.Smooth);
             Gl.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
         }
@@ -306,7 +305,7 @@ namespace Saffiano
         {
             if (!textureCache.TryGetValue(texture, out uint textureID))
             {
-                throw new Exception("An unregisted texture is requesting for update");
+                throw new Exception("an unregisted texture is requesting for update");
             }
             Gl.BindTexture(TextureTarget.Texture2d, textureID);
             Gl.TexSubImage2D(TextureTarget.Texture2d, 0, (int)x, (int)y, (int)blockWidth, (int)blockHeight, PixelFormat.Rgba, PixelType.Float, pixels);

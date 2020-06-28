@@ -971,7 +971,7 @@ namespace Saffiano
             {
                 throw new Exception();
             }
-            CreateWindowEx(0, className, title, WindowStyles.OVERLAPPEDWINDOW, 100, 100, 640, 480, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+            CreateWindowEx(0, className, title, WindowStyles.OVERLAPPEDWINDOW, 100, 100, 800, 600, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
             ShowWindow(this.handle, WindowShowStyle.Show);
             UpdateWindow(this.handle);
         }
