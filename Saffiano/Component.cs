@@ -40,5 +40,9 @@
         {
             return this.gameObject.GetComponents<T>();
         }
+
+        internal virtual void OnGameObjectActiveInHierarchyChanged(bool old, bool current)
+        {
+        }
     }
 }

@@ -9,6 +9,43 @@ namespace Saffiano
     {
         private List<Component> components = new List<Component>();
 
+        public bool activeSelf { get; private set; } = true;
+
+        public bool activeInHierarchy { get; private set; } = true;
+
+        public void SetActive(bool active)
+        {
+            this.activeSelf = active;
+        }
+
+        private void UpdateActiveInHierarchyState(bool parent)
+        {
+            bool old = activeInHierarchy;
+            activeInHierarchy = activeSelf && parent;
+            if (activeInHierarchy == old)
+            {
+                return;
+            }
+            OnActiveInHierarchyChanged(old, activeInHierarchy);
+            foreach (Transform child in transform)
+            {
+                child.gameObject.UpdateActiveInHierarchyState(activeInHierarchy);
+            }
+        }
+
+        private void OnActiveInHierarchyChanged(bool old, bool current)
+        {
+            foreach (var component in components)
+            {
+                component.OnGameObjectActiveInHierarchyChanged(old, current);
+            }
+        }
+
+        internal void OnParentChanged(Transform old, Transform current)
+        {
+            UpdateActiveInHierarchyState(current == null ? true : current.gameObject.activeInHierarchy);
+        }
+
         public Transform transform
         {
             get
@@ -79,7 +116,7 @@ namespace Saffiano
             foreach (Component component in this.components)
             {
                 Behaviour behaviour = component as Behaviour;
-                if (behaviour == null)
+                if (behaviour == null || !behaviour.enabled)
                 {
                     continue;
                 }
@@ -94,6 +131,10 @@ namespace Saffiano
             }
             foreach (Transform transform in this.transform.children)
             {
+                if (!transform.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
                 transform.gameObject.RequestUpdate();
             }
         }

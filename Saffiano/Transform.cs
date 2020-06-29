@@ -85,9 +85,9 @@ namespace Saffiano
                     this.internalParent.children.Remove(this);
                     this.internalParent.OnChildRemoved(this);
                 }
-                var lastParent = this.parent;
+                var old = this.parent;
                 this.internalParent = value;
-                OnParentChanged(lastParent, this.parent);
+                OnParentChanged(old, this.parent);
                 if (this.internalParent != null)
                 {
                     this.internalParent.children.Add(this);
@@ -104,8 +104,9 @@ namespace Saffiano
         {
         }
 
-        protected virtual void OnParentChanged(Transform lastParent, Transform parent)
+        protected virtual void OnParentChanged(Transform old, Transform current)
         {
+            this.gameObject.OnParentChanged(old, current);
         }
 
         public Matrix4x4 worldToLocalMatrix

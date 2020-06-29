@@ -9,13 +9,63 @@ namespace Saffiano
     {
         private Dictionary<string, MethodInfo> methodInfos = new Dictionary<string, MethodInfo>();
         private Dictionary<object, List<Coroutine>> coroutines = new Dictionary<object, List<Coroutine>>();
-        bool started;
+        bool started = false;
+        bool awaken = false;
+        bool _enabled = false;
+
+        public bool enabled
+        {
+            get => _enabled;
+
+            set
+            {
+                if (_enabled == value)
+                {
+                    return;
+                }
+                _enabled = value;
+                RequestEnableOrDisable();
+            }
+        }
+
+        private void RequestEnableOrDisable()
+        {
+            var active = gameObject.activeSelf;
+            if (active && _enabled)
+            {
+                this.Invoke("OnEnable");
+            }
+            else if (!active && !_enabled)
+            {
+                this.Invoke("OnDisable");
+            }
+            else
+            {
+                throw new Exception();
+            }
+        }
+
+        internal override void OnGameObjectActiveInHierarchyChanged(bool old, bool current)
+        {
+            base.OnGameObjectActiveInHierarchyChanged(old, current);
+            if (current && !awaken)
+            {
+                this.Invoke("Awake");
+                awaken = true;
+            }
+            RequestEnableOrDisable();
+        }
 
         internal override void OnComponentAdded(GameObject gameObject)
         {
             started = false;
             base.OnComponentAdded(gameObject);
-            this.Invoke("Awake");
+            if (gameObject.activeInHierarchy && !awaken)
+            {
+                this.Invoke("Awake");
+                awaken = true;
+            }
+            this.enabled = true;
         }
 
         internal override void OnComponentRemoved()

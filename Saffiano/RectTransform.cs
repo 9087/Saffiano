@@ -103,8 +103,9 @@ namespace Saffiano
 
         public Rect rect { get; private set; } = Rect.zero;
 
-        protected override void OnParentChanged(Transform lastParent, Transform parent)
+        protected override void OnParentChanged(Transform old, Transform current)
         {
+            base.OnParentChanged(old, current);
             ForceUpdateRectTransforms();
         }
 
