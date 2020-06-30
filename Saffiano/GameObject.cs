@@ -15,7 +15,12 @@ namespace Saffiano
 
         public void SetActive(bool active)
         {
+            if (this.activeSelf == active)
+            {
+                return;
+            }
             this.activeSelf = active;
+            UpdateActiveInHierarchyState(this.transform.parent == null ? true : this.transform.parent.gameObject.activeInHierarchy);
         }
 
         private void UpdateActiveInHierarchyState(bool parent)
