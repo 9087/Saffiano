@@ -80,6 +80,10 @@ namespace Saffiano
 
             set
             {
+                if (value != null && value.IsChildOf(this))
+                {
+                    throw new Exception();
+                }
                 if (this.internalParent != null)
                 {
                     this.internalParent.children.Remove(this);
@@ -94,6 +98,10 @@ namespace Saffiano
                     this.internalParent.OnChildAdded(this);
                 }
             }
+        }
+
+        internal void SetInternalParent(Transform transform)
+        {
         }
 
         protected virtual void OnChildAdded(Transform child)
@@ -218,6 +226,20 @@ namespace Saffiano
         internal virtual Matrix4x4 ToRenderingMatrix(CoordinateSystems coordinateSystem)
         {
             return Matrix4x4.TRS(position, rotation, scale, coordinateSystem);
+        }
+
+        public bool IsChildOf(Transform parent)
+        {
+            Transform current = this.transform;
+            while (current != null)
+            {
+                if (current == parent)
+                {
+                    return true;
+                }
+                current = current.parent;
+            }
+            return false;
         }
     }
 }

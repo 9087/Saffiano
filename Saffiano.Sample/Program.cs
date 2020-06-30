@@ -140,45 +140,55 @@ namespace Saffiano.Sample
             {
                 GameObject bunny = new GameObject("Bunny");
                 bunny.AddComponent<Transform>();
-                List<LOD> lods = new List<LOD>();
+                //List<LOD> lods = new List<LOD>();
 
-                {
-                    GameObject lod0 = new GameObject("Bunny.LOD0");
-                    lod0.AddComponent<Transform>();
-                    lod0.AddComponent<MeshFilter>();
-                    lod0.AddComponent<MeshRenderer>().enabled = false;
-                    lod0.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper.ply";
-                    lod0.transform.parent = bunny.transform;
-                    lods.Add(new LOD(0.60f, new Renderer[] { lod0.GetComponent<Renderer>() }));
+                //{
+                //    GameObject lod0 = new GameObject("Bunny.LOD0");
+                //    lod0.AddComponent<Transform>();
+                //    lod0.AddComponent<MeshFilter>();
+                //    lod0.AddComponent<MeshRenderer>();
+                //    lod0.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper.ply";
+                //    lod0.transform.parent = bunny.transform;
+                //    lods.Add(new LOD(0.60f, new Renderer[] { lod0.GetComponent<Renderer>() }));
 
-                    GameObject lod1 = new GameObject("Bunny.LOD1");
-                    lod1.AddComponent<Transform>();
-                    lod1.AddComponent<MeshFilter>();
-                    lod1.AddComponent<MeshRenderer>();
-                    lod1.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res2.ply";
-                    lod1.transform.parent = bunny.transform;
-                    lods.Add(new LOD(0.30f, new Renderer[] { lod1.GetComponent<Renderer>() }));
+                //    GameObject lod1 = new GameObject("Bunny.LOD1");
+                //    lod1.AddComponent<Transform>();
+                //    lod1.AddComponent<MeshFilter>();
+                //    lod1.AddComponent<MeshRenderer>();
+                //    lod1.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res2.ply";
+                //    lod1.transform.parent = bunny.transform;
+                //    lods.Add(new LOD(0.30f, new Renderer[] { lod1.GetComponent<Renderer>() }));
 
-                    GameObject lod2 = new GameObject("Bunny.LOD2");
-                    lod2.AddComponent<Transform>();
-                    lod2.AddComponent<MeshFilter>();
-                    lod2.AddComponent<MeshRenderer>();
-                    lod2.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res3.ply";
-                    lod2.transform.parent = bunny.transform;
-                    lods.Add(new LOD(0.10f, new Renderer[] { lod2.GetComponent<Renderer>() }));
-                }
-                bunny.AddComponent<LODGroup>().SetLODs(lods.ToArray());
+                //    GameObject lod2 = new GameObject("Bunny.LOD2");
+                //    lod2.AddComponent<Transform>();
+                //    lod2.AddComponent<MeshFilter>();
+                //    lod2.AddComponent<MeshRenderer>();
+                //    lod2.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res3.ply";
+                //    lod2.transform.parent = bunny.transform;
+                //    lods.Add(new LOD(0.10f, new Renderer[] { lod2.GetComponent<Renderer>() }));
+                //}
+                //bunny.AddComponent<LODGroup>().SetLODs(lods.ToArray());
+
+
+                bunny.AddComponent<MeshFilter>();
+                bunny.AddComponent<MeshRenderer>();
+                bunny.AddComponent<MeshLoader>().path = "../../../../Resources/bunny/reconstruction/bun_zipper_res3.ply";
+
+                GameObject bunnyClone = Object.Instantiate(bunny) as GameObject;
+                bunnyClone.transform.localPosition += new Vector3(1, 0, 0);
+                Debug.Log(bunnyClone);
             }
+
 
             // Dragon
-            {
-                GameObject dragon = new GameObject("Dragon");
-                dragon.AddComponent<Transform>();
-                dragon.AddComponent<Transform>();
-                dragon.AddComponent<MeshFilter>();
-                dragon.AddComponent<MeshRenderer>();
-                dragon.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip.ply";
-            }
+            //{
+            //    GameObject dragon = new GameObject("Dragon");
+            //    dragon.AddComponent<Transform>();
+            //    dragon.AddComponent<Transform>();
+            //    dragon.AddComponent<MeshFilter>();
+            //    dragon.AddComponent<MeshRenderer>();
+            //    dragon.AddComponent<MeshLoader>().path = "../../../../Resources/dragon_recon/dragon_vrip.ply";
+            //}
 
             Application.Run();
             Application.Uninitialize();
