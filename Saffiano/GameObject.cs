@@ -118,6 +118,10 @@ namespace Saffiano
 
         internal void RequestUpdate()
         {
+            if (!activeInHierarchy)
+            {
+                return;
+            }
             foreach (Component component in this.components)
             {
                 Behaviour behaviour = component as Behaviour;
@@ -136,10 +140,6 @@ namespace Saffiano
             }
             foreach (Transform transform in this.transform.children)
             {
-                if (!transform.gameObject.activeInHierarchy)
-                {
-                    continue;
-                }
                 transform.gameObject.RequestUpdate();
             }
         }
