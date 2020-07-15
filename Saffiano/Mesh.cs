@@ -50,7 +50,7 @@ namespace Saffiano
             set;
         }
 
-        public Mesh(string filePath) : base(filePath)
+        internal Mesh(string filePath) : base(filePath)
         {
             if (normals == null)
             {

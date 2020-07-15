@@ -57,12 +57,10 @@ namespace Saffiano
                     throw new NotImplementedException();
             }
             rectTransform.ForceUpdateRectTransforms();
-            canvases.Add(this);
         }
 
         internal override void OnComponentRemoved()
         {
-            canvases.Remove(this);
             base.OnComponentRemoved();
         }
 
@@ -98,10 +96,24 @@ namespace Saffiano
 
         private static void Render(Canvas canvas)
         {
+            if (!canvas.gameObject.activeInHierarchy)
+            {
+                return;
+            }
             var size = Window.GetSize();
             Rendering.PushProjection(Matrix4x4.Scaled(new Vector3(1.0f / (int)(size.x / 2), 1.0f / (int)(size.y / 2), 0)));
             Traverse(canvas.rectTransform);
             Rendering.PopProjection();
+        }
+
+        void Awake()
+        {
+            canvases.Add(this);
+        }
+
+        void OnDestroy()
+        {
+            canvases.Remove(this);
         }
     }
 }

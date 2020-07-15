@@ -46,6 +46,10 @@ namespace Saffiano
             private set;
         }
 
+        private string filePath = null;
+
+        private static Dictionary<string, WeakReference<Asset>> fileCache = new Dictionary<string, WeakReference<Asset>>();
+
         public Asset()
         {
             id = System.Guid.NewGuid();
@@ -54,8 +58,37 @@ namespace Saffiano
         protected Asset(string filePath) : this()
         {
             FileFormatMethodInfoCollection collection = RegisterFileFormats(this.GetType());
+            this.filePath = filePath;
             var extension = Path.GetExtension(filePath).ToUpper();
             collection[extension].Invoke(this, new object[] { filePath });
+            lock (fileCache)
+            {
+                fileCache.Add(filePath, new WeakReference<Asset>(this));
+            }
+        }
+
+        internal static bool TryGetCachedAssetByFilePath(string filePath, out Asset asset)
+        {
+            lock(fileCache)
+            {
+                if (!fileCache.ContainsKey(filePath))
+                {
+                    asset = null;
+                    return false;
+                }
+                return fileCache[filePath].TryGetTarget(out asset);
+            }
+        }
+
+        ~Asset()
+        {
+            if (filePath != null)
+            {
+                lock (fileCache)
+                {
+                    fileCache.Remove(filePath);
+                }
+            }
         }
     }
 }

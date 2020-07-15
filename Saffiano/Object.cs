@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Saffiano
 {
@@ -51,7 +54,7 @@ namespace Saffiano
             }
         }
 
-        internal static object Instantiate(object original, Func<object, bool> filter, IDictionary<object, object> cache)
+        public static object Instantiate(object original, Func<object, bool> filter, IDictionary<object, object> cache)
         {
             if (original == null)
             {
@@ -92,13 +95,14 @@ namespace Saffiano
             return target;
         }
 
+        static BindingFlags FieldBindingFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy;
+
         private static void RecursiveInstantiateMembers(object original, object target, Func<object, bool> filter, IDictionary<object, object> cache)
         {
-            BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy;
             var type = original.GetType();
             while (type != null)
             {
-                foreach (FieldInfo fieldInfo in type.GetFields(bindingFlags))
+                foreach (FieldInfo fieldInfo in type.GetFields(FieldBindingFlags))
                 {
                     if (IsPrimitive(fieldInfo.FieldType))
                     {
@@ -121,24 +125,31 @@ namespace Saffiano
             }
             Func<object, bool> filter = (object obj) =>
             {
-                var gameObject = GetGameObject(obj);
-                if (gameObject == null)
+                if (!(obj is Object))
                 {
                     return true;
                 }
-                if (!gameObject.transform.IsChildOf(root.transform))
+                var gameObject = GetGameObject(obj);
+                if (gameObject != null && gameObject.transform.IsChildOf(root.transform))
+                {
+                    return true;
+                }
+                else
                 {
                     return false;
                 }
-                return true;
             };
             var cache = new Dictionary<object, object>();
             object target = Instantiate(root, filter, cache);
             Transform transform = GetGameObject(target).transform;
-            transform.parent = null;
-            if (!Transform.root.children.Contains(transform))
+            var internalParent = transform.GetInternalParent();
+            if (internalParent == Transform.background)
             {
-                Transform.root.children.Add(transform);
+                transform.SetInternalParent(Transform.scene);
+            }
+            else
+            {
+                internalParent.EnsureChild(transform);
             }
             return cache[original] as Object;
         }

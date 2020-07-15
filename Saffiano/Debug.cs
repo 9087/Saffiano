@@ -45,12 +45,19 @@ namespace Saffiano
             LogException(tie.InnerException);
         }
 
-        public static void Assert(bool condition, object message)
+        public static void Assert(bool condition, object message=null)
         {
 #if DEBUG
             if (!condition)
             {
-                throw new Exception(message.ToString());
+                if (message == null)
+                {
+                    throw new Exception();
+                }
+                else
+                {
+                    throw new Exception(message.ToString());
+                }
             }
 #endif
         }

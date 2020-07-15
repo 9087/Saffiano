@@ -76,7 +76,7 @@ namespace Saffiano
             device.Clear();
             PushProjection(Camera.main.projectionMatrix * Camera.main.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));
             device.SetTransform(TransformStateType.View, Matrix4x4.identity);
-            Traverse(Transform.root);
+            Traverse(Transform.scene);
             PopProjection();
             Canvas.Render(Camera.main);
             device.EndScene();

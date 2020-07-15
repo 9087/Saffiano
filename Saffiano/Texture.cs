@@ -92,6 +92,17 @@ namespace Saffiano
             this.height = referenceDescriptor.height;
         }
 
+        public Texture(uint width, uint height)
+        {
+            this.width = width;
+            this.height = height;
+            this.pixels = new Color[width * height];
+        }
+
+        internal Texture(string filePath) : base(filePath)
+        {
+        }
+
         ~Texture()
         {
             if (this.registered)
@@ -104,17 +115,6 @@ namespace Saffiano
                 this.pixels = null;
                 this.referenceDescriptor = null;
             }
-        }
-
-        public Texture(uint width, uint height)
-        {
-            this.width = width;
-            this.height = height;
-            this.pixels = new Color[width * height];
-        }
-
-        public Texture(string filePath) : base(filePath)
-        {
         }
 
         [FileFormat]

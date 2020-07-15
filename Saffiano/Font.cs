@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Saffiano
 {
@@ -11,12 +12,31 @@ namespace Saffiano
 
     public class Font : Object
     {
+        private struct Identity : IEquatable<Identity>
+        {
+            public string fontname { get; private set; }
+
+            public int size { get; private set; }
+
+            public Identity(string fontname, int size)
+            {
+                this.fontname = fontname;
+                this.size = size;
+            }
+
+            public bool Equals(Identity other)
+            {
+                return this.fontname == other.fontname && this.size == other.size;
+            }
+        }
+
+        private static Dictionary<Identity, Font> instances = new Dictionary<Identity, Font>();
+
         internal static FontAtlas atlas = new FontAtlas(128, 128);
         private Dictionary<char, CharacterInfo> characterInfos = new Dictionary<char, CharacterInfo>();
 
-        public Font(string name) : base()
+        private Font() : base()
         {
-            this.name = name;
         }
 
         internal TTF[] _ttfs;
@@ -42,9 +62,15 @@ namespace Saffiano
 
         public static Font CreateDynamicFontFromOSFont(string fontname, int size)
         {
-            var font = new Font(fontname);
+            Identity identity = new Identity(fontname, size);
+            if (instances.TryGetValue(identity, out Font font))
+            {
+                return font;
+            }
+            font = new Font();
             font.fontSize = size;
             font.fontNames = new string[] { fontname };
+            instances.Add(identity, font);
             return font;
         }
 

@@ -9,9 +9,11 @@ namespace Saffiano
     {
         private List<Component> components = new List<Component>();
 
+        internal Transform target { get; set; }
+
         public bool activeSelf { get; private set; } = true;
 
-        public bool activeInHierarchy { get; private set; } = true;
+        public bool activeInHierarchy { get; private set; } = false;
 
         public void SetActive(bool active)
         {
@@ -20,13 +22,19 @@ namespace Saffiano
                 return;
             }
             this.activeSelf = active;
-            UpdateActiveInHierarchyState(this.transform.parent == null ? true : this.transform.parent.gameObject.activeInHierarchy);
+            UpdateActiveInHierarchyState();
         }
 
-        private void UpdateActiveInHierarchyState(bool parent)
+        internal void UpdateActiveInHierarchyState()
+        {
+            var internalParent = this.transform.GetInternalParent();
+            UpdateActiveInHierarchyState(internalParent == null ? true : internalParent.gameObject.activeInHierarchy);
+        }
+
+        private void UpdateActiveInHierarchyState(bool internalParentActiveInHierarchy)
         {
             bool old = activeInHierarchy;
-            activeInHierarchy = activeSelf && parent;
+            activeInHierarchy = activeSelf && internalParentActiveInHierarchy;
             if (activeInHierarchy == old)
             {
                 return;
@@ -48,7 +56,11 @@ namespace Saffiano
 
         internal void OnParentChanged(Transform old, Transform current)
         {
-            UpdateActiveInHierarchyState(current == null ? true : current.gameObject.activeInHierarchy);
+        }
+
+        internal void OnInternalParentChanged(Transform old, Transform current)
+        {
+            UpdateActiveInHierarchyState();
         }
 
         public Transform transform
@@ -61,9 +73,10 @@ namespace Saffiano
 
         public GameObject()
         {
+            target = Transform.scene;
         }
 
-        public GameObject(String name)
+        public GameObject(String name) : this()
         {
             this.name = name;
         }

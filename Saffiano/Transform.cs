@@ -12,9 +12,16 @@ namespace Saffiano
         Self = 1
     }
 
+    internal class InternalTransform : Transform
+    {
+    }
+
     public class Transform : Component, IEnumerable
     {
-        internal static Transform root;
+        internal static InternalTransform scene { get; private set; }
+
+        internal static InternalTransform background { get; private set; }
+
         private Transform internalParent = null;
         internal List<Transform> children = new List<Transform>();
 
@@ -75,7 +82,7 @@ namespace Saffiano
         {
             get
             {
-                return this.internalParent == Transform.root ? null : this.internalParent;
+                return this.internalParent is InternalTransform ? null : this.internalParent;
             }
 
             set
@@ -84,24 +91,51 @@ namespace Saffiano
                 {
                     throw new Exception();
                 }
-                if (this.internalParent != null)
+                if (this.internalParent == Transform.background)
                 {
-                    this.internalParent.children.Remove(this);
-                    this.internalParent.OnChildRemoved(this);
+                    return;
                 }
                 var old = this.parent;
-                this.internalParent = value;
-                OnParentChanged(old, this.parent);
-                if (this.internalParent != null)
+                this.SetInternalParent(value == null ? Transform.scene : value);
+                if (old != this.parent)
                 {
-                    this.internalParent.children.Add(this);
-                    this.internalParent.OnChildAdded(this);
+                    OnParentChanged(old, this.parent);
                 }
             }
         }
 
         internal void SetInternalParent(Transform transform)
         {
+            var old = this.internalParent;
+            if (this.internalParent != null)
+            {
+                this.internalParent.children.Remove(this);
+                this.internalParent.OnChildRemoved(this);
+            }
+            this.internalParent = transform;
+            if (this.internalParent != null)
+            {
+                this.internalParent.children.Add(this);
+                this.internalParent.OnChildAdded(this);
+            }
+            if (old != this.internalParent)
+            {
+                OnInternalParentChanged(old, this.internalParent);
+            }
+        }
+
+        internal Transform GetInternalParent()
+        {
+            return this.internalParent;
+        }
+
+        internal void EnsureChild(Transform child)
+        {
+            if (this.children.Contains(child))
+            {
+                return;
+            }
+            this.children.Add(child);
         }
 
         protected virtual void OnChildAdded(Transform child)
@@ -114,7 +148,11 @@ namespace Saffiano
 
         protected virtual void OnParentChanged(Transform old, Transform current)
         {
-            this.gameObject.OnParentChanged(old, current);
+        }
+
+        protected virtual void OnInternalParentChanged(Transform old, Transform current)
+        {
+            this.gameObject.OnInternalParentChanged(old, current);
         }
 
         public Matrix4x4 worldToLocalMatrix
@@ -154,34 +192,33 @@ namespace Saffiano
             }
         }
 
-        internal static Transform CreateRoot()
-        {
-            return new GameObject().AddComponent<Transform>();
-        }
-
         public Transform()
         {
         }
 
         private static void Initialize()
         {
-            Transform.root = CreateRoot();
+            Transform.scene = new GameObject("SCENE").AddComponent<InternalTransform>();
+            Transform.scene.gameObject.UpdateActiveInHierarchyState();
+            Transform.background = new GameObject("BACKGROUND") { target = null }.AddComponent<InternalTransform>();
+            Transform.background.gameObject.SetActive(false);
         }
 
         private static void Uninitialize()
         {
-            Transform.root = null;
+            Transform.scene = null;
+            Transform.background = null;
         }
 
         internal override void OnComponentAdded(GameObject gameObject)
         {
             base.OnComponentAdded(gameObject);
-            this.parent = Transform.root;
+            this.SetInternalParent(gameObject.target);
         }
 
         internal override void OnComponentRemoved()
         {
-            this.parent = null;
+            this.SetInternalParent(Transform.background);
         }
 
         public Transform Find(string name)
@@ -216,7 +253,7 @@ namespace Saffiano
 
         private static bool Update()
         {
-            foreach (Transform transform in Transform.root.children)
+            foreach (Transform transform in Transform.scene.children)
             {
                 transform.gameObject.RequestUpdate();
             }
