@@ -7,7 +7,7 @@ namespace Saffiano
 {
     public class Behaviour : Component
     {
-        private Dictionary<string, MethodInfo> methodInfos = new Dictionary<string, MethodInfo>();
+        private static Dictionary<Type, Dictionary<string, MethodInfo>> methodInfoCollection = new Dictionary<Type, Dictionary<string, MethodInfo>>();
         private Dictionary<object, List<Coroutine>> coroutines = new Dictionary<object, List<Coroutine>>();
         bool started = false;
         bool awaken = false;
@@ -30,7 +30,7 @@ namespace Saffiano
 
         private void RequestEnableOrDisable()
         {
-            var active = gameObject.activeSelf;
+            var active = gameObject.activeInHierarchy;
             if (active && _enabled)
             {
                 this.Invoke("OnEnable");
@@ -38,10 +38,6 @@ namespace Saffiano
             else if (!active && !_enabled)
             {
                 this.Invoke("OnDisable");
-            }
-            else
-            {
-                throw new Exception();
             }
         }
 
@@ -53,7 +49,10 @@ namespace Saffiano
                 this.Invoke("Awake");
                 awaken = true;
             }
-            RequestEnableOrDisable();
+            if (old != current)
+            {
+                RequestEnableOrDisable();
+            }
         }
 
         internal override void OnComponentAdded(GameObject gameObject)
@@ -76,6 +75,13 @@ namespace Saffiano
 
         internal void Invoke(string methodName)
         {
+            Dictionary<string, MethodInfo> methodInfos;
+            Type type = this.GetType();
+            if (!methodInfoCollection.TryGetValue(this.GetType(), out methodInfos))
+            {
+                methodInfos = new Dictionary<string, MethodInfo>();
+                methodInfoCollection.Add(type, methodInfos);
+            }
             MethodInfo methodInfo;
             if (!methodInfos.TryGetValue(methodName, out methodInfo))
             {

@@ -106,12 +106,12 @@ namespace Saffiano
             Rendering.PopProjection();
         }
 
-        void Awake()
+        void OnEnable()
         {
             canvases.Add(this);
         }
 
-        void OnDestroy()
+        void OnDisable()
         {
             canvases.Remove(this);
         }
