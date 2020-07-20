@@ -160,7 +160,10 @@ namespace Saffiano
                         loadingInfo.task = new Task(new Action(() => { Loading(path); }), loadingInfo.cancellationTokenSource.Token);
                     }
                 }
-                loadingInfo.task.Start();
+                if (task)
+                {
+                    loadingInfo.task.Start();
+                }
             }
             return resourceRequest;
         }
