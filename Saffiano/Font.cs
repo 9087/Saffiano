@@ -32,7 +32,7 @@ namespace Saffiano
 
         private static Dictionary<Identity, Font> instances = new Dictionary<Identity, Font>();
 
-        internal static FontAtlas atlas = new FontAtlas(128, 128);
+        internal static FontAtlas atlas = new FontAtlas(1024, 1024);
         private Dictionary<char, CharacterInfo> characterInfos = new Dictionary<char, CharacterInfo>();
 
         private Font() : base()

@@ -322,7 +322,12 @@
 
         public Texture Allocate(uint width, uint height)
         {
-            return new Texture(allocator.Allocate(width, height));
+            var referenceDescriptor = allocator.Allocate(width, height);
+            if (referenceDescriptor == null)
+            {
+                throw new Exception("lack of available area");
+            }
+            return new Texture(referenceDescriptor);
         }
 
         internal void Free(Texture texture)

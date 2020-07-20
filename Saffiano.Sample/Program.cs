@@ -13,14 +13,14 @@ namespace Saffiano.Sample
             // Camera
             GameObject camera = new GameObject("Camera");
             camera.AddComponent<Transform>();
-            camera.AddComponent<Camera>().fieldOfView = 60.0f;
+            camera.AddComponent<Camera>().fieldOfView = 90.0f;
             camera.transform.localPosition = new Vector3(0, 0, -0.5f);
 
             // Editor
             GameObject editor = Object.Instantiate(Resources.Load<Editor>()) as GameObject;
 
             // Lena
-            GameObject lena = Object.Instantiate(Resources.Load<Lena>()) as GameObject;
+            //GameObject lena = Object.Instantiate(Resources.Load<Lena>()) as GameObject;
 
             // Bunny
             GameObject bunny = Object.Instantiate(Resources.Load<Bunny>()) as GameObject;

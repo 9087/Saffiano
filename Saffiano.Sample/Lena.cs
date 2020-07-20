@@ -21,7 +21,7 @@ namespace Saffiano.Sample
             lena.AddComponent<CanvasRenderer>();
             lena.AddComponent<Image>().sprite = Sprite.Create(Resources.Load("../../../../Resources/lena.png") as Texture);
             var text = lena.AddComponent<Text>();
-            text.text = "The quick brown fox jumps over a lazy dog. 1234567890 ~!@#$%^&*()";
+            text.text = "Lena picture";
             text.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 18);
         }
     }
