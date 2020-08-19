@@ -4,6 +4,8 @@ namespace Saffiano
 {
     public class Text : Graphic
     {
+        private static GPUProgram shader = new GPUProgram("../../../../Resources/shader/label.vs", "../../../../Resources/shader/label.fs");
+
         private bool dirty = false;
         private string _text = string.Empty;
         private Font _font = null;
@@ -98,11 +100,14 @@ namespace Saffiano
             }
             return new Command()
             {
+                projection = Rendering.projection,
+                transform = rectTransform.ToRenderingMatrix(Rendering.device.coordinateSystem),
                 mesh = mesh,
                 texture = Font.atlas,
                 depthTest = false,
                 lighting = false,
                 blend = true,
+                shader = shader,
             };
         }
     }

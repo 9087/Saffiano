@@ -66,7 +66,6 @@ namespace Saffiano
 
         internal static void Traverse(RectTransform rectTransform)
         {
-            Rendering.SetTransform(TransformStateType.View, rectTransform);
             rectTransform.GetComponent<CanvasRenderer>()?.Render();
             foreach (RectTransform child in rectTransform)
             {

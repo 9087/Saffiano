@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Saffiano
 {
@@ -18,6 +19,13 @@ namespace Saffiano
         public uint ebo { get; internal set; }
     }
 
+    internal enum GenericVertexAttributeLocation
+    {
+        Position = 0,
+        Normal = 1,
+        TexCoord = 2,
+    }
+
     internal class VertexCache : Cache<Mesh, VertexData>
     {
         protected override VertexData OnRegister(Mesh mesh)
@@ -28,31 +36,42 @@ namespace Saffiano
             Gl.BindVertexArray(vertexData.vao);
 
             vertexData.vbo = Gl.GenBuffer();
-            if (mesh.vertices == null)
+            if (mesh.vertices != null)
+            {
+                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.Position);
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.vbo);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.vertices.Length), mesh.vertices, BufferUsage.StaticDraw);
+                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.Position, 3, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            }
+            else
             {
                 throw new Exception();
             }
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.vbo);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.vertices.Length), mesh.vertices, BufferUsage.StaticDraw);
-            Gl.EnableClientState(EnableCap.VertexArray);
-            Gl.VertexPointer(3, VertexPointerType.Float, 0, IntPtr.Zero);
 
             vertexData.nbo = Gl.GenBuffer();
             if (mesh.normals != null)
             {
+                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.Normal);
                 Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.nbo);
                 Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.normals.Length), mesh.normals, BufferUsage.StaticDraw);
-                Gl.EnableClientState(EnableCap.NormalArray);
-                Gl.NormalPointer(NormalPointerType.Float, 0, IntPtr.Zero);
+                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.Normal, 3, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            }
+            else
+            {
+                Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.Normal);
             }
 
             vertexData.uvbo = Gl.GenBuffer();
             if (mesh.uv != null)
             {
+                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.TexCoord);
                 Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.uvbo);
                 Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector2)) * mesh.uv.Length), mesh.uv, BufferUsage.StaticDraw);
-                Gl.EnableClientState(EnableCap.TextureCoordArray);
-                Gl.TexCoordPointer(2, TexCoordPointerType.Float, 0, IntPtr.Zero);
+                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.TexCoord, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            }
+            else
+            {
+                Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.TexCoord);
             }
 
             vertexData.ebo = Gl.GenBuffer();
@@ -62,6 +81,8 @@ namespace Saffiano
             }
             Gl.BindBuffer(BufferTarget.ElementArrayBuffer, vertexData.ebo);
             Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint)(sizeof(uint) * mesh.indices.Length), mesh.indices, BufferUsage.StaticDraw);
+
+            Gl.BindVertexArray(0);
 
             return vertexData;
         }
@@ -94,6 +115,39 @@ namespace Saffiano
         }
     }
 
+    internal class GPUProgramData
+    {
+        public uint program { get; internal set; }
+
+        public uint vs { get; internal set; }
+
+        public uint fs { get; internal set; }
+    }
+
+    internal class GPUProgramCache : Cache<GPUProgram, GPUProgramData>
+    {
+        protected override GPUProgramData OnRegister(GPUProgram key)
+        {
+            GPUProgramData shaderData = new GPUProgramData();
+            shaderData.program = Gl.CreateProgram();
+            shaderData.vs = Gl.CreateShader(ShaderType.VertexShader);
+            shaderData.fs = Gl.CreateShader(ShaderType.FragmentShader);
+            Gl.ShaderSource(shaderData.vs, new string[] { key.vertexShaderSourceCode });
+            Gl.ShaderSource(shaderData.fs, new string[] { key.fragmentShaderSourceCode });
+            Gl.CompileShader(shaderData.vs);
+            Gl.CompileShader(shaderData.fs);
+            Gl.AttachShader(shaderData.program, shaderData.vs);
+            Gl.AttachShader(shaderData.program, shaderData.fs);
+            Gl.LinkProgram(shaderData.program);
+            return shaderData;
+        }
+
+        protected override void OnUnregister(GPUProgram key)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     internal class OpenGLDevice : Device
     {
         private DeviceContext deviceContext;
@@ -104,6 +158,8 @@ namespace Saffiano
 
         private HashSet<Texture> requestedTextures = new HashSet<Texture>();
         TextureCache textureCache = new TextureCache();
+
+        internal GPUProgramCache shaderCache = new GPUProgramCache();
 
         public override CoordinateSystems coordinateSystem => CoordinateSystems.RightHand;
 
@@ -220,25 +276,6 @@ namespace Saffiano
             Gl.Viewport((int)viewport.x, (int)viewport.y, (int)viewport.width, (int)viewport.height);
         }
 
-        public override void SetTransform(TransformStateType state, Matrix4x4 matrix)
-        {
-            MakeCurrent();
-            switch(state)
-            {
-                case TransformStateType.Projection:
-                    Gl.MatrixMode(MatrixMode.Projection);
-                    break;
-                case TransformStateType.View:
-                    Gl.MatrixMode(MatrixMode.Modelview);
-                    break;
-                default:
-                    throw new Exception();
-            }
-            Gl.LoadIdentity();
-            Gl.LoadMatrix(matrix.transpose.ToArray());
-            
-        }
-
         private static OpenGL.PrimitiveType ConvertPrimitiveTypeToOpenGL(PrimitiveType primitiveType)
         {
             switch (primitiveType)
@@ -258,14 +295,18 @@ namespace Saffiano
             requestedMeshes.Add(mesh);
         }
 
-        private void BindTexture(Texture texture)
+        private void BindTexture(GPUProgram shader, Texture texture)
         {
             if (texture == null)
             {
                 Gl.BindTexture(TextureTarget.Texture2d, 0);
                 return;
             }
+
+            Gl.ActiveTexture(TextureUnit.Texture0);
             Gl.BindTexture(TextureTarget.Texture2d, textureCache.TryRegister(texture));
+            Gl.Uniform1(Gl.GetUniformLocation(shaderCache.TryRegister(shader).program, "tex"), 0);
+
             requestedTextures.Add(texture);
         }
 
@@ -283,12 +324,18 @@ namespace Saffiano
 
         public override void Draw(Command command)
         {
+            Gl.UseProgram(shaderCache.TryRegister(command.shader).program);
+
+            Matrix4x4 mvp = command.projection * command.transform;
+            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.shader).program, "u_MVP"), true, mvp.ToArray());
+            
             var mesh = command.mesh;
             BindVertex(mesh);
-            BindTexture(command.texture);
+            BindTexture(command.shader, command.texture);
             Enable(EnableCap.Lighting, command.lighting);
             Enable(EnableCap.DepthTest, command.depthTest);
             OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
+
             if (command.blend)
             {
                 Gl.Enable(EnableCap.Blend);

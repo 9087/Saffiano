@@ -66,8 +66,6 @@ namespace Saffiano
             this.viewport = viewport;
         }
 
-        public abstract void SetTransform(TransformStateType state, Matrix4x4 matrix);
-
         public abstract void Dispose();
 
         public abstract void Draw(Command command);

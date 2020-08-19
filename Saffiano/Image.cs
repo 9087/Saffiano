@@ -2,6 +2,8 @@
 {
     public sealed class Image : Graphic
     {
+        private static GPUProgram shader = new GPUProgram("../../../../Resources/shader/normal.vs", "../../../../Resources/shader/normal.fs");
+
         private Rect rect;
         private Mesh mesh = null;
 
@@ -24,11 +26,14 @@
             }
             return new Command()
             {
+                projection = Rendering.projection,
+                transform = rectTransform.ToRenderingMatrix(Rendering.device.coordinateSystem),
                 mesh = this.mesh,
                 texture = this.sprite.texture,
                 depthTest = false,
                 lighting = false,
                 blend = true,
+                shader = shader,
             };
         }
     }
