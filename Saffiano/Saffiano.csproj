@@ -12,6 +12,7 @@
     <PackageReference Include="FreeImage-dotnet-core" Version="4.3.6" />
     <PackageReference Include="FreeTypeSharp" Version="1.1.2" />
     <PackageReference Include="GtkSharp" Version="3.22.25.56" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="OpenGL.Net" Version="0.7.1" />
   </ItemGroup>
 

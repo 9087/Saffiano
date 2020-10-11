@@ -1,8 +1,4 @@
-﻿using Saffiano;
-using System.Collections;
-using System.Collections.Generic;
-
-namespace Saffiano.Sample
+﻿namespace Saffiano.Sample
 {
     class Program
     {

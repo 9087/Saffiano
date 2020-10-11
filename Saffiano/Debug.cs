@@ -23,6 +23,7 @@ namespace Saffiano
         public static void LogError(object message)
         {
             Console.WriteLine("[ERROR] {0}", message);
+            throw new Exception(message.ToString());
         }
 
         public static void LogWarningFormat(String message, params object[] objects)

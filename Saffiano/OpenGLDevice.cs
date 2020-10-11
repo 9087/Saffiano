@@ -130,8 +130,8 @@ namespace Saffiano
         {
             GPUProgramData shaderData = new GPUProgramData();
             shaderData.program = Gl.CreateProgram();
-            shaderData.vs = Gl.CreateShader(ShaderType.VertexShader);
-            shaderData.fs = Gl.CreateShader(ShaderType.FragmentShader);
+            shaderData.vs = Gl.CreateShader(OpenGL.ShaderType.VertexShader);
+            shaderData.fs = Gl.CreateShader(OpenGL.ShaderType.FragmentShader);
             Gl.ShaderSource(shaderData.vs, new string[] { key.vertexShaderSourceCode });
             Gl.ShaderSource(shaderData.fs, new string[] { key.fragmentShaderSourceCode });
             Gl.CompileShader(shaderData.vs);

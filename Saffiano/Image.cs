@@ -2,16 +2,16 @@
 {
     public sealed class Image : Graphic
     {
-        private static GPUProgram shader = new GPUProgram("../../../../Resources/shader/normal.vs", "../../../../Resources/shader/normal.fs");
-
         private Rect rect;
         private Mesh mesh = null;
 
         public Sprite sprite { get; set; } = null;
 
+        public Material material { get; set; } = new DefaultGraphicMaterial();
+
         internal override Command CreateCommand(RectTransform rectTransform)
         {
-            if (sprite == null)
+            if (sprite == null || material == null)
             {
                 return null;
             }
@@ -33,7 +33,7 @@
                 depthTest = false,
                 lighting = false,
                 blend = true,
-                shader = shader,
+                shader = material.shader,
             };
         }
     }

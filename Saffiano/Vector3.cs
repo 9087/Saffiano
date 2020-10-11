@@ -2,6 +2,7 @@
 
 namespace Saffiano
 {
+    [Shader(OpenGL: "vec3")]
     public struct Vector3
     {
         public float x;

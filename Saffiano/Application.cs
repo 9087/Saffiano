@@ -48,6 +48,7 @@ namespace Saffiano
 
         public static void Initialize()
         {
+            ScriptingMaterial.Prebuild();
             foreach (var system in systems)
             {
                 system.GetPrivateStaticMethod("Initialize")?.Invoke(null, new object[] { });

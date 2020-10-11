@@ -3,6 +3,7 @@ using System;
 
 namespace Saffiano
 {
+    [Shader(OpenGL: "sampler2D")]
     public class Texture : Asset
     {
         private Color[] pixels { get; set; } = null;

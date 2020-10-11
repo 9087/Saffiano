@@ -2,6 +2,7 @@
 
 namespace Saffiano
 {
+    [Shader(OpenGL: "vec4")]
     public struct Vector4
     {
         public float x;
@@ -15,6 +16,10 @@ namespace Saffiano
             this.y = y;
             this.z = z;
             this.w = w;
+        }
+
+        public Vector4(Vector3 v, float w) : this(v.x, v.y, v.z, w)
+        {
         }
 
         public override string ToString()

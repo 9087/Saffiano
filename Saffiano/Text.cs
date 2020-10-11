@@ -4,8 +4,6 @@ namespace Saffiano
 {
     public class Text : Graphic
     {
-        private static GPUProgram shader = new GPUProgram("../../../../Resources/shader/label.vs", "../../../../Resources/shader/label.fs");
-
         private bool dirty = false;
         private string _text = string.Empty;
         private Font _font = null;
@@ -34,8 +32,14 @@ namespace Saffiano
             }
         }
 
+        public Material material { get; set; } = new DefaultGraphicMaterial();
+
         internal override Command CreateCommand(RectTransform rectTransform)
         {
+            if (material == null)
+            {
+                return null;
+            }
             if (dirty)
             {
                 _font.RequestCharactersInTexture(text);
@@ -107,7 +111,7 @@ namespace Saffiano
                 depthTest = false,
                 lighting = false,
                 blend = true,
-                shader = shader,
+                shader = material.shader,
             };
         }
     }
