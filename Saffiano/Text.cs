@@ -32,7 +32,7 @@ namespace Saffiano
             }
         }
 
-        public Material material { get; set; } = new BasicMaterial();
+        public Material material { get; set; } = new Content.Material.Basic();
 
         internal override Command CreateCommand(RectTransform rectTransform)
         {
@@ -111,7 +111,7 @@ namespace Saffiano
                 depthTest = false,
                 lighting = false,
                 blend = true,
-                shader = material.shader,
+                material = material,
             };
         }
     }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Saffiano
@@ -126,16 +127,29 @@ namespace Saffiano
 
     internal class GPUProgramCache : Cache<GPUProgram, GPUProgramData>
     {
+        private uint Compile(OpenGL.ShaderType shaderType, string source)
+        {
+            uint shader = Gl.CreateShader(shaderType);
+            Gl.ShaderSource(shader, new string[] { source });
+            Gl.CompileShader(shader);
+            Gl.GetShader(shader, ShaderParameterName.CompileStatus, out int success);
+            Gl.GetShader(shader, ShaderParameterName.InfoLogLength, out int length);
+            if (success == Gl.FALSE)
+            {
+                // compile error
+                StringBuilder stringBuilder = new StringBuilder();
+                Gl.GetShaderInfoLog(shader, length, out length, stringBuilder);
+                Debug.LogWarning(string.Format("Shader compile:\n{0}", stringBuilder.ToString()));
+            }
+            return shader;
+        }
+
         protected override GPUProgramData OnRegister(GPUProgram key)
         {
             GPUProgramData shaderData = new GPUProgramData();
             shaderData.program = Gl.CreateProgram();
-            shaderData.vs = Gl.CreateShader(OpenGL.ShaderType.VertexShader);
-            shaderData.fs = Gl.CreateShader(OpenGL.ShaderType.FragmentShader);
-            Gl.ShaderSource(shaderData.vs, new string[] { key.vertexShaderSourceCode });
-            Gl.ShaderSource(shaderData.fs, new string[] { key.fragmentShaderSourceCode });
-            Gl.CompileShader(shaderData.vs);
-            Gl.CompileShader(shaderData.fs);
+            shaderData.vs = Compile(OpenGL.ShaderType.VertexShader, key.vertexShaderSourceCode);
+            shaderData.fs = Compile(OpenGL.ShaderType.FragmentShader, key.fragmentShaderSourceCode);
             Gl.AttachShader(shaderData.program, shaderData.vs);
             Gl.AttachShader(shaderData.program, shaderData.fs);
             Gl.LinkProgram(shaderData.program);
@@ -305,7 +319,7 @@ namespace Saffiano
 
             Gl.ActiveTexture(TextureUnit.Texture0);
             Gl.BindTexture(TextureTarget.Texture2d, textureCache.TryRegister(texture));
-            Gl.Uniform1(Gl.GetUniformLocation(shaderCache.TryRegister(shader).program, "tex"), 0);
+            Gl.Uniform1(Gl.GetUniformLocation(shaderCache.TryRegister(shader).program, "texture"), 0);
 
             requestedTextures.Add(texture);
         }
@@ -324,15 +338,15 @@ namespace Saffiano
 
         public override void Draw(Command command)
         {
-            Gl.UseProgram(shaderCache.TryRegister(command.shader).program);
+            Gl.UseProgram(shaderCache.TryRegister(command.material.shader).program);
 
             Matrix4x4 mvp = command.projection * command.transform;
-            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.shader).program, "u_MVP"), true, mvp.ToArray());
-            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.shader).program, "u_MV"), true, command.transform.ToArray());
+            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.material.shader).program, "mvp"), true, mvp.ToArray());
+            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.material.shader).program, "mv"), true, command.transform.ToArray());
             
             var mesh = command.mesh;
             BindVertex(mesh);
-            BindTexture(command.shader, command.texture);
+            BindTexture(command.material.shader, command.texture);
             Enable(EnableCap.Lighting, command.lighting);
             Enable(EnableCap.DepthTest, command.depthTest);
             OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);

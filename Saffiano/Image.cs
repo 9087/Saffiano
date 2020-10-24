@@ -7,7 +7,7 @@
 
         public Sprite sprite { get; set; } = null;
 
-        public Material material { get; set; } = new BasicMaterial();
+        public Material material { get; set; } = new Content.Material.Basic();
 
         internal override Command CreateCommand(RectTransform rectTransform)
         {
@@ -33,7 +33,7 @@
                 depthTest = false,
                 lighting = false,
                 blend = true,
-                shader = material.shader,
+                material = material,
             };
         }
     }

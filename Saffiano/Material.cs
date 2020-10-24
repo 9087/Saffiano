@@ -18,6 +18,20 @@ namespace Saffiano
     {
     }
 
+    public class Uniform
+    {
+        public PropertyInfo propertyInfo { get; private set; }
+
+        public string name => propertyInfo.Name;
+
+        public Type type => propertyInfo.PropertyType;
+
+        public Uniform(PropertyInfo propertyInfo)
+        {
+            this.propertyInfo = propertyInfo;
+        }
+    }
+
     public class AttributeAttribute : Attribute
     {
         public uint location { get; private set; }
@@ -36,7 +50,7 @@ namespace Saffiano
         {
         }
 
-        public Material(string vertexShaderFilePath, string fragmentShaderFilePath)
+        public Material(string vertexShaderFilePath, string fragmentShaderFilePath) : this()
         {
             shader = GPUProgram.LoadFromFile(vertexShaderFilePath, fragmentShaderFilePath);
         }
@@ -368,12 +382,15 @@ namespace Saffiano
             return true;
         }
 
-        public string Compile(MethodReference methodReference)
+        public string Compile(MethodReference methodReference, out List<Uniform> uniforms)
         {
             if (methodReference == null)
             {
+                uniforms = null;
                 return null;
             }
+
+            uniforms = new List<Uniform>();
 
             writer.Flush();
 
@@ -392,6 +409,7 @@ namespace Saffiano
                     continue;
                 }
                 WriteLine(Format("uniform {0} {1};", property.PropertyType, property.Name));
+                uniforms.Add(new Uniform(property));
             }
 
             // Method parameters
@@ -419,9 +437,11 @@ namespace Saffiano
 
             // Method body
 
+            // Reference: ECMA-335
+            // http://www.ecma-international.org/publications/standards/Ecma-335.htm
+
             foreach (var instruction in methodDefinition.Body.Instructions)
             {
-                Console.WriteLine(instruction);
                 if (instruction.OpCode == OpCodes.Nop)
                 {
                     // nop – no operation.
@@ -551,7 +571,7 @@ namespace Saffiano
                 }
                 else if (instruction.OpCode == OpCodes.Add)
                 {
-                    // sub - Subtract value2 from value1, returning a new value.
+                    // add - Add two values, returning a new value.
                     var value2 = Pop();
                     var value1 = Pop();
                     Push(Format("({0} + {1})", value1, value2), value1.type);
@@ -588,15 +608,28 @@ namespace Saffiano
         }
     }
     
+    internal class ShaderSourceData
+    {
+        public Dictionary<ShaderType, string> codes { get; private set; }
+
+        public HashSet<Uniform> uniforms { get; private set; }
+
+        public ShaderSourceData()
+        {
+            codes = new Dictionary<ShaderType, string>();
+            uniforms = new HashSet<Uniform>();
+        }
+    }
+
     public class ScriptingMaterial : Material
     {
-        internal static Dictionary<Type, Dictionary<ShaderType, string>> ShaderCache = new Dictionary<Type, Dictionary<ShaderType, string>>();
+        internal static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
 
         public ScriptingMaterial()
         {
             var type = this.GetType();
             Build(type);
-            shader = new GPUProgram(ShaderCache[type][ShaderType.VertexShader], ShaderCache[type][ShaderType.FragmentShader]);
+            shader = new GPUProgram(ShaderSourceCache[type].codes[ShaderType.VertexShader], ShaderSourceCache[type].codes[ShaderType.FragmentShader]);
         }
 
         internal static void Prebuild()
@@ -621,7 +654,7 @@ namespace Saffiano
 
         internal static void Build(Type type)
         {
-            if (ShaderCache.ContainsKey(type))
+            if (ShaderSourceCache.ContainsKey(type))
             {
                 return;
             }
@@ -632,22 +665,18 @@ namespace Saffiano
                 return;
             }
 
-            // vertex shader
-            var vertexShaderMethodReference = type.GetTypeDefinition().FindMethod("VertexShader");
-            string vertexShaderSource = new IntermediateLanguageCompiler().Compile(vertexShaderMethodReference);
-
-            // fragment shader
-            var frahmentShaderMethodReference = type.GetTypeDefinition().FindMethod("FragmentShader");
-            string fragmentShaderSource = new IntermediateLanguageCompiler().Compile(frahmentShaderMethodReference);
-
-            // add into cache
-            ShaderCache.Add(type, new Dictionary<ShaderType, string>()
+            ShaderSourceData shaderSourceData = new ShaderSourceData();
+            foreach (ShaderType shaderType in typeof(ShaderType).GetEnumValues())
             {
-                { ShaderType.VertexShader, vertexShaderSource },
-                { ShaderType.FragmentShader, fragmentShaderSource },
-            });
-
-            Debug.LogFormat("Material {0}\nVertex Shader:\n{1}Fragment Shader:\n{2}", type.FullName, vertexShaderSource, fragmentShaderSource);
+                var methodReference = type.GetTypeDefinition().FindMethod(shaderType.ToString());
+                string source = new IntermediateLanguageCompiler().Compile(methodReference, out var uniformList);
+                shaderSourceData.codes[shaderType] = source;
+                foreach (var uniform in uniformList)
+                {
+                    shaderSourceData.uniforms.Add(uniform);
+                }
+            }
+            ShaderSourceCache.Add(type, shaderSourceData);
         }
 
         [Shader(OpenGL: "texture({0}, {1})")]

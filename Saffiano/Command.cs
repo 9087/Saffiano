@@ -16,7 +16,7 @@
 
         public bool blend { get; set; } = false;
 
-        public GPUProgram shader { get; set; } = null;
+        public Material material { get; set; } = null;
 
         public Command()
         {

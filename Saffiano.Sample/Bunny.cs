@@ -7,7 +7,7 @@ namespace Saffiano.Sample
         void Update()
         {
             var angle = this.transform.localRotation.eulerAngles;
-            this.transform.localRotation = Quaternion.Euler(angle.x, angle.y + 1, angle.z);
+            this.transform.localRotation = Quaternion.Euler(angle.x, angle.y + 60 * Time.deltaTime, angle.z);
         }
     }
 
