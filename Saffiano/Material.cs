@@ -18,7 +18,7 @@ namespace Saffiano
     {
     }
 
-    public class Uniform
+    public class Uniform : IEquatable<Uniform>
     {
         public PropertyInfo propertyInfo { get; private set; }
 
@@ -29,6 +29,11 @@ namespace Saffiano
         public Uniform(PropertyInfo propertyInfo)
         {
             this.propertyInfo = propertyInfo;
+        }
+
+        public bool Equals(Uniform other)
+        {
+            return this.propertyInfo == other.propertyInfo;
         }
     }
 
@@ -122,6 +127,7 @@ namespace Saffiano
     internal class IntermediateLanguageCompiler
     {
         private TextWriter writer = new StringWriter();
+        private HashSet<Uniform> uniforms = null;
 
         class LocalVariable
         {
@@ -330,6 +336,15 @@ namespace Saffiano
                     {
                         // property defined in ScriptingMaterial(uniform type)
                         Push(propertyDefinition.Name, propertyDefinition.PropertyType);
+                        var propertyInfo = propertyDefinition.DeclaringType.GetRuntimeType().GetProperty(propertyDefinition.Name);
+                        if (propertyInfo.GetCustomAttribute<UniformAttribute>() != null)
+                        {
+                            this.uniforms.Add(new Uniform(propertyInfo));
+                        }
+                        else
+                        {
+                            throw new Exception("uncertain material property get behaviour");
+                        }
                     }
                     else
                     {
@@ -397,15 +412,16 @@ namespace Saffiano
             return true;
         }
 
-        public string Compile(MethodReference methodReference, out List<Uniform> uniforms)
+        public string Compile(MethodReference methodReference, out List<Uniform> uniformList)
         {
             if (methodReference == null)
             {
-                uniforms = null;
+                uniformList = null;
                 return null;
             }
 
-            uniforms = new List<Uniform>();
+            // used uniforms
+            this.uniforms = new HashSet<Uniform>();
 
             writer.Flush();
 
@@ -415,40 +431,6 @@ namespace Saffiano
             var methodInfo = methodDefinition.GetMethodInfo();
 
             WriteLine("#version 330 core");
-            var properties = type.GetProperties();
-            foreach (var property in properties)
-            {
-                var attributes = property.GetCustomAttributes(typeof(UniformAttribute), true);
-                if (attributes.Length == 0)
-                {
-                    continue;
-                }
-                WriteLine(Format("uniform {0} {1};", property.PropertyType, property.Name));
-                uniforms.Add(new Uniform(property));
-            }
-
-            // Method parameters
-            var parameterInfos = methodInfo.GetParameters();
-            foreach (var parameterInfo in parameterInfos)
-            {
-                if (parameterInfo.IsIn)
-                {
-                    var attributes = parameterInfo.GetCustomAttributes(typeof(AttributeAttribute), true);
-                    if (attributes.Length == 1)
-                    {
-                        var attribute = attributes[0] as AttributeAttribute;
-                        WriteLine(Format("layout (location = {0}) in {1} {2};", attribute.location, parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
-                    }
-                    else
-                    {
-                        WriteLine(Format("in {0} {1};", parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
-                    }
-                }
-                if (parameterInfo.IsOut)
-                {
-                    WriteLine(Format("out {0} {1};", parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
-                }
-            }
 
             // Method body
 
@@ -610,6 +592,35 @@ namespace Saffiano
                 }
             }
 
+            var properties = type.GetProperties();
+            foreach (var uniform in this.uniforms)
+            {
+                WriteLine(Format("uniform {0} {1};", uniform.propertyInfo.PropertyType, uniform.propertyInfo.Name));
+            }
+
+            // Method parameters
+            var parameterInfos = methodInfo.GetParameters();
+            foreach (var parameterInfo in parameterInfos)
+            {
+                if (parameterInfo.IsIn)
+                {
+                    var attributes = parameterInfo.GetCustomAttributes(typeof(AttributeAttribute), true);
+                    if (attributes.Length == 1)
+                    {
+                        var attribute = attributes[0] as AttributeAttribute;
+                        WriteLine(Format("layout (location = {0}) in {1} {2};", attribute.location, parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
+                    }
+                    else
+                    {
+                        WriteLine(Format("in {0} {1};", parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
+                    }
+                }
+                if (parameterInfo.IsOut)
+                {
+                    WriteLine(Format("out {0} {1};", parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
+                }
+            }
+
             WriteLine("void main() {");
 
             foreach (var @object in stack.Reverse())
@@ -618,6 +629,9 @@ namespace Saffiano
             }
 
             WriteLine("}");
+
+            uniformList = this.uniforms.ToList();
+            this.uniforms = null;
 
             return writer.ToString();
         }
