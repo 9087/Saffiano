@@ -5,6 +5,22 @@ namespace Saffiano
 {
     public sealed class Debug
     {
+        private enum LogType
+        {
+            Info = ConsoleColor.White,
+            Warning = ConsoleColor.DarkYellow,
+            Error = ConsoleColor.Red,
+        }
+
+        private static void WriteLineInternal(LogType logType, object message)
+        {
+            ConsoleColor old = Console.ForegroundColor;
+            Console.ForegroundColor = (ConsoleColor)logType;
+            string head = string.Format("{0} {1,7} {2,-7} ", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff"), Time.frameCount, logType.ToString().ToUpper());
+            Console.WriteLine("{0}{1}", head, message.ToString().Replace("\n", "\n" + head));
+            Console.ForegroundColor = old;
+        }
+
         public static void LogFormat(String message, params object[] objects)
         {
             Log(string.Format(message, objects));
@@ -12,7 +28,7 @@ namespace Saffiano
 
         public static void Log(object message)
         {
-            Console.WriteLine("[LOG] {0}", message);
+            WriteLineInternal(LogType.Info, message);
         }
 
         public static void LogErrorFormat(String message, params object[] objects)
@@ -22,7 +38,7 @@ namespace Saffiano
 
         public static void LogError(object message)
         {
-            Console.WriteLine("[ERROR] {0}", message);
+            WriteLineInternal(LogType.Error, message);
             throw new Exception(message.ToString());
         }
 
@@ -33,7 +49,7 @@ namespace Saffiano
 
         public static void LogWarning(object message)
         {
-            Console.WriteLine("[WARNING] {0}", message);
+            WriteLineInternal(LogType.Warning, message);
         }
 
         public static void LogException(Exception exception)
