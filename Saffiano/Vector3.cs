@@ -141,6 +141,7 @@ namespace Saffiano
 
         public Vector3 normalized
         {
+            [Shader(OpenGL: "normalize({0})")]
             get
             {
                 float _magnitude = this.magnitude;
@@ -159,11 +160,13 @@ namespace Saffiano
             return MathF.Acos(dot) * Mathf.Rad2Deg;
         }
 
+        [Shader(OpenGL: "cross({0}, {1})")]
         public static Vector3 Cross(Vector3 lhs, Vector3 rhs)
         {
             return new Vector3(lhs.y * rhs.z - rhs.y * lhs.z, rhs.x * lhs.z - lhs.x * rhs.z, lhs.x * rhs.y - rhs.x * lhs.y);
         }
 
+        [Shader(OpenGL: "dot({0}, {1})")]
         public static float Dot(Vector3 lhs, Vector3 rhs)
         {
             return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
@@ -197,31 +200,37 @@ namespace Saffiano
             return String.Format("({0}, {1}, {2})", this.x, this.y, this.z);
         }
 
+        [Shader(OpenGL: "({0} + {1})")]
         public static Vector3 operator +(Vector3 a, Vector3 b)
         {
             return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
         }
 
+        [Shader(OpenGL: "(-{0})")]
         public static Vector3 operator -(Vector3 a)
         {
             return new Vector3(-a.x, -a.y, -a.z);
         }
 
+        [Shader(OpenGL: "({0} - {1})")]
         public static Vector3 operator -(Vector3 a, Vector3 b)
         {
             return new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
         }
 
+        [Shader(OpenGL: "({0} * {1})")]
         public static Vector3 operator *(Vector3 a, float d)
         {
             return new Vector3(a.x * d, a.y * d, a.z * d);
         }
 
+        [Shader(OpenGL: "({0} * {1})")]
         public static Vector3 operator *(float d, Vector3 a)
         {
             return new Vector3(d * a.x, d * a.y, d * a.z);
         }
 
+        [Shader(OpenGL: "({0} / {1})")]
         public static Vector3 operator /(Vector3 a, float d)
         {
             return new Vector3(a.x / d, a.y / d, a.z / d);

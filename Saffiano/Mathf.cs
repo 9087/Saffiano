@@ -48,6 +48,7 @@ namespace Saffiano
             return MathF.Sign(f);
         }
 
+        [Shader(OpenGL: "max({0}, {1})")]
         public static float Max(float x, float y)
         {
             return MathF.Max(x, y);

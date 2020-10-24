@@ -7,7 +7,7 @@
 
         public Sprite sprite { get; set; } = null;
 
-        public Material material { get; set; } = new DefaultGraphicMaterial();
+        public Material material { get; set; } = new BasicMaterial();
 
         internal override Command CreateCommand(RectTransform rectTransform)
         {

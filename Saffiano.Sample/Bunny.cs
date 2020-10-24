@@ -2,6 +2,15 @@
 
 namespace Saffiano.Sample
 {
+    public class Rotating : Behaviour
+    {
+        void Update()
+        {
+            var angle = this.transform.localRotation.eulerAngles;
+            this.transform.localRotation = Quaternion.Euler(angle.x, angle.y + 1, angle.z);
+        }
+    }
+
     public class Bunny : ScriptingPrefab
     {
         public override void Construct(GameObject gameObject)
@@ -31,6 +40,7 @@ namespace Saffiano.Sample
             lod2.transform.parent = gameObject.transform;
             lods.Add(new LOD(0.10f, new Renderer[] { lod2.GetComponent<Renderer>() }));
             gameObject.AddComponent<LODGroup>().SetLODs(lods.ToArray());
+            gameObject.AddComponent<Rotating>();
         }
     }
 }

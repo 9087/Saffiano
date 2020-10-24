@@ -515,7 +515,7 @@ namespace Saffiano
             return String.Format("({0}, {1}, {2}, {3})", this.GetRow(0), this.GetRow(1), this.GetRow(2), this.GetRow(3));
         }
 
-        [Shader(OpenGL: "{0} * {1}")]
+        [Shader(OpenGL: "({0} * {1})")]
         public static Matrix4x4 operator *(Matrix4x4 lhs, Matrix4x4 rhs)
         {
             Matrix4x4 matrix = new Matrix4x4();
@@ -538,7 +538,7 @@ namespace Saffiano
             return matrix;
         }
 
-        [Shader(OpenGL: "{0} * {1}")]
+        [Shader(OpenGL: "({0} * {1})")]
         public static Vector4 operator *(Matrix4x4 lhs, Vector4 v)
         {
             return new Vector4(
@@ -549,7 +549,7 @@ namespace Saffiano
             );
         }
 
-        [Shader(OpenGL: "{0} * {1}")]
+        [Shader(OpenGL: "({0} * {1})")]
         public static Matrix4x4 operator *(Matrix4x4 lhs, float f)
         {
             Matrix4x4 matrix = new Matrix4x4();
@@ -560,7 +560,7 @@ namespace Saffiano
             return matrix;
         }
 
-        [Shader(OpenGL: "{0} / {1}")]
+        [Shader(OpenGL: "({0} / {1})")]
         public static Matrix4x4 operator /(Matrix4x4 lhs, float f)
         {
             return lhs * (1.0f / f);

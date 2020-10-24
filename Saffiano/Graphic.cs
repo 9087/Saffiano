@@ -1,6 +1,6 @@
 ﻿namespace Saffiano
 {
-    public class DefaultGraphicMaterial : ScriptingMaterial
+    public class BasicMaterial : ScriptingMaterial
     {
         [Uniform]
         public Matrix4x4 u_MVP { get; set; }

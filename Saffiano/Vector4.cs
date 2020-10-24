@@ -18,6 +18,8 @@ namespace Saffiano
             this.w = w;
         }
 
+        public Vector3 xyz => new Vector3(x, y, z);
+
         public Vector4(Vector3 v, float w) : this(v.x, v.y, v.z, w)
         {
         }

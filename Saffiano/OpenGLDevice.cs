@@ -328,6 +328,7 @@ namespace Saffiano
 
             Matrix4x4 mvp = command.projection * command.transform;
             Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.shader).program, "u_MVP"), true, mvp.ToArray());
+            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.shader).program, "u_MV"), true, command.transform.ToArray());
             
             var mesh = command.mesh;
             BindVertex(mesh);
