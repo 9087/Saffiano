@@ -44,7 +44,7 @@ namespace Saffiano
 
     public class Material
     {
-        public GPUProgram shader { get; protected set; }
+        internal GPUProgram shader { get; set; }
 
         protected Material()
         {
@@ -100,6 +100,22 @@ namespace Saffiano
                 return declaringType.GetConstructor(all, null, parameterTypes, null);
             }
             return declaringType.GetMethod(methodReference.Name, all, null, parameterTypes, null);
+        }
+
+        public static PropertyDefinition FindPropertyDefinitionIncludeAncestors(this TypeDefinition typeDefinition, string name)
+        {
+            while (typeDefinition != null)
+            {
+                foreach (var property in typeDefinition.Properties)
+                {
+                    if (property.Name == name)
+                    {
+                        return property;
+                    }
+                }
+                typeDefinition = typeDefinition.BaseType.Resolve();
+            }
+            return null;
         }
     }
 
@@ -305,8 +321,7 @@ namespace Saffiano
                 var propertyName = methodName.Substring("get_".Length);
                 var element = Pop();
                 var typeDefinition = element.type as TypeDefinition;
-                var propertyDefinition = typeDefinition.Properties.First((x) => x.Name == propertyName);
-
+                var propertyDefinition = typeDefinition.FindPropertyDefinitionIncludeAncestors(propertyName);
 
                 if (propertyDefinition != null && methodReference.Parameters.Count() == 0 && methodReference.HasThis)
                 {
@@ -624,6 +639,15 @@ namespace Saffiano
     public class ScriptingMaterial : Material
     {
         internal static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
+
+        [Uniform]
+        public Matrix4x4 mvp { get; set; }
+
+        [Uniform]
+        public Matrix4x4 mv { get; set; }
+
+        [Uniform]
+        public Texture texture { get; set; }
 
         public ScriptingMaterial()
         {

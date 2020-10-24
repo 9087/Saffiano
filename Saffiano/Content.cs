@@ -4,12 +4,6 @@
     {
         public class Basic : ScriptingMaterial
         {
-            [Uniform]
-            public Matrix4x4 mvp { get; set; }
-
-            [Uniform]
-            public Texture texture { get; set; }
-
             void VertexShader(
                 [Attribute(location: 0)] in Vector3 a_position,
                 [Attribute(location: 1)] in Vector3 a_normal,
@@ -33,12 +27,6 @@
 
         public class Lambert : ScriptingMaterial
         {
-            [Uniform]
-            public Matrix4x4 mvp { get; set; }
-
-            [Uniform]
-            public Matrix4x4 mv { get; set; }
-
             void VertexShader(
                 [Attribute(location: 0)] in Vector3 a_position,
                 [Attribute(location: 1)] in Vector3 a_normal,
