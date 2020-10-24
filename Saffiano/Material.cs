@@ -670,7 +670,8 @@ namespace Saffiano
             {
                 var methodReference = type.GetTypeDefinition().FindMethod(shaderType.ToString());
                 string source = new IntermediateLanguageCompiler().Compile(methodReference, out var uniformList);
-                shaderSourceData.codes[shaderType] = source;
+                var description = string.Format("// {0} generated from {1}\n", shaderType.ToString(), type.FullName);
+                shaderSourceData.codes[shaderType] = description + source;
                 foreach (var uniform in uniformList)
                 {
                     shaderSourceData.uniforms.Add(uniform);
