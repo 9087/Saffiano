@@ -203,7 +203,7 @@ namespace Saffiano
 
         private Element Peek()
         {
-            return stack.Peek();
+            return stack.Count > 0 ? stack.Peek() : null;
         }
 
         private List<Element> Pop(int count)
@@ -334,7 +334,7 @@ namespace Saffiano
                     // call property getter
                     if (typeof(ScriptingMaterial).IsAssignableFrom(typeDefinition.GetRuntimeType()))
                     {
-                        // property defined in ScriptingMaterial(uniform type)
+                        // uniform type is defined as a property in ScriptingMaterial
                         Push(propertyDefinition.Name, propertyDefinition.PropertyType);
                         var propertyInfo = propertyDefinition.DeclaringType.GetRuntimeType().GetProperty(propertyDefinition.Name);
                         if (propertyInfo.GetCustomAttribute<UniformAttribute>() != null)
@@ -366,10 +366,12 @@ namespace Saffiano
                     return true;
                 }
             }
-            var s = Format(OnCompilingMethod(methodReference), Pop(methodReference.Parameters.Count()).ToArray());
+            var md = methodReference.Resolve();
+            var s = Format(OnCompilingMethod(methodReference), Pop(methodReference.Parameters.Count() + (methodReference.HasThis && !md.IsConstructor ? 1 : 0)).ToArray());
             if (methodReference.Resolve().IsConstructor)
             {
-                if (Peek().@object is LocalVariable)
+                var peek = Peek();
+                if (peek != null && peek.@object is LocalVariable)
                 {
                     var element = Pop();
                     Push(Format("{0} {1} = {2}", methodReference.DeclaringType, element.@object, s), methodReference.ReturnType);
@@ -479,6 +481,14 @@ namespace Saffiano
                 else if (instruction.OpCode == OpCodes.Call)
                 {
                     // call – call a method.
+                    if (!MakeMethodCall(instruction.Operand as MethodReference))
+                    {
+                        throw new NotImplementedException(string.Format("Unknown method call: {0}", instruction.Operand));
+                    }
+                }
+                else if (instruction.OpCode == OpCodes.Callvirt)
+                {
+                    // callvirt method - Call a method associated with an object.
                     if (!MakeMethodCall(instruction.Operand as MethodReference))
                     {
                         throw new NotImplementedException(string.Format("Unknown method call: {0}", instruction.Operand));
@@ -716,12 +726,6 @@ namespace Saffiano
                 }
             }
             ShaderSourceCache.Add(type, shaderSourceData);
-        }
-
-        [Shader(OpenGL: "texture({0}, {1})")]
-        public static Vector4 TextureSample(Texture texture, Vector2 uv)
-        {
-            throw new NotImplementedException();
         }
     }
 }

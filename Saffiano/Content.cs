@@ -21,7 +21,7 @@
                 out Vector4 color
             )
             {
-                color = TextureSample(texture, v_texcoord);
+                color = texture.Sample(v_texcoord);
             }
         }
 
