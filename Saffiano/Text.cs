@@ -107,7 +107,7 @@ namespace Saffiano
                 projection = Rendering.projection,
                 transform = rectTransform.ToRenderingMatrix(Rendering.device.coordinateSystem),
                 mesh = mesh,
-                texture = Font.atlas,
+                mainTexture = Font.atlas,
                 depthTest = false,
                 lighting = false,
                 blend = true,

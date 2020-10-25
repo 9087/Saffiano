@@ -29,7 +29,7 @@
                 projection = Rendering.projection,
                 transform = rectTransform.ToRenderingMatrix(Rendering.device.coordinateSystem),
                 mesh = this.mesh,
-                texture = this.sprite.texture,
+                mainTexture = this.sprite.texture,
                 depthTest = false,
                 lighting = false,
                 blend = true,

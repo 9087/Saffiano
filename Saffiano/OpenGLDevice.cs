@@ -218,7 +218,6 @@ namespace Saffiano
             if (this.glContext != IntPtr.Zero)
                 throw new InvalidOperationException("context already created");
 
-
             if ((this.glContext = this.deviceContext.CreateContext(IntPtr.Zero)) == IntPtr.Zero)
                 throw new InvalidOperationException("unable to create render context");
 
@@ -309,16 +308,17 @@ namespace Saffiano
             requestedMeshes.Add(mesh);
         }
 
-        private void BindTexture(Texture texture)
+        private bool BindTexture(int index, Texture texture)
         {
             if (texture == null)
             {
                 Gl.BindTexture(TextureTarget.Texture2d, 0);
-                return;
+                return false;
             }
-            Gl.ActiveTexture(TextureUnit.Texture0);
+            Gl.ActiveTexture((TextureUnit)((int)TextureUnit.Texture0 + index));
             Gl.BindTexture(TextureTarget.Texture2d, textureCache.TryRegister(texture));
             requestedTextures.Add(texture);
+            return true;
         }
 
         private void Enable(EnableCap cap, bool value)
@@ -333,7 +333,7 @@ namespace Saffiano
             }
         }
 
-        private void SetProgramUniform(uint program, Uniform uniform, object value)
+        private void SetProgramUniform(uint program, Uniform uniform, object value, object extra)
         {
             int location = Gl.GetUniformLocation(program, uniform.name);
             Type t = uniform.propertyInfo.PropertyType;
@@ -343,7 +343,7 @@ namespace Saffiano
                     Gl.UniformMatrix4(location, true, mat.ToArray());
                     break;
                 case Texture texture:
-                    Gl.Uniform1(location, (int)value);
+                    Gl.Uniform1(location, (int)extra);
                     break;
                 case Vector4 vec4:
                     Gl.Uniform4(location, vec4.x, vec4.y, vec4.z, vec4.w);
@@ -372,7 +372,6 @@ namespace Saffiano
         {
             var mesh = command.mesh;
             BindVertex(mesh);
-            BindTexture(command.texture);
             Enable(EnableCap.Lighting, command.lighting);
             Enable(EnableCap.DepthTest, command.depthTest);
             if (command.blend)
@@ -388,11 +387,13 @@ namespace Saffiano
             // apply shader
             var material = command.material;
             var shader = material.shader;
-            Gl.UseProgram(shaderCache.TryRegister(shader).program);
             uint program = shaderCache.TryRegister(shader).program;
+            Gl.UseProgram(program);
+            int textureIndex = 0;
             foreach (var uniform in material.uniforms)
             {
                 object value;
+                object extra = null;
                 switch (uniform.name)
                 {
                     case "mvp":
@@ -401,14 +402,23 @@ namespace Saffiano
                     case "mv":
                         value = command.transform;
                         break;
-                    case "texture":
-                        value = 0;
+                    case "mainTexture":
+                        value = command.mainTexture;
                         break;
                     default:
                         value = uniform.propertyInfo.GetValue(material);
                         break;
                 }
-                SetProgramUniform(program, uniform, value);
+                if (uniform.propertyInfo.PropertyType == typeof(Texture))
+                {
+                    if (!BindTexture(textureIndex, command.mainTexture))
+                    {
+                        continue;
+                    }
+                    extra = textureIndex;
+                    textureIndex++;
+                }
+                SetProgramUniform(program, uniform, value, extra);
             }
 
             // draw

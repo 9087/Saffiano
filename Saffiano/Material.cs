@@ -676,13 +676,13 @@ namespace Saffiano
         }
 
         [Uniform]
-        public Matrix4x4 mvp { get; set; }
+        public Matrix4x4 mvp { get; }
 
         [Uniform]
-        public Matrix4x4 mv { get; set; }
+        public Matrix4x4 mv { get; }
 
         [Uniform]
-        public Texture texture { get; set; }
+        public Texture mainTexture { get; }
 
         public ScriptingMaterial()
         {

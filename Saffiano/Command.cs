@@ -8,7 +8,7 @@
 
         public Mesh mesh { get; set; } = null;
 
-        public Texture texture { get; set; } = null;
+        public Texture mainTexture { get; set; } = null;
 
         public bool lighting { get; set; } = true;
 

@@ -78,7 +78,7 @@ namespace Saffiano
 
         public static void Draw(Command command)
         {
-            if (command != null && command.texture != null && command.texture.atlas != null)
+            if (command != null && command.mainTexture != null && command.mainTexture.atlas != null)
             {
                 throw new NotImplementedException();
             }
