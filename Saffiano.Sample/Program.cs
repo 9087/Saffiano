@@ -10,7 +10,7 @@
             GameObject camera = new GameObject("Camera");
             camera.AddComponent<Transform>();
             camera.AddComponent<Camera>().fieldOfView = 90.0f;
-            camera.transform.localPosition = new Vector3(0, 0, -0.5f);
+            camera.transform.localPosition = new Vector3(0, 0.1f, -0.5f);
 
             // Editor
             GameObject editor = Object.Instantiate(Resources.Load<Editor>()) as GameObject;

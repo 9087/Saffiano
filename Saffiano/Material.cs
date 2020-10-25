@@ -60,16 +60,44 @@ namespace Saffiano
 
     internal static partial class Extension
     {
+        internal static string GetUniformFullName(this TypeDefinition td)
+        {
+            string name = td.Name;
+            while (td.DeclaringType != null)
+            {
+                name = td.DeclaringType.Name + "+" + name;
+                td = td.DeclaringType;
+            }
+            return td.Namespace + "." + name;
+        }
+
         public static TypeDefinition GetTypeDefinition(this Type type)
         {
             var assemblyDefinition = Mono.Cecil.AssemblyDefinition.ReadAssembly(type.Assembly.Location);
-            return assemblyDefinition.MainModule.Types.First((td) => td.Name == type.Name);
+            Queue<TypeDefinition> queue = new Queue<TypeDefinition>();
+            foreach (var t in assemblyDefinition.MainModule.Types)
+            {
+                queue.Enqueue(t);
+            }
+            while (queue.Count != 0)
+            {
+                var t = queue.Dequeue();
+                if (t.Name == type.Name && type.FullName == t.GetUniformFullName())
+                {
+                    return t;
+                }
+                foreach (var nestedType in t.NestedTypes)
+                {
+                    queue.Enqueue(nestedType);
+                }
+            }
+            return null;
         }
 
         public static Type GetRuntimeType(this TypeDefinition typeDefinition)
         {
             var assembly = AppDomain.CurrentDomain.Load(typeDefinition.Module.Assembly.FullName);
-            return assembly.GetType(typeDefinition.FullName);
+            return assembly.GetType(typeDefinition.GetUniformFullName());
         }
 
         public static MethodReference FindMethod(this TypeDefinition typeDefinition, string methodName)
@@ -329,7 +357,7 @@ namespace Saffiano
                 if (propertyDefinition != null && methodReference.Parameters.Count() == 0 && methodReference.HasThis)
                 {
                     // call property getter
-                    if (typeof(ScriptingMaterial).IsAssignableFrom(typeDefinition.GetRuntimeType()))
+                    if (typeof(ScriptableMaterial).IsAssignableFrom(typeDefinition.GetRuntimeType()))
                     {
                         // uniform type is defined as a property in ScriptingMaterial
                         Push(propertyDefinition.Name, propertyDefinition.PropertyType);
@@ -657,7 +685,7 @@ namespace Saffiano
         }
     }
 
-    public class ScriptingMaterial : Material
+    public class ScriptableMaterial : Material
     {
         private static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
 
@@ -684,7 +712,7 @@ namespace Saffiano
         [Uniform]
         public Texture mainTexture { get; }
 
-        public ScriptingMaterial()
+        public ScriptableMaterial()
         {
             var type = this.GetType();
             Build(type);
@@ -700,11 +728,11 @@ namespace Saffiano
             {
                 foreach (var type in assembly.GetTypes())
                 {
-                    if (!typeof(ScriptingMaterial).IsAssignableFrom(type))
+                    if (!typeof(ScriptableMaterial).IsAssignableFrom(type))
                     {
                         continue;
                     }
-                    if (type == typeof(ScriptingMaterial))
+                    if (type == typeof(ScriptableMaterial))
                     {
                         continue;
                     }
@@ -720,7 +748,7 @@ namespace Saffiano
                 return;
             }
             Debug.LogFormat("Building material {0}", type.FullName);
-            if (!type.IsSubclassOf(typeof(ScriptingMaterial)))
+            if (!type.IsSubclassOf(typeof(ScriptableMaterial)))
             {
                 Debug.LogErrorFormat("Can not build material {0}", type.FullName);
                 return;

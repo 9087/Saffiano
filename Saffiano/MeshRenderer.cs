@@ -4,7 +4,7 @@
     {
         private MeshFilter meshFilter => gameObject.GetComponent<MeshFilter>();
 
-        public Material material { get; set; } = new Content.Material.Lambert();
+        public Material material { get; set; } = new Resources.Default.Material.Lambert();
 
         protected override void OnRender()
         {

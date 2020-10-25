@@ -32,7 +32,7 @@ namespace Saffiano
             }
         }
 
-        public Material material { get; set; } = new Content.Material.Basic();
+        public Material material { get; set; } = new Resources.Default.Material.Basic();
 
         internal override Command CreateCommand(RectTransform rectTransform)
         {

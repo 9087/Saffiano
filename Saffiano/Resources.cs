@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Saffiano
 {
-    public sealed class Resources
+    public sealed partial class Resources
     {
         internal class LoadingIdentity : IEquatable<LoadingIdentity>
         {
@@ -37,7 +37,7 @@ namespace Saffiano
 
         private static List<ResourceRequest> resourceRequests = new List<ResourceRequest>();
         private static Dictionary<string, Type> extensionNames = new Dictionary<string, Type>();
-        private static List<Type> supportedAssetTypes = new List<Type> { typeof(Mesh), typeof(Texture), };
+        private static List<Type> supportedAssetTypes = new List<Type> { typeof(Saffiano.Mesh), typeof(Texture), };
         private static Dictionary<string, LoadingInfo> loadingInfos = new Dictionary<string, LoadingInfo>();
 
         static Resources()
@@ -74,9 +74,9 @@ namespace Saffiano
             return true;
         }
 
-        public static Object Load<T>() where T : ScriptingPrefab, new()
+        public static Object Load<T>() where T : ScriptablePrefab, new()
         {
-            return ScriptingPrefab.Load<T>();
+            return ScriptablePrefab.Load<T>();
         }
 
         public static Asset Load(string path)

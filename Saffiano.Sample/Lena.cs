@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Saffiano.Sample
 {
-    public class Lena : ScriptingPrefab
+    public class Lena : ScriptablePrefab
     {
         public override void Construct(GameObject gameObject)
         {

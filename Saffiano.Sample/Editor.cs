@@ -8,7 +8,7 @@ namespace Saffiano.Sample
     {
         bool viewState = false;
         float translateSpeed = 1.0f;
-        float rotateSpeed = 2.0f;
+        float rotateSpeed = 3.5f;
         Vector3 lastMousePosition;
         Camera targetCamera;
         Text renderStatusText = null;
@@ -72,7 +72,7 @@ namespace Saffiano.Sample
         }
     }
 
-    public class Editor : ScriptingPrefab
+    public class Editor : ScriptablePrefab
     {
         public override void Construct(GameObject gameObject)
         {

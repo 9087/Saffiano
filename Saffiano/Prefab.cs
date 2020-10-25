@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Saffiano
 {
-    public abstract class ScriptingPrefab : Object
+    public abstract class ScriptablePrefab : Object
     {
-        private static Dictionary<Type, ScriptingPrefab> caches = new Dictionary<Type, ScriptingPrefab>();
+        private static Dictionary<Type, ScriptablePrefab> caches = new Dictionary<Type, ScriptablePrefab>();
 
-        internal static GameObject Load<T>() where T : ScriptingPrefab, new()
+        internal static GameObject Load<T>() where T : ScriptablePrefab, new()
         {
             Type type = typeof(T);
             if (!caches.ContainsKey(type))
@@ -19,7 +19,7 @@ namespace Saffiano
 
         private GameObject gameObject = null;
 
-        protected ScriptingPrefab()
+        protected ScriptablePrefab()
         {
             gameObject = new GameObject() { target = Transform.background };
             Construct(gameObject);

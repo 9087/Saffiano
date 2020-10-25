@@ -7,7 +7,7 @@
 
         public Sprite sprite { get; set; } = null;
 
-        public Material material { get; set; } = new Content.Material.Basic();
+        public Material material { get; set; } = new Resources.Default.Material.Basic();
 
         internal override Command CreateCommand(RectTransform rectTransform)
         {
@@ -17,7 +17,7 @@
             }
             if (this.mesh == null || this.rect != rectTransform.rect)
             {
-                this.mesh = Mesh.plane;
+                this.mesh = new Resources.Default.Mesh.Plane();
                 this.rect = rectTransform.rect;
                 mesh.vertices[0] = new Vector3(rect.left, rect.top);
                 mesh.vertices[1] = new Vector3(rect.right, rect.top);
