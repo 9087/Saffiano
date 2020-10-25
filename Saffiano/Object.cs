@@ -7,6 +7,10 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Saffiano
 {
+    internal interface IPrimitive
+    {
+    }
+
     public class Object
     {
         public string name { get; set; } = "Unnamed";
@@ -35,7 +39,7 @@ namespace Saffiano
 
         internal static bool IsPrimitive(Type type)
         {
-            return type.IsPrimitive || type == typeof(string);
+            return type.IsPrimitive || type == typeof(string) || typeof(IPrimitive).IsAssignableFrom(type);
         }
 
         private static GameObject GetGameObject(object obj)

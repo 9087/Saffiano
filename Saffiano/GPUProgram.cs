@@ -1,8 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace Saffiano
 {
-    public class GPUProgram
+    public class GPUProgram : IEquatable<GPUProgram>
     {
         internal string vertexShaderSourceCode
         {
@@ -25,6 +26,11 @@ namespace Saffiano
         {
             this.vertexShaderSourceCode = vertexShaderSourceCode;
             this.fragmentShaderSourceCode = fragmentShaderSourceCode;
+        }
+
+        public bool Equals(GPUProgram other)
+        {
+            return this.vertexShaderSourceCode == other.vertexShaderSourceCode && this.fragmentShaderSourceCode == other.fragmentShaderSourceCode;
         }
 
         public static GPUProgram LoadFromFile(string vertexShaderFilePath, string fragmentShaderFilePath)

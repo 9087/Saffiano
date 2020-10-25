@@ -1,5 +1,8 @@
-﻿namespace Saffiano
+﻿using System;
+
+namespace Saffiano
 {
+    [Shader(OpenGL: "vec4")]
     public struct Color
     {
         public float r;
@@ -17,6 +20,12 @@
             this.g = g;
             this.b = b;
             this.a = a;
+        }
+
+        [Shader(OpenGL: "{0}")]
+        public static explicit operator Color(Vector4 vector4)
+        {
+            return new Color(vector4.x, vector4.y, vector4.z, vector4.w);
         }
     }
 }

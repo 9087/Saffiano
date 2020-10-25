@@ -28,5 +28,47 @@ namespace Saffiano
         {
             return String.Format("({0:F2}, {1:F2}, {2:F2}, {3:F2})", this.x, this.y, this.z, this.w);
         }
+
+        [Shader(OpenGL: "{0}")]
+        public static explicit operator Vector4(Color color)
+        {
+            return new Vector4(color.r, color.g, color.b, color.a);
+        }
+
+        [Shader(OpenGL: "({0} + {1})")]
+        public static Vector4 operator +(Vector4 a, Vector4 b)
+        {
+            return new Vector4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+        }
+
+        [Shader(OpenGL: "(-{0})")]
+        public static Vector4 operator -(Vector4 a)
+        {
+            return new Vector4(-a.x, -a.y, -a.z, -a.w);
+        }
+
+        [Shader(OpenGL: "({0} - {1})")]
+        public static Vector4 operator -(Vector4 a, Vector4 b)
+        {
+            return new Vector4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+        }
+
+        [Shader(OpenGL: "({0} * {1})")]
+        public static Vector4 operator *(Vector4 a, float d)
+        {
+            return new Vector4(a.x * d, a.y * d, a.z * d, a.w * d);
+        }
+
+        [Shader(OpenGL: "({0} * {1})")]
+        public static Vector4 operator *(float d, Vector4 a)
+        {
+            return new Vector4(d * a.x, d * a.y, d * a.z, d * a.w);
+        }
+
+        [Shader(OpenGL: "({0} / {1})")]
+        public static Vector4 operator /(Vector4 a, float d)
+        {
+            return new Vector4(a.x / d, a.y / d, a.z / d, a.w / d);
+        }
     }
 }

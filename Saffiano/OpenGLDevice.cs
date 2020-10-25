@@ -223,8 +223,7 @@ namespace Saffiano
                 throw new InvalidOperationException("unable to create render context");
 
             this.MakeCurrent();
-
-            Gl.ClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            Gl.ClearColor(0.192157f, 0.301961f, 0.474510f, 1.0f);
             Gl.DepthFunc(DepthFunction.Lequal);
 
             Gl.Light(LightName.Light0, LightParameter.Position, new float[] { 1.0f, 1.0f, 1.0f, 0.0f });
@@ -310,18 +309,15 @@ namespace Saffiano
             requestedMeshes.Add(mesh);
         }
 
-        private void BindTexture(GPUProgram shader, Texture texture)
+        private void BindTexture(Texture texture)
         {
             if (texture == null)
             {
                 Gl.BindTexture(TextureTarget.Texture2d, 0);
                 return;
             }
-
             Gl.ActiveTexture(TextureUnit.Texture0);
             Gl.BindTexture(TextureTarget.Texture2d, textureCache.TryRegister(texture));
-            Gl.Uniform1(Gl.GetUniformLocation(shaderCache.TryRegister(shader).program, "texture"), 0);
-
             requestedTextures.Add(texture);
         }
 
@@ -337,21 +333,48 @@ namespace Saffiano
             }
         }
 
+        private void SetProgramUniform(uint program, Uniform uniform, object value)
+        {
+            int location = Gl.GetUniformLocation(program, uniform.name);
+            Type t = uniform.propertyInfo.PropertyType;
+            switch (value)
+            {
+                case Matrix4x4 mat:
+                    Gl.UniformMatrix4(location, true, mat.ToArray());
+                    break;
+                case Texture texture:
+                    Gl.Uniform1(location, (int)value);
+                    break;
+                case Vector4 vec4:
+                    Gl.Uniform4(location, vec4.x, vec4.y, vec4.z, vec4.w);
+                    break;
+                case Color color:
+                    Gl.Uniform4(location, color.r, color.g, color.b, color.a);
+                    break;
+                case Vector3 vec3:
+                    Gl.Uniform3(location, vec3.x, vec3.y, vec3.z);
+                    break;
+                case Vector2 vec2:
+                    Gl.Uniform2(location, vec2.x, vec2.y);
+                    break;
+                case float f:
+                    Gl.Uniform1(location, f);
+                    break;
+                case int i:
+                    Gl.Uniform1(location, i);
+                    break;
+                default:
+                    throw new NotImplementedException(string.Format("uniform type {0} is not implemented.", value.GetType()));
+            }
+        }
+
         public override void Draw(Command command)
         {
-            Gl.UseProgram(shaderCache.TryRegister(command.material.shader).program);
-
-            Matrix4x4 mvp = command.projection * command.transform;
-            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.material.shader).program, "mvp"), true, mvp.ToArray());
-            Gl.UniformMatrix4(Gl.GetUniformLocation(shaderCache.TryRegister(command.material.shader).program, "mv"), true, command.transform.ToArray());
-            
             var mesh = command.mesh;
             BindVertex(mesh);
-            BindTexture(command.material.shader, command.texture);
+            BindTexture(command.texture);
             Enable(EnableCap.Lighting, command.lighting);
             Enable(EnableCap.DepthTest, command.depthTest);
-            OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
-
             if (command.blend)
             {
                 Gl.Enable(EnableCap.Blend);
@@ -361,6 +384,35 @@ namespace Saffiano
             {
                 Gl.Disable(EnableCap.Blend);
             }
+
+            // apply shader
+            var material = command.material;
+            var shader = material.shader;
+            Gl.UseProgram(shaderCache.TryRegister(shader).program);
+            uint program = shaderCache.TryRegister(shader).program;
+            foreach (var uniform in material.uniforms)
+            {
+                object value;
+                switch (uniform.name)
+                {
+                    case "mvp":
+                        value = command.projection * command.transform;
+                        break;
+                    case "mv":
+                        value = command.transform;
+                        break;
+                    case "texture":
+                        value = 0;
+                        break;
+                    default:
+                        value = uniform.propertyInfo.GetValue(material);
+                        break;
+                }
+                SetProgramUniform(program, uniform, value);
+            }
+
+            // draw
+            OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
             Gl.DrawElements(primitiveType, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
 

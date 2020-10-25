@@ -18,7 +18,7 @@ namespace Saffiano
     {
     }
 
-    public class Uniform : IEquatable<Uniform>
+    public class Uniform : IPrimitive, IEquatable<Uniform>
     {
         public PropertyInfo propertyInfo { get; private set; }
 
@@ -47,17 +47,14 @@ namespace Saffiano
         }
     }
 
-    public class Material
+    public abstract class Material
     {
         internal GPUProgram shader { get; set; }
 
+        internal HashSet<Uniform> uniforms { get; set; }
+
         protected Material()
         {
-        }
-
-        public Material(string vertexShaderFilePath, string fragmentShaderFilePath) : this()
-        {
-            shader = GPUProgram.LoadFromFile(vertexShaderFilePath, fragmentShaderFilePath);
         }
     }
 
@@ -662,7 +659,21 @@ namespace Saffiano
 
     public class ScriptingMaterial : Material
     {
-        internal static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
+        private static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
+
+        internal static ShaderSourceData GetShaderSourceData(Type type)
+        {
+            if (ShaderSourceCache.TryGetValue(type, out var data))
+            {
+                return data;
+            }
+            return null;
+        }
+
+        internal static void SetShaderSourceData(Type type, ShaderSourceData shaderSourceData)
+        {
+            ShaderSourceCache[type] = shaderSourceData;
+        }
 
         [Uniform]
         public Matrix4x4 mvp { get; set; }
@@ -677,7 +688,9 @@ namespace Saffiano
         {
             var type = this.GetType();
             Build(type);
-            shader = new GPUProgram(ShaderSourceCache[type].codes[ShaderType.VertexShader], ShaderSourceCache[type].codes[ShaderType.FragmentShader]);
+            var shaderSourceData = GetShaderSourceData(type);
+            shader = new GPUProgram(shaderSourceData.codes[ShaderType.VertexShader], shaderSourceData.codes[ShaderType.FragmentShader]);
+            uniforms = shaderSourceData.uniforms;
         }
 
         internal static void Prebuild()
@@ -702,7 +715,7 @@ namespace Saffiano
 
         internal static void Build(Type type)
         {
-            if (ShaderSourceCache.ContainsKey(type))
+            if (GetShaderSourceData(type) != null)
             {
                 return;
             }
@@ -725,7 +738,7 @@ namespace Saffiano
                     shaderSourceData.uniforms.Add(uniform);
                 }
             }
-            ShaderSourceCache.Add(type, shaderSourceData);
+            SetShaderSourceData(type, shaderSourceData);
         }
     }
 }
