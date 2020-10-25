@@ -7,7 +7,7 @@ namespace Saffiano
     {
         private enum LogType
         {
-            Info = ConsoleColor.White,
+            Info = ConsoleColor.Gray,
             Warning = ConsoleColor.DarkYellow,
             Error = ConsoleColor.Red,
         }
@@ -54,7 +54,7 @@ namespace Saffiano
 
         public static void LogException(Exception exception)
         {
-            Console.WriteLine(string.Format("{0}\n{1}", exception.ToString(), exception.StackTrace));
+            WriteLineInternal(LogType.Error, string.Format("{0}\n{1}", exception.ToString(), exception.StackTrace));
         }
 
         public static void LogException(TargetInvocationException tie)
