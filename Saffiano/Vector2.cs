@@ -50,11 +50,13 @@ namespace Saffiano
 
         public static Vector2 zero => new Vector2(0, 0);
 
+        [Shader(OpenGL: "({0} + {1})")]
         public static Vector2 operator+(Vector2 a, Vector2 b)
         {
             return new Vector2(a.x + b.x, a.y + b.y);
         }
 
+        [Shader(OpenGL: "({0} - {1})")]
         public static Vector2 operator-(Vector2 a, Vector2 b)
         {
             return new Vector2(a.x - b.x, a.y - b.y);

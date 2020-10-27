@@ -35,6 +35,7 @@ namespace Saffiano.Sample
             renderStatus.transform.parent = canvas.transform;
             renderStatus.AddComponent<CanvasRenderer>();
             renderStatusText = renderStatus.AddComponent<Text>();
+            renderStatus.AddComponent<Shadow>();
             renderStatusText.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 22);
         }
 

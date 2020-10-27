@@ -18,6 +18,8 @@ namespace Saffiano
         public uint uvbo { get; internal set; }
 
         public uint ebo { get; internal set; }
+
+        public uint colorbo { get; internal set; }
     }
 
     internal enum GenericVertexAttributeLocation
@@ -25,6 +27,7 @@ namespace Saffiano
         Position = 0,
         Normal = 1,
         TexCoord = 2,
+        Color = 3,
     }
 
     internal class VertexCache : Cache<Mesh, VertexData>
@@ -36,6 +39,7 @@ namespace Saffiano
             vertexData.vao = Gl.GenVertexArray();
             Gl.BindVertexArray(vertexData.vao);
 
+            // vertices
             vertexData.vbo = Gl.GenBuffer();
             if (mesh.vertices != null)
             {
@@ -49,6 +53,7 @@ namespace Saffiano
                 throw new Exception();
             }
 
+            // normals
             vertexData.nbo = Gl.GenBuffer();
             if (mesh.normals != null)
             {
@@ -62,6 +67,7 @@ namespace Saffiano
                 Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.Normal);
             }
 
+            // uv
             vertexData.uvbo = Gl.GenBuffer();
             if (mesh.uv != null)
             {
@@ -73,6 +79,20 @@ namespace Saffiano
             else
             {
                 Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.TexCoord);
+            }
+
+            // color
+            vertexData.colorbo = Gl.GenBuffer();
+            if (mesh.colors != null)
+            {
+                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.Color);
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.colorbo);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Color)) * mesh.colors.Length), mesh.colors, BufferUsage.StaticDraw);
+                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.Color, 4, VertexAttribType.Float, false, 0, IntPtr.Zero);
+            }
+            else
+            {
+                Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.Color);
             }
 
             vertexData.ebo = Gl.GenBuffer();
@@ -90,7 +110,7 @@ namespace Saffiano
 
         protected override void OnUnregister(Mesh mesh)
         {
-            Gl.DeleteBuffers(this[mesh].vbo, this[mesh].nbo, this[mesh].uvbo, this[mesh].ebo);
+            Gl.DeleteBuffers(this[mesh].vbo, this[mesh].nbo, this[mesh].uvbo, this[mesh].ebo, this[mesh].colorbo);
             Gl.DeleteVertexArrays(this[mesh].vao);
         }
     }

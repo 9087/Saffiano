@@ -6,25 +6,31 @@ namespace Saffiano
 {
     public class Mesh : Asset, IDisposable
     {
-        internal Vector3[] vertices
+        public Vector3[] vertices
         {
             get;
             set;
         }
 
-        internal Vector3[] normals
+        public Vector3[] normals
         {
             get;
             set;
         }
 
-        internal Vector2[] uv
+        public Vector2[] uv
         {
             get;
             set;
         }
 
-        internal uint[] indices
+        public uint[] indices
+        {
+            get;
+            set;
+        }
+
+        public Color[] colors
         {
             get;
             set;

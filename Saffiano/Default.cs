@@ -12,20 +12,24 @@
                         [Attribute(location: 0)] in Vector3 a_position,
                         [Attribute(location: 1)] in Vector3 a_normal,
                         [Attribute(location: 2)] in Vector2 a_texcoord,
+                        [Attribute(location: 3)] in Color a_color,
                         out Vector4 gl_Position,
-                        out Vector2 v_texcoord
+                        out Vector2 v_texcoord,
+                        out Color v_color
                     )
                     {
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
                         v_texcoord = a_texcoord;
+                        v_color = a_color;
                     }
 
                     void FragmentShader(
                         in Vector2 v_texcoord,
-                        out Vector4 color
+                        in Color v_color,
+                        out Color color
                     )
                     {
-                        color = mainTexture.Sample(v_texcoord);
+                        color = (Color)((Vector4)mainTexture.Sample(v_texcoord) * (Vector4)v_color);
                     }
                 }
 
@@ -69,6 +73,7 @@
                         vertices = new Vector3[] { new Vector3(-1, 0, 1), new Vector3(1, 0, 1), new Vector3(1, 0, -1), new Vector3(-1, 0, -1), };
                         indices = new uint[] { 0, 1, 2, 2, 3, 0, };
                         uv = new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0), new Vector2(0, 0), };
+                        colors = new Color[] { new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1) };
                         primitiveType = PrimitiveType.Triangles;
                         normals = RecalculateNormals();
                     }

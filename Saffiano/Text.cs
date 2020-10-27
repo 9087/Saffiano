@@ -8,7 +8,6 @@ namespace Saffiano
         private string _text = string.Empty;
         private Font _font = null;
         private Rect rect;
-        private Mesh mesh = null;
 
         public virtual string text
         {
@@ -51,10 +50,10 @@ namespace Saffiano
             if (dirty)
             {
                 this.rect = rectTransform.rect;
-                mesh = new Mesh() { primitiveType = PrimitiveType.Quads, };
                 List<Vector3> vertices = new List<Vector3>();
                 List<uint> indices = new List<uint>();
                 List<Vector2> uv = new List<Vector2>();
+                List<Color> colors = new List<Color>();
                 Vector2 current = Vector2.zero;
                 Vector2 offset = new Vector2(rect.x, rect.y);
                 uint index = 0;
@@ -94,12 +93,26 @@ namespace Saffiano
                     indices.Add(index * 4 + 2);
                     indices.Add(index * 4 + 3);
 
+                    colors.Add(new Color(1, 1, 1, 1));
+                    colors.Add(new Color(1, 1, 1, 1));
+                    colors.Add(new Color(1, 1, 1, 1));
+                    colors.Add(new Color(1, 1, 1, 1));
+
                     index += 1;
                     current.x += characterInfo.advance.x;
                 }
-                mesh.vertices = vertices.ToArray();
-                mesh.indices = indices.ToArray();
-                mesh.uv = uv.ToArray();
+                mesh = new Mesh()
+                {
+                    primitiveType = PrimitiveType.Quads,
+                    vertices = vertices.ToArray(),
+                    indices = indices.ToArray(),
+                    uv = uv.ToArray(),
+                    colors = colors.ToArray()
+                };
+                foreach (var modifier in this.GetComponents<BaseMeshEffect>())
+                {
+                    modifier.ModifyMesh(this.mesh);
+                }
                 dirty = false;
             }
             return new Command()

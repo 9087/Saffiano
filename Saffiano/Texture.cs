@@ -196,7 +196,7 @@ namespace Saffiano
         }
 
         [Shader(OpenGL: "texture({0}, {1})")]
-        public Vector4 Sample(Vector2 coordinate)
+        public Color Sample(Vector2 coordinate)
         {
             throw new Exception("this method is just defined for scripting material call");
         }

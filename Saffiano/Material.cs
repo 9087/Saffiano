@@ -18,7 +18,7 @@ namespace Saffiano
     {
     }
 
-    public class Uniform : IPrimitive, IEquatable<Uniform>
+    public class Uniform : IPrimitive
     {
         public PropertyInfo propertyInfo { get; private set; }
 
@@ -31,9 +31,18 @@ namespace Saffiano
             this.propertyInfo = propertyInfo;
         }
 
-        public bool Equals(Uniform other)
+        public override bool Equals(object obj)
         {
-            return this.propertyInfo == other.propertyInfo;
+            if (!(obj is Uniform))
+            {
+                return false;
+            }
+            return this.propertyInfo == (obj as Uniform).propertyInfo;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.propertyInfo.GetHashCode();
         }
     }
 
