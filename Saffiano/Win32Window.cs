@@ -910,7 +910,7 @@ namespace Saffiano
         {
             if (!virtualKeyToKeyCodeMap.ContainsKey(virtualKey))
             {
-                Debug.LogErrorFormat("Unknown virtual key detected: {0}", virtualKey);
+                Debug.LogWarningFormat("Unknown virtual key detected: {0}", virtualKey);
                 return;
             }
             this.MouseEvent?.Invoke(new MouseEvent(mouseEventType, virtualKeyToKeyCodeMap[virtualKey]));
@@ -922,7 +922,7 @@ namespace Saffiano
         {
             if (!virtualKeyToKeyCodeMap.ContainsKey(virtualKey))
             {
-                Debug.LogErrorFormat("Unknown virtual key detected: {0}", virtualKey);
+                Debug.LogWarningFormat("Unknown virtual key detected: {0}", virtualKey);
                 return;
             }
             this.KeyboradEvent?.Invoke(new KeyboardEvent(keyboradEventType, virtualKeyToKeyCodeMap[virtualKey]));

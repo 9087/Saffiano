@@ -5,10 +5,10 @@ using System.Reflection;
 
 namespace Saffiano
 {
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     internal class FileFormatAttribute : Attribute
     {
     }
-
     
     public class Asset : Object
     {

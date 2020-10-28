@@ -1,23 +1,80 @@
 ﻿using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Saffiano
 {
+    internal class MeshAttributeData
+    {
+        public Type itemType { get; set; }
+
+        private PropertyInfo lengthGetter;
+
+        private PropertyInfo arrayGetter;
+
+        public AttributeType attributeType { get; set; }
+
+        public object GetArray(Mesh mesh)
+        {
+            return arrayGetter.GetValue(mesh);
+        }
+
+        public int GetArrayLength(object array)
+        {
+            return (int)lengthGetter.GetValue(array);
+        }
+
+        public static MeshAttributeData Create(PropertyInfo property)
+        {
+            AttributeAttribute attributeAttribute = property.GetCustomAttribute<AttributeAttribute>();
+            if (attributeAttribute == null)
+            {
+                return null;
+            }
+            var propertyType = property.PropertyType;
+            Type itemType = propertyType.GetInterface(typeof(IEnumerable<>).FullName).GenericTypeArguments[0];
+            return new MeshAttributeData()
+            {
+                itemType = itemType,
+                arrayGetter = property,
+                lengthGetter = propertyType.GetProperty("Length"),
+                attributeType = attributeAttribute.type,
+            };
+        }
+    }
+
     public class Mesh : Asset, IDisposable
     {
+        internal static List<MeshAttributeData> attributeDatas = new List<MeshAttributeData>();
+
+        static Mesh()
+        {
+            foreach (var property in typeof(Mesh).GetProperties())
+            {
+                var data = MeshAttributeData.Create(property);
+                if (data != null)
+                {
+                    attributeDatas.Add(data);
+                }
+            }
+        }
+
+        [Attribute(AttributeType.Position)]
         public Vector3[] vertices
         {
             get;
             set;
         }
 
+        [Attribute(AttributeType.Normal)]
         public Vector3[] normals
         {
             get;
             set;
         }
-
+        
+        [Attribute(AttributeType.TexCoord)]
         public Vector2[] uv
         {
             get;
@@ -30,6 +87,7 @@ namespace Saffiano
             set;
         }
 
+        [Attribute(AttributeType.Color)]
         public Color[] colors
         {
             get;

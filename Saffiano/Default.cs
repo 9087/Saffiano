@@ -9,10 +9,10 @@
                 public class Basic : ScriptableMaterial
                 {
                     void VertexShader(
-                        [Attribute(location: 0)] in Vector3 a_position,
-                        [Attribute(location: 1)] in Vector3 a_normal,
-                        [Attribute(location: 2)] in Vector2 a_texcoord,
-                        [Attribute(location: 3)] in Color a_color,
+                        [Attribute(AttributeType.Position)] in Vector3 a_position,
+                        [Attribute(AttributeType.Normal)] in Vector3 a_normal,
+                        [Attribute(AttributeType.TexCoord)] in Vector2 a_texcoord,
+                        [Attribute(AttributeType.Color)] in Color a_color,
                         out Vector4 gl_Position,
                         out Vector2 v_texcoord,
                         out Color v_color
@@ -42,9 +42,9 @@
                     public Color directionLightColor { get; set; } = new Color(1, 0.956863f, 0.839216f);
 
                     void VertexShader(
-                        [Attribute(location: 0)] in Vector3 a_position,
-                        [Attribute(location: 1)] in Vector3 a_normal,
-                        [Attribute(location: 2)] in Vector2 a_texcoord,
+                        [Attribute(AttributeType.Position)] in Vector3 a_position,
+                        [Attribute(AttributeType.Normal)] in Vector3 a_normal,
+                        [Attribute(AttributeType.TexCoord)] in Vector2 a_texcoord,
                         out Vector4 gl_Position,
                         out Color a_color
                     )

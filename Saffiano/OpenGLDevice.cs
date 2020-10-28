@@ -1,6 +1,8 @@
 ﻿using OpenGL;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,27 +13,23 @@ namespace Saffiano
     {
         public uint vao { get; internal set; }
 
-        public uint vbo { get; internal set; }
-
-        public uint nbo { get; internal set; }
-
-        public uint uvbo { get; internal set; }
-
         public uint ebo { get; internal set; }
 
-        public uint colorbo { get; internal set; }
-    }
-
-    internal enum GenericVertexAttributeLocation
-    {
-        Position = 0,
-        Normal = 1,
-        TexCoord = 2,
-        Color = 3,
+        public Dictionary<AttributeType, uint> buffers { get; internal set; } = new Dictionary<AttributeType, uint>();
     }
 
     internal class VertexCache : Cache<Mesh, VertexData>
     {
+        private uint CreateAndInitializeVertexAttribArray<T>(AttributeType location, T[] array)
+        {
+            uint buffer = Gl.GenBuffer();
+            Gl.EnableVertexAttribArray((uint)location);
+            Gl.BindBuffer(BufferTarget.ArrayBuffer, buffer);
+            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(T)) * array.Length), array, BufferUsage.StaticDraw);
+            Gl.VertexAttribPointer((uint)location, Marshal.SizeOf(typeof(T)) / Marshal.SizeOf(typeof(float)), VertexAttribType.Float, false, 0, IntPtr.Zero);
+            return buffer;
+        }
+
         protected override VertexData OnRegister(Mesh mesh)
         {
             VertexData vertexData = new VertexData();
@@ -39,67 +37,28 @@ namespace Saffiano
             vertexData.vao = Gl.GenVertexArray();
             Gl.BindVertexArray(vertexData.vao);
 
-            // vertices
-            vertexData.vbo = Gl.GenBuffer();
-            if (mesh.vertices != null)
-            {
-                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.Position);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.vbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.vertices.Length), mesh.vertices, BufferUsage.StaticDraw);
-                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.Position, 3, VertexAttribType.Float, false, 0, IntPtr.Zero);
-            }
-            else
+            if (mesh.vertices == null || mesh.indices == null)
             {
                 throw new Exception();
             }
 
-            // normals
-            vertexData.nbo = Gl.GenBuffer();
-            if (mesh.normals != null)
+            foreach (var attributeData in Mesh.attributeDatas)
             {
-                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.Normal);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.nbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector3)) * mesh.normals.Length), mesh.normals, BufferUsage.StaticDraw);
-                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.Normal, 3, VertexAttribType.Float, false, 0, IntPtr.Zero);
-            }
-            else
-            {
-                Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.Normal);
-            }
-
-            // uv
-            vertexData.uvbo = Gl.GenBuffer();
-            if (mesh.uv != null)
-            {
-                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.TexCoord);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.uvbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Vector2)) * mesh.uv.Length), mesh.uv, BufferUsage.StaticDraw);
-                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.TexCoord, 2, VertexAttribType.Float, false, 0, IntPtr.Zero);
-            }
-            else
-            {
-                Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.TexCoord);
-            }
-
-            // color
-            vertexData.colorbo = Gl.GenBuffer();
-            if (mesh.colors != null)
-            {
-                Gl.EnableVertexAttribArray((uint)GenericVertexAttributeLocation.Color);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, vertexData.colorbo);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(Color)) * mesh.colors.Length), mesh.colors, BufferUsage.StaticDraw);
-                Gl.VertexAttribPointer((uint)GenericVertexAttributeLocation.Color, 4, VertexAttribType.Float, false, 0, IntPtr.Zero);
-            }
-            else
-            {
-                Gl.DisableVertexAttribArray((uint)GenericVertexAttributeLocation.Color);
+                var array = attributeData.GetArray(mesh);
+                if (array == null)
+                {
+                    continue;
+                }
+                uint buffer = Gl.GenBuffer();
+                vertexData.buffers.Add(attributeData.attributeType, buffer);
+                Gl.EnableVertexAttribArray((uint)attributeData.attributeType);
+                Gl.BindBuffer(BufferTarget.ArrayBuffer, buffer);
+                int length = attributeData.GetArrayLength(array);
+                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(attributeData.itemType) * length), array, BufferUsage.StaticDraw);
+                Gl.VertexAttribPointer((uint)attributeData.attributeType, Marshal.SizeOf(attributeData.itemType) / Marshal.SizeOf(typeof(float)), VertexAttribType.Float, false, 0, IntPtr.Zero);
             }
 
             vertexData.ebo = Gl.GenBuffer();
-            if (mesh.indices == null)
-            {
-                throw new Exception();
-            }
             Gl.BindBuffer(BufferTarget.ElementArrayBuffer, vertexData.ebo);
             Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint)(sizeof(uint) * mesh.indices.Length), mesh.indices, BufferUsage.StaticDraw);
 
@@ -110,7 +69,8 @@ namespace Saffiano
 
         protected override void OnUnregister(Mesh mesh)
         {
-            Gl.DeleteBuffers(this[mesh].vbo, this[mesh].nbo, this[mesh].uvbo, this[mesh].ebo, this[mesh].colorbo);
+            Gl.DeleteBuffers(this[mesh].ebo);
+            Gl.DeleteBuffers(this[mesh].buffers.Values.ToArray());
             Gl.DeleteVertexArrays(this[mesh].vao);
         }
     }

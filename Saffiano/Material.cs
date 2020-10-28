@@ -14,6 +14,7 @@ namespace Saffiano
         FragmentShader = 35632,
     }
 
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
     public class UniformAttribute : Attribute
     {
     }
@@ -46,14 +47,23 @@ namespace Saffiano
         }
     }
 
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter, AllowMultiple = false)]
     public class AttributeAttribute : Attribute
     {
-        public uint location { get; private set; }
+        public AttributeType type { get; private set; }
 
-        public AttributeAttribute(uint location)
+        public AttributeAttribute(AttributeType type)
         {
-            this.location = location;
+            this.type = type;
         }
+    }
+
+    public enum AttributeType : uint 
+    {
+        Position = 0,
+        Normal = 1,
+        TexCoord = 2,
+        Color = 3,
     }
 
     public abstract class Material
@@ -652,7 +662,7 @@ namespace Saffiano
                     if (attributes.Length == 1)
                     {
                         var attribute = attributes[0] as AttributeAttribute;
-                        WriteLine(Format("layout (location = {0}) in {1} {2};", attribute.location, parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
+                        WriteLine(Format("layout (location = {0}) in {1} {2};", (uint)attribute.type, parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
                     }
                     else
                     {
