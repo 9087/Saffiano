@@ -48,6 +48,13 @@ namespace Saffiano
             set;
         }
 
+        public int cullingMask { get; set; } = LayerMask.GetMask("Everything");
+
+        internal bool IsCulled(GameObject gameObject)
+        {
+            return 0 == (cullingMask & (1 << gameObject.layer));
+        }
+
         public Matrix4x4 projectionMatrix
         {
             get

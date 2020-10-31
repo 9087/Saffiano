@@ -64,12 +64,15 @@ namespace Saffiano
             base.OnComponentRemoved();
         }
 
-        internal static void Traverse(RectTransform rectTransform)
+        internal static void Traverse(Camera camera, RectTransform rectTransform)
         {
-            rectTransform.GetComponent<CanvasRenderer>()?.Render();
+            if (!camera.IsCulled(rectTransform.gameObject))
+            {
+                rectTransform.GetComponent<CanvasRenderer>()?.Render();
+            }
             foreach (RectTransform child in rectTransform)
             {
-                Traverse(child);
+                Traverse(camera, child);
             }
         }
 
@@ -81,7 +84,7 @@ namespace Saffiano
                 {
                     continue;
                 }
-                Canvas.Render(canvas);
+                Canvas.Render(camera, canvas);
             }
             foreach (var canvas in Canvas.canvases)
             {
@@ -89,11 +92,11 @@ namespace Saffiano
                 {
                     continue;
                 }
-                Canvas.Render(canvas);
+                Canvas.Render(camera, canvas);
             }
         }
 
-        private static void Render(Canvas canvas)
+        private static void Render(Camera camera, Canvas canvas)
         {
             if (!canvas.gameObject.activeInHierarchy)
             {
@@ -101,7 +104,7 @@ namespace Saffiano
             }
             var size = Window.GetSize();
             Rendering.PushProjection(Matrix4x4.Scaled(new Vector3(1.0f / (int)(size.x / 2), 1.0f / (int)(size.y / 2), 0)));
-            Traverse(canvas.rectTransform);
+            Traverse(camera, canvas.rectTransform);
             Rendering.PopProjection();
         }
 

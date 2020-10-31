@@ -16,5 +16,11 @@
                 Rendering.Draw(command);
             }
         }
+
+        internal override void OnComponentAdded(GameObject gameObject)
+        {
+            gameObject.layer = LayerMask.NameToLayer("UI");
+            base.OnComponentAdded(gameObject);
+        }
     }
 }

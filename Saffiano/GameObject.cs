@@ -15,6 +15,8 @@ namespace Saffiano
 
         public bool activeInHierarchy { get; private set; } = false;
 
+        public int layer { get; set; } = LayerMask.NameToLayer("Default");
+
         public void SetActive(bool active)
         {
             if (this.activeSelf == active)

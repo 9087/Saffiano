@@ -38,13 +38,10 @@ namespace Saffiano
         {
             device = new OpenGLDevice(Window.window);
             Window.Resized += OnWindowResized;
-            Vector2 size = Window.GetSize();
-            device.SetViewport(new Viewport() { width = (uint)size.x, height = (uint)size.y, });
         }
 
         private static void OnWindowResized(Vector2 size)
         {
-            device.SetViewport(new Viewport() { width = (uint)size.x, height = (uint)size.y, });
         }
 
         private static void Uninitialize()
@@ -56,8 +53,11 @@ namespace Saffiano
 
         private static void Traverse(Camera camera, Transform transform)
         {
-            transform.GetComponent<LODGroup>()?.Update(camera.transform.position);
-            transform.GetComponent<MeshRenderer>()?.Render();
+            if (!camera.IsCulled(transform.gameObject))
+            {
+                transform.GetComponent<LODGroup>()?.Update(camera.transform.position);
+                transform.GetComponent<MeshRenderer>()?.Render();
+            }
             foreach (Transform child in transform)
             {
                 Traverse(camera, child);
@@ -69,6 +69,16 @@ namespace Saffiano
             device.Start();
             foreach (var camera in Camera.allCameras)
             {
+                Vector2 size;
+                if (camera.TargetTexture == null)
+                {
+                    size = Window.GetSize();
+                }
+                else
+                {
+                    size = new Vector2(camera.TargetTexture.width, camera.TargetTexture.height);
+                }
+                device.SetViewport(new Viewport() { width = (uint)size.x, height = (uint)size.y, });
                 device.BeginScene(camera.TargetTexture);
                 device.Clear();
                 PushProjection(camera.projectionMatrix * camera.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));

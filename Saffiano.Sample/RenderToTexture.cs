@@ -11,10 +11,11 @@ namespace Saffiano.Sample
             GameObject camera = new GameObject("Camera");
             camera.AddComponent<Transform>();
             camera.AddComponent<Camera>().fieldOfView = 90.0f;
-            camera.transform.localPosition = new Vector3(0, 0.5f, -0.25f);
+            camera.transform.localPosition = new Vector3(0, 0.1f, -0.75f);
 
             RenderTexture rt = new RenderTexture(255, 255);
             camera.GetComponent<Camera>().TargetTexture = rt;
+            camera.GetComponent<Camera>().cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
 
             gameObject.AddComponent<RectTransform>();
             gameObject.AddComponent<Canvas>();
