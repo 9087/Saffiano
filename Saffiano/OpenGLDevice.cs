@@ -139,7 +139,49 @@ namespace Saffiano
 
         protected override void OnUnregister(GPUProgram key)
         {
-            throw new NotImplementedException();
+            Gl.DeleteShader(this[key].vs);
+            Gl.DeleteShader(this[key].fs);
+            Gl.DeleteProgram(this[key].program);
+        }
+    }
+
+    internal class FrameBufferData
+    {
+        public RenderTexture renderTexture { get; private set; } = null;
+
+        public FrameBufferData(RenderTexture renderTexture)
+        {
+            this.renderTexture = renderTexture;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is FrameBufferData))
+            {
+                return false;
+            }
+            return this.renderTexture == (obj as FrameBufferData).renderTexture;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.renderTexture.GetHashCode();
+        }
+    }
+
+    internal class FrameBufferCache : Cache<FrameBufferData, uint>
+    {
+        protected override uint OnRegister(FrameBufferData key)
+        {
+            uint frameBuffer = Gl.CreateFramebuffer();
+            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+            Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, (device as OpenGLDevice).textureCache.TryRegister(key.renderTexture), 0);
+            return frameBuffer;
+        }
+
+        protected override void OnUnregister(FrameBufferData key)
+        {
+            Gl.DeleteFramebuffers(this[key]);
         }
     }
 
@@ -148,13 +190,11 @@ namespace Saffiano
         private DeviceContext deviceContext;
         private IntPtr glContext;
 
-        private HashSet<Mesh> requestedMeshes = new HashSet<Mesh>();
-        VertexCache vertexCache = new VertexCache();
-
-        private HashSet<Texture> requestedTextures = new HashSet<Texture>();
-        TextureCache textureCache = new TextureCache();
-
-        internal GPUProgramCache shaderCache = new GPUProgramCache();
+        internal List<IDeperactedClean> caches = new List<IDeperactedClean>();
+        internal VertexCache vertexCache;
+        internal TextureCache textureCache;
+        internal GPUProgramCache shaderCache;
+        internal FrameBufferCache frameBufferCache;
 
         public override CoordinateSystems coordinateSystem => CoordinateSystems.RightHand;
 
@@ -163,8 +203,26 @@ namespace Saffiano
             Gl.Initialize();
         }
 
+        private T CreateCache<T>() where T : IDeperactedClean, new()
+        {
+            var cache = new T();
+            cache.SetDevice(this);
+            caches.Add(cache);
+            return cache;
+        }
+
+        private void InitializeCache()
+        {
+            vertexCache = CreateCache<VertexCache>();
+            textureCache = CreateCache<TextureCache>();
+            shaderCache = CreateCache<GPUProgramCache>();
+            frameBufferCache = CreateCache<FrameBufferCache>();
+        }
+
         public OpenGLDevice(Win32Window window)
         {
+            InitializeCache();
+
             this.deviceContext = DeviceContext.Create(IntPtr.Zero, window.handle);
             this.deviceContext.IncRef();
 
@@ -249,18 +307,22 @@ namespace Saffiano
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-        public override void BeginScene()
+        public override void BeginScene(RenderTexture renderTexture)
         {
             MakeCurrent();
-            requestedMeshes.Clear();
-            requestedTextures.Clear();
+            if (renderTexture is null)
+            {
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            }
+            else
+            {
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferCache.TryRegister(new FrameBufferData(renderTexture)));
+            }
         }
 
         public override void EndScene()
         {
-            SwapBuffers();
             Gl.Flush();
-            vertexCache.Keep(requestedMeshes);
         }
 
         public override void SetViewport(Viewport viewport)
@@ -285,7 +347,6 @@ namespace Saffiano
         private void BindVertex(Mesh mesh)
         {
             Gl.BindVertexArray(vertexCache.TryRegister(mesh).vao);
-            requestedMeshes.Add(mesh);
         }
 
         private bool BindTexture(int index, Texture texture)
@@ -297,7 +358,6 @@ namespace Saffiano
             }
             Gl.ActiveTexture((TextureUnit)((int)TextureUnit.Texture0 + index));
             Gl.BindTexture(TextureTarget.Texture2d, textureCache.TryRegister(texture));
-            requestedTextures.Add(texture);
             return true;
         }
 
@@ -414,6 +474,17 @@ namespace Saffiano
             }
             Gl.BindTexture(TextureTarget.Texture2d, textureID);
             Gl.TexSubImage2D(TextureTarget.Texture2d, 0, (int)x, (int)y, (int)blockWidth, (int)blockHeight, PixelFormat.Rgba, PixelType.Float, pixels);
+        }
+
+        public override void Start()
+        {
+            caches.ForEach((x) => x.Start());
+        }
+
+        public override void End()
+        {
+            caches.ForEach((x) => x.End());
+            SwapBuffers();
         }
     }
 }

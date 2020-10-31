@@ -69,9 +69,9 @@ namespace Saffiano
             throw new NotImplementedException();
         }
 
-        internal void Update(Camera camera)
+        internal void Update(Vector3 position)
         {
-            var ratio = 1.0f / (camera.transform.position - transform.position).magnitude;
+            var ratio = 1.0f / (position - transform.position).magnitude;
             LOD current = LOD.culled;
             foreach (var lod in lods)
             {

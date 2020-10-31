@@ -54,25 +54,30 @@ namespace Saffiano
             device = null;
         }
 
-        private static void Traverse(Transform transform)
+        private static void Traverse(Camera camera, Transform transform)
         {
-            transform.GetComponent<LODGroup>()?.Update(Camera.main);
+            transform.GetComponent<LODGroup>()?.Update(camera.transform.position);
             transform.GetComponent<MeshRenderer>()?.Render();
             foreach (Transform child in transform)
             {
-                Traverse(child);
+                Traverse(camera, child);
             }
         }
 
         private static bool Update()
         {
-            device.BeginScene();
-            device.Clear();
-            PushProjection(Camera.main.projectionMatrix * Camera.main.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));
-            Traverse(Transform.scene);
-            PopProjection();
-            Canvas.Render(Camera.main);
-            device.EndScene();
+            device.Start();
+            foreach (var camera in Camera.allCameras)
+            {
+                device.BeginScene(camera.TargetTexture);
+                device.Clear();
+                PushProjection(camera.projectionMatrix * camera.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));
+                Traverse(camera, Transform.scene);
+                PopProjection();
+                Canvas.Render(camera);
+                device.EndScene();
+            }
+            device.End();
             return true;
         }
 

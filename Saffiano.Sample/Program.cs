@@ -21,6 +21,9 @@
             // Bunny
             GameObject bunny = Object.Instantiate(Resources.Load<Bunny>()) as GameObject;
 
+            // RenderToTexture
+            GameObject renderToTexture = Object.Instantiate(Resources.Load<RenderToTexture>()) as GameObject;
+
             Application.Run();
             Application.Uninitialize();
         }

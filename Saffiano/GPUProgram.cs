@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Saffiano
 {
-    public class GPUProgram : IEquatable<GPUProgram>
+    public class GPUProgram
     {
         internal string vertexShaderSourceCode
         {
@@ -28,9 +28,19 @@ namespace Saffiano
             this.fragmentShaderSourceCode = fragmentShaderSourceCode;
         }
 
-        public bool Equals(GPUProgram other)
+        public override bool Equals(object other)
         {
-            return this.vertexShaderSourceCode == other.vertexShaderSourceCode && this.fragmentShaderSourceCode == other.fragmentShaderSourceCode;
+            if (!(other is GPUProgram))
+            {
+                return false;
+            }
+            var otherGPUProgram = other as GPUProgram;
+            return this.vertexShaderSourceCode == otherGPUProgram.vertexShaderSourceCode && this.fragmentShaderSourceCode == otherGPUProgram.fragmentShaderSourceCode;
+        }
+
+        public override int GetHashCode()
+        {
+            return this.vertexShaderSourceCode.GetHashCode() ^ this.fragmentShaderSourceCode.GetHashCode();
         }
 
         public static GPUProgram LoadFromFile(string vertexShaderFilePath, string fragmentShaderFilePath)

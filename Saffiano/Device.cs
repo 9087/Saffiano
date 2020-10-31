@@ -55,7 +55,7 @@ namespace Saffiano
             private set;
         }
 
-        public abstract void BeginScene();
+        public abstract void BeginScene(RenderTexture renderTexture);
 
         public abstract void EndScene();
 
@@ -76,5 +76,9 @@ namespace Saffiano
         {
             get;
         }
+
+        public abstract void Start();
+
+        public abstract void End();
     }
 }

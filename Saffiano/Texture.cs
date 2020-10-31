@@ -1,5 +1,6 @@
 ﻿using FreeImageAPI;
 using System;
+using System.Linq;
 
 namespace Saffiano
 {
@@ -97,7 +98,7 @@ namespace Saffiano
         {
             this.width = width;
             this.height = height;
-            this.pixels = new Color[width * height];
+            this.pixels = Enumerable.Repeat(new Color(0, 0, 0), (int)(width * height)).ToArray();
         }
 
         internal Texture(string filePath) : base(filePath)
