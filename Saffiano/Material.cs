@@ -620,6 +620,14 @@ namespace Saffiano
                     var fd = instruction.Operand as FieldDefinition;
                     Push(Format("({0}).{1}", Pop(), fd.Name), fd.FieldType);
                 }
+                else if (instruction.OpCode == OpCodes.Stfld)
+                {
+                    // stfld field - Replace the value of field of the object obj with value.
+                    var value2 = Pop();
+                    var value1 = Pop();
+                    var fd = instruction.Operand as FieldDefinition;
+                    Push(Format("({0}).{1} = {2}", value1, fd.Name, value2), fd.FieldType);
+                }
                 else if (instruction.OpCode == OpCodes.Add)
                 {
                     // add - Add two values, returning a new value.
@@ -780,6 +788,7 @@ namespace Saffiano
                 string source = new IntermediateLanguageCompiler().Compile(methodReference, out var uniformList);
                 var description = string.Format("// {0} generated from {1}\n", shaderType.ToString(), type.FullName);
                 shaderSourceData.codes[shaderType] = description + source;
+                Debug.Log(shaderSourceData.codes[shaderType]);
                 foreach (var uniform in uniformList)
                 {
                     shaderSourceData.uniforms.Add(uniform);

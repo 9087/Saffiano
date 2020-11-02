@@ -51,7 +51,8 @@
                     {
                         Vector3 normal = (mv * new Vector4(a_normal, 1.0f)).xyz.normalized;
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
-                        a_color = (Color)((Vector4)directionLightColor * Mathf.Max(Vector3.Dot(normal, directionLight), 0));
+                        Vector4 color = (Vector4)directionLightColor;
+                        a_color = (Color)new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
                     }
 
                     void FragmentShader(

@@ -11,7 +11,7 @@ namespace Saffiano.Sample
             GameObject camera = new GameObject("Camera");
             camera.AddComponent<Transform>();
             camera.AddComponent<Camera>().fieldOfView = 90.0f;
-            camera.transform.localPosition = new Vector3(0, 0.1f, -0.75f);
+            camera.transform.localPosition = new Vector3(0, 0.1f, -0.5f);
 
             RenderTexture rt = new RenderTexture(255, 255);
             camera.GetComponent<Camera>().TargetTexture = rt;

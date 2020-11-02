@@ -147,20 +147,27 @@ namespace Saffiano
 
     internal class FrameBufferData
     {
+        public uint fbo { get; internal set; }
+
+        public uint depthTexture { get; internal set; }
+    }
+
+    internal class FrameBuffer
+    {
         public RenderTexture renderTexture { get; private set; } = null;
 
-        public FrameBufferData(RenderTexture renderTexture)
+        public FrameBuffer(RenderTexture renderTexture)
         {
             this.renderTexture = renderTexture;
         }
 
         public override bool Equals(object obj)
         {
-            if (!(obj is FrameBufferData))
+            if (!(obj is FrameBuffer))
             {
                 return false;
             }
-            return this.renderTexture == (obj as FrameBufferData).renderTexture;
+            return this.renderTexture == (obj as FrameBuffer).renderTexture;
         }
 
         public override int GetHashCode()
@@ -169,19 +176,24 @@ namespace Saffiano
         }
     }
 
-    internal class FrameBufferCache : Cache<FrameBufferData, uint>
+    internal class FrameBufferCache : Cache<FrameBuffer, FrameBufferData>
     {
-        protected override uint OnRegister(FrameBufferData key)
+        protected override FrameBufferData OnRegister(FrameBuffer key)
         {
-            uint frameBuffer = Gl.CreateFramebuffer();
-            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBuffer);
+            uint fbo = Gl.CreateFramebuffer();
+            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
             Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, (device as OpenGLDevice).textureCache.TryRegister(key.renderTexture), 0);
-            return frameBuffer;
+            uint depthTexture = Gl.GenTexture();
+            Gl.BindTexture(TextureTarget.Texture2d, depthTexture);
+            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.DepthComponent32, (int)key.renderTexture.width, (int)key.renderTexture.height, 0, PixelFormat.DepthComponent, PixelType.Float, 0);
+            Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthTexture, 0);
+            return new FrameBufferData() { fbo = fbo, depthTexture = depthTexture };
         }
 
-        protected override void OnUnregister(FrameBufferData key)
+        protected override void OnUnregister(FrameBuffer key)
         {
-            Gl.DeleteFramebuffers(this[key]);
+            Gl.DeleteTextures(this[key].depthTexture);
+            Gl.DeleteFramebuffers(this[key].fbo);
         }
     }
 
@@ -316,7 +328,7 @@ namespace Saffiano
             }
             else
             {
-                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferCache.TryRegister(new FrameBufferData(renderTexture)));
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferCache.TryRegister(new FrameBuffer(renderTexture)).fbo);
             }
         }
 
@@ -413,7 +425,15 @@ namespace Saffiano
             var mesh = command.mesh;
             BindVertex(mesh);
             Enable(EnableCap.Lighting, command.lighting);
-            Enable(EnableCap.DepthTest, command.depthTest);
+            if (command.depthTest)
+            {
+                Gl.Enable(EnableCap.DepthTest);
+                Gl.DepthFunc(DepthFunction.Less);
+            }
+            else
+            {
+                Gl.Disable(EnableCap.DepthTest);
+            }
             if (command.blend)
             {
                 Gl.Enable(EnableCap.Blend);

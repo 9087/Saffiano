@@ -49,9 +49,51 @@ namespace Saffiano
         }
 
         [Shader(OpenGL: "max({0}, {1})")]
-        public static float Max(float x, float y)
+        public static float Max(float a, float b)
         {
-            return MathF.Max(x, y);
+            return MathF.Max(a, b);
+        }
+
+        [Shader(OpenGL: "max({0}, {1})")]
+        public static Vector2 Max(Vector2 a, Vector2 b)
+        {
+            return new Vector2(MathF.Max(a.x, b.x), MathF.Max(a.y, b.y));
+        }
+
+        [Shader(OpenGL: "max({0}, {1})")]
+        public static Vector3 Max(Vector3 a, Vector3 b)
+        {
+            return new Vector3(MathF.Max(a.x, b.x), MathF.Max(a.y, b.y), MathF.Max(a.z, b.z));
+        }
+
+        [Shader(OpenGL: "max({0}, {1})")]
+        public static Vector4 Max(Vector4 a, Vector4 b)
+        {
+            return new Vector4(MathF.Max(a.x, b.x), MathF.Max(a.y, b.y), MathF.Max(a.z, b.z), MathF.Max(a.w, b.w));
+        }
+
+        [Shader(OpenGL: "min({0}, {1})")]
+        public static float Min(float a, float b)
+        {
+            return MathF.Min(a, b);
+        }
+
+        [Shader(OpenGL: "min({0}, {1})")]
+        public static Vector2 Min(Vector2 a, Vector2 b)
+        {
+            return new Vector2(MathF.Min(a.x, b.x), MathF.Min(a.y, b.y));
+        }
+
+        [Shader(OpenGL: "min({0}, {1})")]
+        public static Vector3 Min(Vector3 a, Vector3 b)
+        {
+            return new Vector3(MathF.Min(a.x, b.x), MathF.Min(a.y, b.y), MathF.Min(a.z, b.z));
+        }
+
+        [Shader(OpenGL: "min({0}, {1})")]
+        public static Vector4 Min(Vector4 a, Vector4 b)
+        {
+            return new Vector4(MathF.Min(a.x, b.x), MathF.Min(a.y, b.y), MathF.Min(a.z, b.z), MathF.Min(a.w, b.w));
         }
     }
 }
