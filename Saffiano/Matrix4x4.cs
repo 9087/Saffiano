@@ -3,12 +3,6 @@ using System.Runtime.InteropServices;
 
 namespace Saffiano
 {
-    internal enum CoordinateSystems
-    {
-        LeftHand,
-        RightHand,
-    }
-
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     [Shader(OpenGL: "mat4")]
     public struct Matrix4x4
@@ -423,37 +417,19 @@ namespace Saffiano
             this = Matrix4x4.Scaled(s) * this;
         }
 
-        internal static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s, CoordinateSystems coordinateSystem)
+        internal static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s)
         {
             Matrix4x4 matrix = new Matrix4x4();
-            matrix.SetTRS(pos, q, s, coordinateSystem);
+            matrix.SetTRS(pos, q, s);
             return matrix;
         }
 
-        public static Matrix4x4 TRS(Vector3 pos, Quaternion q, Vector3 s)
+        internal void SetTRS(Vector3 pos, Quaternion q, Vector3 s)
         {
-            return TRS(pos, q, s, CoordinateSystems.LeftHand);
-        }
-
-        internal void SetTRS(Vector3 pos, Quaternion q, Vector3 s, CoordinateSystems coordinateSystem)
-        {
-
             this = Matrix4x4.identity;
-            if (coordinateSystem == CoordinateSystems.RightHand)
-            {
-                pos = new Vector3(pos.x, pos.y, -pos.z);
-                var eulerAngles = q.eulerAngles;
-                q = Quaternion.Euler(new Vector3(-eulerAngles.x, -eulerAngles.y, eulerAngles.z));
-            }
             this.Scale(s);
             this.Rotate(q);
             this.Translate(pos);
-          
-        }
-
-        public void SetTRS(Vector3 pos, Quaternion q, Vector3 s)
-        {
-            SetTRS(pos, q, s, CoordinateSystems.LeftHand);
         }
 
         public override bool Equals(object obj)

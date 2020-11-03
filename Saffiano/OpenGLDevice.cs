@@ -208,8 +208,6 @@ namespace Saffiano
         internal GPUProgramCache shaderCache;
         internal FrameBufferCache frameBufferCache;
 
-        public override CoordinateSystems coordinateSystem => CoordinateSystems.RightHand;
-
         static OpenGLDevice()
         {
             Gl.Initialize();
@@ -443,6 +441,7 @@ namespace Saffiano
             {
                 Gl.Disable(EnableCap.Blend);
             }
+            Gl.Enable(EnableCap.CullFace);
 
             // apply shader
             var material = command.material;

@@ -126,7 +126,8 @@ namespace Saffiano
             vertices = new Vector3[vertexDatas.Length];
             for (uint i = 0; i < vertexDatas.Length; i++)
             {
-                vertices[i] = new Vector3(vertexDatas[i].x, vertexDatas[i].y, vertexDatas[i].z);
+                // right hand coordinate system?
+                vertices[i] = new Vector3(vertexDatas[i].x, vertexDatas[i].y, -vertexDatas[i].z);
             }
             var faceElement = ply.FindElementByName("face");
             var indicesPropertyName = faceElement.GetPropertyByIndex(0).name;

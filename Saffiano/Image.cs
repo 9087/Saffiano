@@ -19,9 +19,9 @@
                 this.mesh = new Resources.Default.Mesh.Plane();
                 this.rect = rectTransform.rect;
                 mesh.vertices[0] = new Vector3(rect.left, rect.top);
-                mesh.vertices[1] = new Vector3(rect.right, rect.top);
+                mesh.vertices[1] = new Vector3(rect.left, rect.bottom);
                 mesh.vertices[2] = new Vector3(rect.right, rect.bottom);
-                mesh.vertices[3] = new Vector3(rect.left, rect.bottom);
+                mesh.vertices[3] = new Vector3(rect.right, rect.top);
                 foreach (var modifier in this.GetComponents<BaseMeshEffect>())
                 {
                     modifier.ModifyMesh(this.mesh);
@@ -30,7 +30,7 @@
             return new Command()
             {
                 projection = Rendering.projection,
-                transform = rectTransform.ToRenderingMatrix(Rendering.device.coordinateSystem),
+                transform = rectTransform.localToWorldMatrix,
                 mesh = this.mesh,
                 mainTexture = this.sprite.texture,
                 depthTest = false,

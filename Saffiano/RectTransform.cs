@@ -162,16 +162,19 @@ namespace Saffiano
             }
         }
 
-        internal override Matrix4x4 ToRenderingMatrix(CoordinateSystems coordinateSystem)
+        public override Matrix4x4 localToWorldMatrix
         {
-            var canvas = GetComponent<Canvas>();
-            if (canvas == null)
+            get
             {
-                return base.ToRenderingMatrix(coordinateSystem);
-            }
-            else
-            {
-                return canvas.targetCamera.transform.ToRenderingMatrix(coordinateSystem);
+                var canvas = GetComponent<Canvas>();
+                if (canvas == null || canvas.renderMode == RenderMode.WorldSpace)
+                {
+                    return base.localToWorldMatrix;
+                }
+                else
+                {
+                    return canvas.targetCamera.transform.localToWorldMatrix;
+                }
             }
         }
 

@@ -81,7 +81,7 @@ namespace Saffiano
                 device.SetViewport(new Viewport() { width = (uint)size.x, height = (uint)size.y, });
                 device.BeginScene(camera.TargetTexture);
                 device.Clear();
-                PushProjection(camera.projectionMatrix * camera.transform.GenerateWorldToLocalMatrix(device.coordinateSystem));
+                PushProjection(camera.projectionMatrix * camera.worldToCameraMatrix);
                 Traverse(camera, Transform.scene);
                 PopProjection();
                 Canvas.Render(camera);

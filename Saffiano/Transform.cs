@@ -31,7 +31,7 @@ namespace Saffiano
         {
             get
             {
-                var p = matrix * new Vector4(0, 0, 0, 1);
+                var p = localToWorldMatrix * new Vector4(0, 0, 0, 1);
                 return new Vector3(p.x, p.y, p.z);
             }
             set
@@ -57,7 +57,7 @@ namespace Saffiano
                 // Reference: Maths - Conversion Matrix to Quaternion
                 // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
                 // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/christian.htm
-                var matrix = this.matrix;
+                var matrix = this.localToWorldMatrix;
                 var determinant = matrix.determinant;
                 var absQ2 = MathF.Pow(Mathf.Abs(determinant), 1.0f / 3.0f) * Mathf.Sign(determinant);
                 var w = Mathf.Sqrt(Mathf.Max(0, absQ2 + matrix.m00 + matrix.m11 + matrix.m22)) / 2;
@@ -159,24 +159,19 @@ namespace Saffiano
         {
             get
             {
-                return GenerateWorldToLocalMatrix(CoordinateSystems.LeftHand);
+                Matrix4x4 local = Matrix4x4.TRS(localPosition, localRotation, localScale).inverse;
+                if (parent == null)
+                {
+                    return local;
+                }
+                else
+                {
+                    return local * parent.worldToLocalMatrix;
+                }
             }
         }
 
-        internal Matrix4x4 GenerateWorldToLocalMatrix(CoordinateSystems coordinateSystem)
-        {
-            Matrix4x4 local = Matrix4x4.TRS(localPosition, localRotation, localScale, coordinateSystem).inverse;
-            if (parent == null)
-            {
-                return local;
-            }
-            else
-            {
-                return local * parent.GenerateWorldToLocalMatrix(coordinateSystem);
-            }
-        }
-
-        internal Matrix4x4 matrix
+        public virtual Matrix4x4 localToWorldMatrix
         {
             get
             {
@@ -187,7 +182,7 @@ namespace Saffiano
                 }
                 else
                 {
-                    return parent.matrix * local;
+                    return parent.localToWorldMatrix * local;
                 }
             }
         }
@@ -258,11 +253,6 @@ namespace Saffiano
                 transform.gameObject.RequestUpdate();
             }
             return true;
-        }
-
-        internal virtual Matrix4x4 ToRenderingMatrix(CoordinateSystems coordinateSystem)
-        {
-            return Matrix4x4.TRS(position, rotation, scale, coordinateSystem);
         }
 
         public bool IsChildOf(Transform parent)

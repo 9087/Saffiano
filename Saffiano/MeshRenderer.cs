@@ -15,7 +15,7 @@
             var command = new Command()
             {
                 projection = Rendering.projection,
-                transform = transform.ToRenderingMatrix(Rendering.device.coordinateSystem),
+                transform = transform.localToWorldMatrix,
                 mesh = meshFilter.mesh,
                 material = material,
             };

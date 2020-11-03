@@ -26,10 +26,10 @@
                     void FragmentShader(
                         in Vector2 v_texcoord,
                         in Color v_color,
-                        out Color color
+                        out Color f_color
                     )
                     {
-                        color = (Color)((Vector4)mainTexture.Sample(v_texcoord) * (Vector4)v_color);
+                        f_color = (Color)((Vector4)mainTexture.Sample(v_texcoord) * (Vector4)v_color);
                     }
                 }
 
@@ -45,22 +45,23 @@
                         [Attribute(AttributeType.Position)] in Vector3 a_position,
                         [Attribute(AttributeType.Normal)] in Vector3 a_normal,
                         [Attribute(AttributeType.TexCoord)] in Vector2 a_texcoord,
+                        [Attribute(AttributeType.Color)] in Color a_color,
                         out Vector4 gl_Position,
-                        out Color a_color
+                        out Color v_color
                     )
                     {
                         Vector3 normal = (mv * new Vector4(a_normal, 1.0f)).xyz.normalized;
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
                         Vector4 color = (Vector4)directionLightColor;
-                        a_color = (Color)new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
+                        v_color = (Color)new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
                     }
 
                     void FragmentShader(
-                        in Vector4 a_color,
-                        out Vector4 color
+                        in Vector4 v_color,
+                        out Vector4 f_color
                     )
                     {
-                        color = a_color;
+                        f_color = v_color;
                     }
                 }
             }
@@ -71,10 +72,10 @@
                 {
                     public Plane() : base()
                     {
-                        vertices = new Vector3[] { new Vector3(-1, 0, 1), new Vector3(1, 0, 1), new Vector3(1, 0, -1), new Vector3(-1, 0, -1), };
+                        vertices = new Vector3[] { new Vector3(-1, 0, 1), new Vector3(-1, 0, -1), new Vector3(1, 0, -1), new Vector3(1, 0, 1), };
                         indices = new uint[] { 0, 1, 2, 2, 3, 0, };
-                        uv = new Vector2[] { new Vector2(0, 1), new Vector2(1, 1), new Vector2(1, 0), new Vector2(0, 0), };
-                        colors = new Color[] { new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1) };
+                        uv = new Vector2[] { new Vector2(0, 1), new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), };
+                        colors = new Color[] { new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), };
                         primitiveType = PrimitiveType.Triangles;
                         normals = RecalculateNormals();
                     }

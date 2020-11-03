@@ -118,7 +118,7 @@ namespace Saffiano
             return new Command()
             {
                 projection = Rendering.projection,
-                transform = rectTransform.ToRenderingMatrix(Rendering.device.coordinateSystem),
+                transform = rectTransform.localToWorldMatrix,
                 mesh = mesh,
                 mainTexture = Font.atlas,
                 depthTest = false,

@@ -73,7 +73,15 @@ namespace Saffiano
             }
         }
 
-        public Matrix4x4 worldToCameraMatrix => this.transform.worldToLocalMatrix;
+        public Matrix4x4 worldToCameraMatrix
+        {
+            get
+            {
+                Matrix4x4 m = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(1, 1, -1));
+                return m * this.transform.worldToLocalMatrix;
+            }
+                
+        }
 
         public RenderTexture TargetTexture { get; set; } = null;
 
