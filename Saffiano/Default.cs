@@ -36,10 +36,43 @@
                 public class Lambert : ScriptableMaterial
                 {
                     [Uniform]
-                    public Vector3 directionLight { get; set; } = new Vector3(1, 1, 1);
+                    public Vector3 directionLight
+                    {
+                        get
+                        {
+                            if (Light.directionLights.Count == 0)
+                            {
+                                return Vector3.zero;
+                            }
+                            Debug.Assert(Light.directionLights.Count == 1);
+                            var directionLight = Light.directionLights[0];
+                            var lightDirection = directionLight.transform.localToWorldMatrix * new Vector4(Vector3.forward, 1);
+                            return lightDirection.xyz;
+                        }
+                    }
 
                     [Uniform]
-                    public Color directionLightColor { get; set; } = new Color(1, 0.956863f, 0.839216f);
+                    public Color directionLightColor
+                    {
+                        get
+                        {
+                            if (Light.directionLights.Count == 0)
+                            {
+                                return new Color(1, 1, 1, 1);
+                            }
+                            Debug.Assert(Light.directionLights.Count == 1);
+                            return Light.directionLights[0].color;
+                        }
+                    }
+
+                    [Uniform]
+                    public Color ambientColor
+                    {
+                        get
+                        {
+                            return RenderSettings.ambientLight;
+                        }
+                    }
 
                     void VertexShader(
                         [Attribute(AttributeType.Position)] in Vector3 a_position,
@@ -53,7 +86,8 @@
                         Vector3 normal = (mv * new Vector4(a_normal, 1.0f)).xyz.normalized;
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
                         Vector4 color = (Vector4)directionLightColor;
-                        v_color = (Color)new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
+                        var reflection = new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
+                        v_color = (Color)(reflection + (Vector4)(ambientColor));
                     }
 
                     void FragmentShader(

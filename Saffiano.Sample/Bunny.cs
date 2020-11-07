@@ -19,6 +19,11 @@ namespace Saffiano.Sample
             gameObject.AddComponent<Transform>();
             List<LOD> lods = new List<LOD>();
 
+            GameObject light = new GameObject("Light");
+            light.AddComponent<Transform>().localRotation = Quaternion.Euler(50, -30, 0);
+            light.AddComponent<Light>();
+            light.AddComponent<Rotating>();
+
             // LOD0
             GameObject lod0 = new GameObject("Bunny.LOD0");
             lod0.AddComponent<Transform>();

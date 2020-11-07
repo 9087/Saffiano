@@ -12,29 +12,13 @@ namespace Saffiano
             private set;
         }
 
-        public float farClipPlane
-        {
-            set;
-            get;
-        }
+        public float farClipPlane { set; get; } = 1000;
 
-        public float nearClipPlane
-        {
-            get;
-            set;
-        }
+        public float nearClipPlane { get; set; } = 0.01f;
 
-        public float depth
-        {
-            get;
-            set;
-        }
+        public float depth { get; set; } = -1;
 
-        public float fieldOfView
-        {
-            get;
-            set;
-        }
+        public float fieldOfView { get; set; } = 60;
 
         public float orthographicSize
         {
@@ -42,11 +26,7 @@ namespace Saffiano
             set;
         }
 
-        public bool orthographic
-        {
-            get;
-            set;
-        }
+        public bool orthographic { get; set; } = false;
 
         public int cullingMask { get; set; } = LayerMask.GetMask("Everything");
 
@@ -87,11 +67,6 @@ namespace Saffiano
 
         public Camera() : base()
         {
-            orthographic = false;
-            fieldOfView = 60.0f;
-            depth = 0;
-            farClipPlane = 1024;
-            nearClipPlane = 0.1f;
         }
 
         void Awake()

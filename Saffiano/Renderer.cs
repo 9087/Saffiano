@@ -20,7 +20,7 @@ namespace Saffiano
         {
             get
             {
-                return enabled && invisibleType == InvisibleType.Empty;
+                return enabled && invisibleType == InvisibleType.Empty && this.gameObject.activeInHierarchy;
             }
         }
 

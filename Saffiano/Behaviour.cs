@@ -28,6 +28,8 @@ namespace Saffiano
             }
         }
 
+        public bool isActiveAndEnabled => gameObject.activeInHierarchy && enabled;
+
         private void RequestEnableOrDisable()
         {
             var active = gameObject.activeInHierarchy;
