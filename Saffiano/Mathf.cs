@@ -43,6 +43,16 @@ namespace Saffiano
             return MathF.Acos(f);
         }
 
+        public static float Cos(float f)
+        {
+            return MathF.Cos(f);
+        }
+
+        public static float Sin(float f)
+        {
+            return MathF.Sin(f);
+        }
+
         public static float Sign(float f)
         {
             return MathF.Sign(f);

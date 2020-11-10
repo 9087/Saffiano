@@ -70,7 +70,7 @@ namespace Saffiano
 
         public Vector3 scale => new Vector3(1, 1, 1);
 
-        public Vector3 localScale => new Vector3(1, 1, 1);
+        public Vector3 localScale { get; set; } = new Vector3(1, 1, 1);
 
         public Vector3 right => this.rotation * Vector3.right;
 

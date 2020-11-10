@@ -171,7 +171,7 @@ namespace Saffiano
                 Vector3 a = this.vertices[this.indices[i * 3 + 0]];
                 Vector3 b = this.vertices[this.indices[i * 3 + 1]];
                 Vector3 c = this.vertices[this.indices[i * 3 + 2]];
-                Vector3 normal = Vector3.Cross(a - b, a - c);
+                Vector3 normal = Vector3.Cross(a - c, a - b);
                 for (uint j = 0; j < 3; j++)
                 {
                     uint index = this.indices[i * 3 + j];

@@ -58,6 +58,13 @@ namespace Saffiano.Sample
             plane.AddComponent<Transform>();
             plane.AddComponent<MeshFilter>().mesh = new Resources.Default.Mesh.Plane();
             plane.AddComponent<MeshRenderer>();
+
+            // Sphere
+            GameObject sphere = new GameObject("Sphere");
+            sphere.AddComponent<Transform>().localPosition = new Vector3(0.3f, 0.3f, 0);
+            sphere.GetComponent<Transform>().localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            sphere.AddComponent<MeshFilter>().mesh = new Resources.Default.Mesh.Sphere();
+            sphere.AddComponent<MeshRenderer>();
         }
     }
 }
