@@ -179,6 +179,8 @@ namespace Saffiano
 
             public TypeReference type { get; private set; }
 
+            public bool defined { get; set; } = false;
+
             public LocalVariable(string name, TypeReference type)
             {
                 this.name = name;
@@ -203,9 +205,22 @@ namespace Saffiano
             }
             else
             {
-                if (localVariables[index].type != type && type != null)
+                if (type != null)
                 {
-                    throw new Exception();
+                    var ta = localVariables[index].type;
+                    var tb = type;
+                    if (ta.IsByReference && !ta.IsArray)
+                    {
+                        ta = ta.GetElementType();
+                    }
+                    if (tb.IsByReference && !tb.IsArray)
+                    {
+                        tb = ta.GetElementType();
+                    }
+                    if (ta != tb)
+                    {
+                        throw new Exception();
+                    }
                 }
             }
             return localVariables[index];
@@ -264,6 +279,10 @@ namespace Saffiano
         {
             // built-in shader type
             var type = typeReference.Resolve().GetRuntimeType();
+            if (type == typeof(float))
+            {
+                return "float";
+            }
             var shaderAttributes = type.GetCustomAttributes<ShaderAttribute>();
             if (!shaderAttributes.Any())
             {
@@ -370,7 +389,7 @@ namespace Saffiano
             {
                 var propertyName = methodName.Substring("get_".Length);
                 var element = Pop();
-                var typeDefinition = element.type as TypeDefinition;
+                var typeDefinition = element.type.Resolve();
                 var propertyDefinition = typeDefinition.FindPropertyDefinitionIncludeAncestors(propertyName);
 
                 if (propertyDefinition != null && methodReference.Parameters.Count() == 0 && methodReference.HasThis)
@@ -409,6 +428,8 @@ namespace Saffiano
                     }
                     return true;
                 }
+
+                throw new Exception();
             }
             var md = methodReference.Resolve();
             var s = Format(OnCompilingMethod(methodReference), Pop(methodReference.Parameters.Count() + (methodReference.HasThis && !md.IsConstructor ? 1 : 0)).ToArray());
@@ -418,7 +439,8 @@ namespace Saffiano
                 if (peek != null && peek.@object is LocalVariable)
                 {
                     var element = Pop();
-                    Push(Format("{0} {1} = {2}", methodReference.DeclaringType, element.@object, s), methodReference.ReturnType);
+                    var localVariables = element.@object as LocalVariable;
+                    MakeAssignLocalVariable(methodReference.DeclaringType, localVariables, s);
                     return true;
                 }
             }
@@ -454,6 +476,20 @@ namespace Saffiano
             if (value != null)
             {
                 Push(Format("return {0}", Pop()));
+            }
+            return true;
+        }
+
+        private bool MakeAssignLocalVariable(TypeReference type, LocalVariable localVariables, object value)
+        {
+            if (!localVariables.defined)
+            {
+                Push(Format("{0} {1} = {2}", type, localVariables, value));
+                localVariables.defined = true;
+            }
+            else
+            {
+                Push(Format("{0} = {1}", localVariables, value));
             }
             return true;
         }
@@ -588,7 +624,7 @@ namespace Saffiano
                     }
                     var element = Pop();
                     var localVariable = GetLocalVariable((uint)stlocIndex, element.type);
-                    Push(Format("{0} {1} = {2}", localVariable.type, localVariable.name, element.@object));
+                    MakeAssignLocalVariable(localVariable.type, localVariable, element.@object);
                 }
                 else if (
                     instruction.OpCode == OpCodes.Ldloc_0 ||
@@ -610,6 +646,13 @@ namespace Saffiano
                 else if (instruction.OpCode == OpCodes.Ldloca_S)
                 {
                     // ldloca.s indx - Load address of local variable with index indx, short form.
+                    var vd = instruction.Operand as VariableDefinition;
+                    var localVariable = GetLocalVariable((uint)vd.Index, vd.VariableType);
+                    Push(localVariable, vd.VariableType);
+                }
+                else if (instruction.OpCode == OpCodes.Ldloc_S)
+                {
+                    // ldloc.s indx - Load local variable of index indx onto stack, short form.
                     var vd = instruction.Operand as VariableDefinition;
                     var localVariable = GetLocalVariable((uint)vd.Index, vd.VariableType);
                     Push(localVariable, vd.VariableType);

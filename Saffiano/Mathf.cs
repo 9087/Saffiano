@@ -105,5 +105,11 @@ namespace Saffiano
         {
             return new Vector4(MathF.Min(a.x, b.x), MathF.Min(a.y, b.y), MathF.Min(a.z, b.z), MathF.Min(a.w, b.w));
         }
+
+        [Shader(OpenGL: "pow({0}, {1})")]
+        public static float Pow(float x, float y)
+        {
+            return MathF.Pow(x, y);
+        }
     }
 }

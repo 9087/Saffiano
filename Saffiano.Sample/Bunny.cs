@@ -11,12 +11,35 @@ namespace Saffiano.Sample
         }
     }
 
+    public class Keyborad : Behaviour
+    {
+        void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.P))
+            {
+                foreach (var child in this.transform)
+                {
+                    var renderer = child.GetComponent<MeshRenderer>();
+                    if (!(renderer.material is Resources.Default.Material.Phong))
+                    {
+                        renderer.material = new Resources.Default.Material.Phong();
+                    }
+                    else if (renderer.material is Resources.Default.Material.Phong)
+                    {
+                        renderer.material = new Resources.Default.Material.Lambert();
+                    }
+                }
+            }
+        }
+    }
+
     public class Bunny : ScriptablePrefab
     {
         public override void Construct(GameObject gameObject)
         {
             gameObject.name = "Bunny";
             gameObject.AddComponent<Transform>();
+            gameObject.AddComponent<Keyborad>();
             List<LOD> lods = new List<LOD>();
 
             GameObject light = new GameObject("Light");

@@ -16,7 +16,7 @@ namespace Saffiano
     {
     }
 
-    public class Transform : Component, IEnumerable
+    public class Transform : Component, IEnumerable<Transform>
     {
         internal static InternalTransform scene { get; private set; }
 
@@ -233,7 +233,15 @@ namespace Saffiano
             return null;
         }
 
-        public IEnumerator GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            foreach (var child in children)
+            {
+                yield return child;
+            }
+        }
+
+        IEnumerator<Transform> IEnumerable<Transform>.GetEnumerator()
         {
             foreach (var child in children)
             {

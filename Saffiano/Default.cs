@@ -89,8 +89,8 @@ namespace Saffiano
                         Vector3 normal = (mv * new Vector4(a_normal, 0)).xyz.normalized;
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
                         Vector4 color = (Vector4)directionLightColor;
-                        var reflection = new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
-                        v_color = (Color)(reflection + (Vector4)(ambientColor));
+                        var diffuseColor = new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
+                        v_color = (Color)(diffuseColor + (Vector4)(ambientColor));
                     }
 
                     void FragmentShader(
@@ -99,6 +99,46 @@ namespace Saffiano
                     )
                     {
                         f_color = v_color;
+                    }
+                }
+            
+                public class Phong : Lambert
+                {
+                    [Uniform]
+                    public float shininess { get; set; } = 32;
+
+                    void VertexShader(
+                        [Attribute(AttributeType.Position)] in Vector3 a_position,
+                        [Attribute(AttributeType.Normal)] in Vector3 a_normal,
+                        out Vector4 gl_Position,
+                        out Vector4 v_position,
+                        out Vector3 v_normal,
+                        out Color v_diffuseColor
+                    )
+                    {
+                        Vector3 normal = (mv * new Vector4(a_normal, 0)).xyz.normalized;
+                        gl_Position = mvp * new Vector4(a_position, 1.0f);
+                        Vector4 color = (Vector4)directionLightColor;
+                        v_diffuseColor = (Color)new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
+                        v_position = new Vector4(a_position, 1.0f);
+                        v_normal = a_normal;
+                    }
+
+                    void FragmentShader(
+                        in Vector4 v_position,
+                        in Vector3 v_normal,
+                        in Color v_diffuseColor,
+                        out Color f_color
+                    )
+                    {
+                        Vector3 world_normal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
+                        var r = Vector3.Reflect(-directionLight.normalized, world_normal) * Mathf.Max(Vector3.Dot(world_normal, directionLight), 0);
+                        Vector3 world_v_position = (mv * v_position).xyz.normalized;
+                        Vector3 world_camera = (mvp * new Vector4(0, 0, 0, 1)).xyz;
+                        var viewDirection = (world_v_position - world_camera).normalized;
+                        Vector4 color = (Vector4)directionLightColor;
+                        var specularColor = color * Mathf.Pow(Mathf.Max(Vector3.Dot(viewDirection, r), 0), shininess);
+                        f_color = (Color)(new Vector4(specularColor.xyz, 1) * 0.5f + (Vector4)v_diffuseColor * 0.5f);
                     }
                 }
             }
@@ -179,7 +219,6 @@ namespace Saffiano
                             indices.Add(C);
                         }
 
-                        // [(latitudeSize * longitudeSize + 1) * 2 - equatorialSize];
                         int offset = (int)((vertices.Length + equatorialSize) / 2 - equatorialSize);
                         for (uint index = equatorialSize; index < offset + equatorialSize; index++)
                         {

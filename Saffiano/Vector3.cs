@@ -172,6 +172,12 @@ namespace Saffiano
             return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
         }
 
+        [Shader(OpenGL: "reflect({0}, {1})")]
+        public static Vector3 Reflect(Vector3 i, Vector3 n)
+        {
+            return i - 2.0f * Vector3.Dot(n, i) * n;
+        }
+
         public override bool Equals(object obj)
         {
             if (!(obj is Vector3))
