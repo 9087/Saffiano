@@ -48,6 +48,7 @@ namespace Saffiano
 
         public static void Initialize()
         {
+            Environment.CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
             ScriptableMaterial.Prebuild();
             foreach (var system in systems)
             {

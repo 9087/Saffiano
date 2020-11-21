@@ -110,14 +110,14 @@ namespace Saffiano
         private uint Compile(OpenGL.ShaderType shaderType, string source)
         {
             uint shader = Gl.CreateShader(shaderType);
+
             Gl.ShaderSource(shader, new string[] { source });
             Gl.CompileShader(shader);
             Gl.GetShader(shader, ShaderParameterName.CompileStatus, out int success);
-            Gl.GetShader(shader, ShaderParameterName.InfoLogLength, out int length);
             if (success == Gl.FALSE)
             {
                 // compile error
-                Gl.GetShader(shader, ShaderParameterName.ShaderSourceLength, out int sourceLength);
+                Gl.GetShader(shader, ShaderParameterName.InfoLogLength, out int length);
                 StringBuilder logBuilder = new StringBuilder();
                 Gl.GetShaderInfoLog(shader, length, out int _, logBuilder);
                 Debug.LogWarning(string.Format("Shader compilation failed:\n{0}\n{1}", source, logBuilder.ToString()));

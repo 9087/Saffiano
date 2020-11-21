@@ -12,10 +12,10 @@ namespace Saffiano
                 public class Basic : ScriptableMaterial
                 {
                     void VertexShader(
-                        [Attribute(AttributeType.Position)] in Vector3 a_position,
-                        [Attribute(AttributeType.Normal)] in Vector3 a_normal,
-                        [Attribute(AttributeType.TexCoord)] in Vector2 a_texcoord,
-                        [Attribute(AttributeType.Color)] in Color a_color,
+                        [Attribute(AttributeType.Position)] Vector3 a_position,
+                        [Attribute(AttributeType.Normal)] Vector3 a_normal,
+                        [Attribute(AttributeType.TexCoord)] Vector2 a_texcoord,
+                        [Attribute(AttributeType.Color)] Color a_color,
                         out Vector4 gl_Position,
                         out Vector2 v_texcoord,
                         out Color v_color
@@ -27,8 +27,8 @@ namespace Saffiano
                     }
 
                     void FragmentShader(
-                        in Vector2 v_texcoord,
-                        in Color v_color,
+                        Vector2 v_texcoord,
+                        Color v_color,
                         out Color f_color
                     )
                     {
@@ -78,10 +78,10 @@ namespace Saffiano
                     }
 
                     void VertexShader(
-                        [Attribute(AttributeType.Position)] in Vector3 a_position,
-                        [Attribute(AttributeType.Normal)] in Vector3 a_normal,
-                        [Attribute(AttributeType.TexCoord)] in Vector2 a_texcoord,
-                        [Attribute(AttributeType.Color)] in Color a_color,
+                        [Attribute(AttributeType.Position)] Vector3 a_position,
+                        [Attribute(AttributeType.Normal)] Vector3 a_normal,
+                        [Attribute(AttributeType.TexCoord)] Vector2 a_texcoord,
+                        [Attribute(AttributeType.Color)] Color a_color,
                         out Vector4 gl_Position,
                         out Color v_color
                     )
@@ -94,7 +94,7 @@ namespace Saffiano
                     }
 
                     void FragmentShader(
-                        in Vector4 v_color,
+                        Vector4 v_color,
                         out Vector4 f_color
                     )
                     {
@@ -108,8 +108,8 @@ namespace Saffiano
                     public float shininess { get; set; } = 32;
 
                     void VertexShader(
-                        [Attribute(AttributeType.Position)] in Vector3 a_position,
-                        [Attribute(AttributeType.Normal)] in Vector3 a_normal,
+                        [Attribute(AttributeType.Position)] Vector3 a_position,
+                        [Attribute(AttributeType.Normal)] Vector3 a_normal,
                         out Vector4 gl_Position,
                         out Vector4 v_position,
                         out Vector3 v_normal,
@@ -125,9 +125,9 @@ namespace Saffiano
                     }
 
                     void FragmentShader(
-                        in Vector4 v_position,
-                        in Vector3 v_normal,
-                        in Color v_diffuseColor,
+                        Vector4 v_position,
+                        Vector3 v_normal,
+                        Color v_diffuseColor,
                         out Color f_color
                     )
                     {

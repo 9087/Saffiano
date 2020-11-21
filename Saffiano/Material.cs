@@ -707,22 +707,31 @@ namespace Saffiano
             var parameterInfos = methodInfo.GetParameters();
             foreach (var parameterInfo in parameterInfos)
             {
-                if (parameterInfo.IsIn)
+                Type elementType = null;
+                if (parameterInfo.ParameterType.IsByRef)
+                {
+                    elementType = parameterInfo.ParameterType.GetElementType();
+                }
+                else
+                {
+                    elementType = parameterInfo.ParameterType;
+                }
+                if (!parameterInfo.IsOut)
                 {
                     var attributes = parameterInfo.GetCustomAttributes(typeof(AttributeAttribute), true);
                     if (attributes.Length == 1)
                     {
                         var attribute = attributes[0] as AttributeAttribute;
-                        WriteLine(Format("layout (location = {0}) in {1} {2};", (uint)attribute.type, parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
+                        WriteLine(Format("layout (location = {0}) in {1} {2};", (uint)attribute.type, elementType, parameterInfo.Name));
                     }
                     else
                     {
-                        WriteLine(Format("in {0} {1};", parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
+                        WriteLine(Format("in {0} {1};", elementType, parameterInfo.Name));
                     }
                 }
                 if (parameterInfo.IsOut)
                 {
-                    WriteLine(Format("out {0} {1};", parameterInfo.ParameterType.GetElementType(), parameterInfo.Name));
+                    WriteLine(Format("out {0} {1};", elementType, parameterInfo.Name));
                 }
             }
 
