@@ -372,7 +372,14 @@ namespace Saffiano
                 {
                     @object = (value as Element).@object;
                 }
-                list.Add(OnCompilingObject(@object));
+                if (@object is LocalVariable)
+                {
+                    list.Add((@object as LocalVariable).name);
+                }
+                else
+                {
+                    list.Add(OnCompilingObject(@object));
+                }
             }
             return string.Join(separator, list);
         }

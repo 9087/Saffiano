@@ -107,6 +107,9 @@ namespace Saffiano
                     [Uniform]
                     public float shininess { get; set; } = 32;
 
+                    [Uniform]
+                    public Vector3 cameraPosition => Camera.main.transform.position;
+
                     void VertexShader(
                         [Attribute(AttributeType.Position)] Vector3 a_position,
                         [Attribute(AttributeType.Normal)] Vector3 a_normal,
@@ -131,14 +134,14 @@ namespace Saffiano
                         out Color f_color
                     )
                     {
-                        Vector3 world_normal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
-                        var r = Vector3.Reflect(-directionLight.normalized, world_normal) * Mathf.Max(Vector3.Dot(world_normal, directionLight), 0);
-                        Vector3 world_v_position = (mv * v_position).xyz.normalized;
-                        Vector3 world_camera = (mvp * new Vector4(0, 0, 0, 1)).xyz;
-                        var viewDirection = (world_v_position - world_camera).normalized;
+                        Vector3 worldNormal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
+                        var r = Vector3.Reflect(-directionLight.normalized, worldNormal) * Mathf.Max(Vector3.Dot(worldNormal, directionLight), 0);
+                        Vector3 worldPosition = (mv * v_position).xyz;
+                        Vector3 worldCamera = cameraPosition;
+                        var viewDirection = (-worldPosition + worldCamera).normalized;
                         Vector4 color = (Vector4)directionLightColor;
                         var specularColor = color * Mathf.Pow(Mathf.Max(Vector3.Dot(viewDirection, r), 0), shininess);
-                        f_color = (Color)(new Vector4(specularColor.xyz, 1) * 0.5f + (Vector4)v_diffuseColor * 0.5f);
+                        f_color = (Color)(new Vector4(specularColor.xyz, 1) * 0.5f + (Vector4)v_diffuseColor * 0.5f + (Vector4)(ambientColor));
                     }
                 }
             }
