@@ -1,4 +1,6 @@
-﻿namespace Saffiano
+﻿using Saffiano.Rendering;
+
+namespace Saffiano
 {
     public sealed class CanvasRenderer : Renderer
     {
@@ -13,7 +15,7 @@
                 {
                     continue;
                 }
-                Rendering.Draw(command);
+                RenderPipeline.Draw(command);
             }
         }
 

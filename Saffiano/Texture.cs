@@ -1,4 +1,5 @@
 ﻿using FreeImageAPI;
+using Saffiano.Rendering;
 using System;
 using System.Linq;
 
@@ -154,7 +155,7 @@ namespace Saffiano
                 this.pixels = pixels;
                 if (this.registered)
                 {
-                    Rendering.UpdateTexture(this, 0, 0, this.width, this.height, this.pixels);
+                    RenderPipeline.UpdateTexture(this, 0, 0, this.width, this.height, this.pixels);
                 }
             }
         }
@@ -182,7 +183,7 @@ namespace Saffiano
             }
             if (this.registered)
             {
-                Rendering.UpdateTexture(this, x, y, blockWidth, blockHeight, colors);
+                RenderPipeline.UpdateTexture(this, x, y, blockWidth, blockHeight, colors);
             }
         }
 

@@ -1,4 +1,6 @@
-﻿namespace Saffiano
+﻿using Saffiano.FileFormats;
+
+namespace Saffiano
 {
     public class CharacterInfo
     {

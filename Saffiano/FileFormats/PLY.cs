@@ -4,7 +4,7 @@ using System.Dynamic;
 using System.IO;
 using System.Reflection;
 
-namespace Saffiano
+namespace Saffiano.FileFormats
 {
     internal class PLY
     {

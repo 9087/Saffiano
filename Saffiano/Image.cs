@@ -1,4 +1,6 @@
-﻿namespace Saffiano
+﻿using Saffiano.Rendering;
+
+namespace Saffiano
 {
     public sealed class Image : Graphic
     {
@@ -29,7 +31,7 @@
             }
             return new Command()
             {
-                projection = Rendering.projection,
+                projection = RenderPipeline.projection,
                 transform = rectTransform.localToWorldMatrix,
                 mesh = this.mesh,
                 mainTexture = this.sprite.texture,

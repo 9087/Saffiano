@@ -1,4 +1,4 @@
-﻿namespace Saffiano
+﻿namespace Saffiano.FileFormats
 {
     using FreeTypeSharp;
     using FreeTypeSharp.Native;

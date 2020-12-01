@@ -1,4 +1,6 @@
-﻿namespace Saffiano
+﻿using Saffiano.Rendering;
+
+namespace Saffiano
 {
     public sealed class MeshRenderer : Renderer
     {
@@ -14,12 +16,12 @@
             }
             var command = new Command()
             {
-                projection = Rendering.projection,
+                projection = RenderPipeline.projection,
                 transform = transform.localToWorldMatrix,
                 mesh = meshFilter.mesh,
                 material = material,
             };
-            Rendering.Draw(command);
+            RenderPipeline.Draw(command);
         }
     }
 }

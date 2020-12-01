@@ -15,4 +15,8 @@
     <PackageReference Include="OpenGL.Net" Version="0.7.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Rendering\" />
+  </ItemGroup>
+
 </Project>

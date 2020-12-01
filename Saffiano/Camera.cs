@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Saffiano.Rendering;
+using System.Collections.Generic;
 
 namespace Saffiano
 {
@@ -39,7 +40,7 @@ namespace Saffiano
         {
             get
             {
-                var viewport = Rendering.viewport;
+                var viewport = RenderPipeline.viewport;
                 if (!this.orthographic)
                 {
                     return Matrix4x4.Perspective(this.fieldOfView, (float)viewport.width / (float)viewport.height, this.nearClipPlane, this.farClipPlane);

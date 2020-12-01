@@ -2,6 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Reflection;
+using Saffiano.FileFormats;
 
 namespace Saffiano
 {

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Saffiano
+namespace Saffiano.Rendering
 {
-    internal sealed class Rendering
+    internal sealed class RenderPipeline
     {
         public static Device device { get; private set; }
 

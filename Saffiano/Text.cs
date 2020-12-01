@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Saffiano.Rendering;
+using System.Collections.Generic;
 
 namespace Saffiano
 {
@@ -117,7 +118,7 @@ namespace Saffiano
             }
             return new Command()
             {
-                projection = Rendering.projection,
+                projection = RenderPipeline.projection,
                 transform = rectTransform.localToWorldMatrix,
                 mesh = mesh,
                 mainTexture = Font.atlas,

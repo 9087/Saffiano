@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Saffiano.Rendering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -6,7 +7,7 @@ using System.Threading;
 
 namespace Saffiano
 {
-    internal static class TypeExtend
+    internal static class TypeExtensions
     {
         public static MethodInfo GetPrivateStaticMethod(this Type type, string methodName)
         {
@@ -24,7 +25,7 @@ namespace Saffiano
             typeof(Window),
             typeof(Canvas),
             typeof(Input),
-            typeof(Rendering),
+            typeof(RenderPipeline),
             typeof(Resources),
         };
 

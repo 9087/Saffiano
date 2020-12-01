@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Saffiano.Rendering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -103,9 +104,9 @@ namespace Saffiano
                 return;
             }
             var size = Window.GetSize();
-            Rendering.PushProjection(Matrix4x4.Scaled(new Vector3(1.0f / (int)(size.x / 2), 1.0f / (int)(size.y / 2), 0)) * camera.worldToCameraMatrix);
+            RenderPipeline.PushProjection(Matrix4x4.Scaled(new Vector3(1.0f / (int)(size.x / 2), 1.0f / (int)(size.y / 2), 0)) * camera.worldToCameraMatrix);
             Traverse(camera, canvas.rectTransform);
-            Rendering.PopProjection();
+            RenderPipeline.PopProjection();
         }
 
         void OnEnable()
