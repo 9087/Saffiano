@@ -10,6 +10,16 @@ namespace Saffiano
         public float z;
         public float w;
 
+        public Vector2 xy => new Vector2(x, y);
+
+        public Vector2 zw => new Vector2(z, w);
+
+        public Vector2 xw => new Vector2(x, w);
+
+        public Vector2 zy => new Vector2(z, y);
+
+        public Vector3 xyz => new Vector3(x, y, z);
+
         public Vector4(float x, float y, float z, float w)
         {
             this.x = x;
@@ -18,9 +28,11 @@ namespace Saffiano
             this.w = w;
         }
 
-        public Vector3 xyz => new Vector3(x, y, z);
-
         public Vector4(Vector3 v, float w) : this(v.x, v.y, v.z, w)
+        {
+        }
+
+        public Vector4(Vector2 a, Vector2 b) : this(a.x, a.y, b.x, b.y)
         {
         }
 

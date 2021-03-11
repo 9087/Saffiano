@@ -118,7 +118,7 @@ namespace Saffiano.ShaderCompilation
                 else
                 {
                     @internal = compileContext.AllocateInternal(propertyDefinition.PropertyType);
-                    compileContext.Assign(@internal, compileContext.Property(@this, propertyDefinition), compileContext);
+                    compileContext.Assign(@internal, compileContext.Property(@this, propertyDefinition));
                     compileContext.Push(@internal);
                 }
             }
@@ -130,11 +130,11 @@ namespace Saffiano.ShaderCompilation
                     // Call the initializer on the local (from ECMA-335: Page 163)
                     @internal = compileContext.AllocateInternal(methodDefinition.DeclaringType);
                     var method = compileContext.Method(methodDefinition, parameters.ToArray());
-                    compileContext.Assign(@internal, method, compileContext);
+                    compileContext.Assign(@internal, method);
                     if (compileContext.Peek().isAddress)
                     {
                         var target = compileContext.Pop();
-                        compileContext.Assign(target, @internal, compileContext);
+                        compileContext.Assign(target, @internal);
                     }
                 }
                 else
@@ -145,7 +145,7 @@ namespace Saffiano.ShaderCompilation
                     }
                     @internal = compileContext.AllocateInternal(methodDefinition.ReturnType);
                     var method = compileContext.Method(methodDefinition, parameters.ToArray());
-                    compileContext.Assign(@internal, method, compileContext);
+                    compileContext.Assign(@internal, method);
                     compileContext.Push(@internal);
                 }
             }
@@ -179,7 +179,7 @@ namespace Saffiano.ShaderCompilation
             var @internal = compileContext.AllocateInternal(methodReference.DeclaringType);
             var parameters = compileContext.Pop(methodReference.Parameters.Count);
             var method = compileContext.Method(methodReference, parameters);
-            compileContext.Assign(@internal, method, compileContext);
+            compileContext.Assign(@internal, method);
             compileContext.Push(@internal);
             return true;
         }
@@ -197,7 +197,7 @@ namespace Saffiano.ShaderCompilation
             // stobj typeTok - Store a value of type typeTok at an address.
             var value = compileContext.Pop();
             var target = compileContext.Pop();
-            compileContext.Assign(target, value, compileContext);
+            compileContext.Assign(target, value);
             return true;
         }
 
@@ -216,7 +216,7 @@ namespace Saffiano.ShaderCompilation
         {
             var value = compileContext.Pop();
             var local = compileContext.AllocateLocal(value.type, index);
-            compileContext.Assign(local, value, compileContext);
+            compileContext.Assign(local, value);
             return true;
         }
 
@@ -307,6 +307,65 @@ namespace Saffiano.ShaderCompilation
             var local = compileContext.AllocateLocal(variableDefinition.VariableType, (uint)variableDefinition.Index);
             local.isAddress = true;
             compileContext.Push(local);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldfld)]
+        public static bool Ldfld(Instruction instruction, CompileContext compileContext)
+        {
+            // ldfld field - Push the value of field of object (or value type) obj, onto the stack.
+            var fieldDefinition = instruction.Operand as FieldDefinition;
+            var @this = compileContext.Pop();
+            compileContext.Push(fieldDefinition.FieldType, compileContext.Field(@this, fieldDefinition));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Stfld)]
+        public static bool Stfld(Instruction instruction, CompileContext compileContext)
+        {
+            // stfld field - Replace the value of field of the object obj with value
+            var fieldDefinition = instruction.Operand as FieldDefinition;
+            var value = compileContext.Pop();
+            var @this = compileContext.Pop();
+            compileContext.Assign(compileContext.Field(@this, fieldDefinition), value);
+            return true;
+        }
+
+        public static bool Operator(Instruction instruction, CompileContext compileContext, string @operator)
+        {
+            var b = compileContext.Pop();
+            var a = compileContext.Pop();
+            var @internal = compileContext.AllocateInternal(a.type);
+            compileContext.Assign(@internal, compileContext.Format("{0} {1} {2}", a, @operator, b));
+            compileContext.Push(@internal);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Add)]
+        public static bool Add(Instruction instruction, CompileContext compileContext)
+        {
+            Operator(instruction, compileContext, "+");
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Sub)]
+        public static bool Sub(Instruction instruction, CompileContext compileContext)
+        {
+            Operator(instruction, compileContext, "-");
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Mul)]
+        public static bool Mul(Instruction instruction, CompileContext compileContext)
+        {
+            Operator(instruction, compileContext, "*");
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Div)]
+        public static bool Div(Instruction instruction, CompileContext compileContext)
+        {
+            Operator(instruction, compileContext, "/");
             return true;
         }
 

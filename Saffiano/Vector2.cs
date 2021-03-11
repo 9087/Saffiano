@@ -62,6 +62,18 @@ namespace Saffiano
             return new Vector2(a.x - b.x, a.y - b.y);
         }
 
+        [Shader(OpenGL: "({0} * {1})")]
+        public static Vector2 operator *(Vector2 a, float b)
+        {
+            return new Vector2(a.x * b, a.y * b);
+        }
+
+        [Shader(OpenGL: "({0} / {1})")]
+        public static Vector2 operator /(Vector2 a, float b)
+        {
+            return new Vector2(a.x / b, a.y / b);
+        }
+
         public static bool operator ==(Vector2 a, Vector2 b) => a.x == b.x && a.y == b.y;
 
         public static bool operator !=(Vector2 a, Vector2 b) => a.x != b.x || a.y != b.y;
@@ -87,6 +99,25 @@ namespace Saffiano
             hashCode = hashCode * -1521134295 + x.GetHashCode();
             hashCode = hashCode * -1521134295 + y.GetHashCode();
             return hashCode;
+        }
+
+        public float magnitude
+        {
+            [Shader(OpenGL: "length({0})")]
+            get => Mathf.Sqrt(x * x + y * y);
+        }
+
+        public Vector2 normalized
+        {
+            get
+            {
+                var length = magnitude;
+                if (length > 0)
+                {
+                    return this / length;
+                }
+                return new Vector2(x, y);
+            }
         }
     }
 }

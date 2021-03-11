@@ -20,12 +20,13 @@ namespace Saffiano.ShaderCompilation
 
         public Value Allocate(TypeReference type, uint index)
         {
+            type = type.Resolve();
             if (!cache.ContainsKey(index))
             {
                 cache[index] = new Value(type, string.Format("{0}_{1}", prefix, index));
                 cache[index].initialized = false;
             }
-            Debug.Assert(type == cache[index].type);
+            Debug.Assert(type.FullName == cache[index].type.FullName);
             return cache[index];
         }
 

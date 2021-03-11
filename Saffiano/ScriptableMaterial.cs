@@ -153,5 +153,11 @@ namespace Saffiano
             }
             SetShaderSourceData(type, shaderSourceData);
         }
+
+        [Shader(OpenGL: "vec2(dFdx({0}), dFdy({0}))")]
+        public static Vector2 Derivative(float value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

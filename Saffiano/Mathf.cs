@@ -23,11 +23,6 @@ namespace Saffiano
             return MathF.Abs(f);
         }
 
-        public static float Clamp(float value, float min, float max)
-        {
-            return ((value) > (max) ? (max) : ((value) < (min) ? (min) : value));
-        }
-
         public static bool Approximately(float a, float b)
         {
             return Mathf.Abs(a - b) < Mathf.Epsilon;
@@ -110,6 +105,19 @@ namespace Saffiano
         public static float Pow(float x, float y)
         {
             return MathF.Pow(x, y);
+        }
+        
+        [Shader(OpenGL: "smoothstep({0}, {1}, {2})")]
+        public static float SmoothStep(float t1, float t2, float x)
+        {
+            x = Clamp((x - t1) / (t2 - t1), 0.0f, 1.0f);
+            return x * x * (3 - 2 * x);
+        }
+
+        [Shader(OpenGL: "clamp({0}, {1}, {2})")]
+        public static float Clamp(float x, float min, float max)
+        {
+            return Max(min, Min(max, x));
         }
     }
 }

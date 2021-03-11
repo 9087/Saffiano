@@ -211,6 +211,11 @@ namespace Saffiano.ShaderCompilation
             return string.Format(pattern, @this.name, propertyReference.Name);
         }
 
+        public Value Field(Value @this, FieldDefinition fieldDefinition)
+        {
+            return new Value(fieldDefinition.FieldType, string.Format("{0}.{1}", @this.name, fieldDefinition.Name));
+        }
+
         public string Type(Type type)
         {
             return Type(type.GetTypeDefinition());
@@ -223,6 +228,10 @@ namespace Saffiano.ShaderCompilation
             if (type == typeof(float))
             {
                 return "float";
+            }
+            else if (type == typeof(bool))
+            {
+                return "bool";
             }
             var shaderAttributes = type.GetCustomAttributes<ShaderAttribute>();
             if (!shaderAttributes.Any())
@@ -275,7 +284,7 @@ namespace Saffiano.ShaderCompilation
             return Method(methodReference, parameters.ToArray());
         }
 
-        private string Assign(Value target, object value)
+        public void Assign(Value target, object value)
         {
             string format;
             if (target.initialized)
@@ -287,12 +296,8 @@ namespace Saffiano.ShaderCompilation
                 format = "{0} {1} = {2};";
                 target.initialized = true;
             }
-            return Format(format, target.type, target.name, value);
-        }
-
-        public void Assign(Value target, object value, CompileContext compileContext)
-        {
-            writer.WriteLine(Assign(target, value));
+            var s = Format(format, target.type, target.name, value);
+            writer.WriteLine(s);
         }
     }
 }
