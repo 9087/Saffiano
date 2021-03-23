@@ -1,14 +1,43 @@
 ﻿using Saffiano.Rendering;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Saffiano
 {
+    public enum TextAnchor
+    {
+        UpperLeft,
+        UpperCenter,
+        UpperRight,
+        MiddleLeft,
+        MiddleCenter,
+        MiddleRight,
+        LowerLeft,
+        LowerCenter,
+        LowerRight,
+    }
+
     public class Text : Graphic
     {
         private bool dirty = false;
         private string _text = string.Empty;
         private Font _font = null;
         private Rect rect;
+        private TextAnchor _alignment = TextAnchor.MiddleCenter;
+        private Vector2 preferredSize;
+
+        private static Dictionary<TextAnchor, Vector2> alignments = new Dictionary<TextAnchor, Vector2>
+        {
+            {TextAnchor.UpperLeft,    new Vector2(0.0f, 1.0f)},
+            {TextAnchor.UpperCenter,  new Vector2(0.5f, 1.0f)},
+            {TextAnchor.UpperRight,   new Vector2(1.0f, 1.0f)},
+            {TextAnchor.MiddleLeft,   new Vector2(0.0f, 0.5f)},
+            {TextAnchor.MiddleCenter, new Vector2(0.5f, 0.5f)},
+            {TextAnchor.MiddleRight,  new Vector2(1.0f, 0.5f)},
+            {TextAnchor.LowerLeft,    new Vector2(0.0f, 0.0f)},
+            {TextAnchor.LowerCenter,  new Vector2(0.5f, 0.0f)},
+            {TextAnchor.LowerRight,   new Vector2(1.0f, 0.0f)},
+        };
 
         public virtual string text
         {
@@ -34,6 +63,17 @@ namespace Saffiano
 
         public Material material { get; set; } = new Resources.Default.Material.Basic();
 
+        public TextAnchor alignment
+        {
+            get => _alignment;
+
+            set
+            {
+                _alignment = value;
+                dirty = true;
+            }
+        }
+
         internal override Command CreateCommand(RectTransform rectTransform)
         {
             if (material == null)
@@ -57,6 +97,7 @@ namespace Saffiano
                 List<Color> colors = new List<Color>();
                 Vector2 current = Vector2.zero;
                 Vector2 offset = new Vector2(rect.x, rect.y);
+                Vector2 lineSize = Vector2.zero;
                 uint index = 0;
                 foreach (char ch in text)
                 {
@@ -78,6 +119,8 @@ namespace Saffiano
                     float right = glyphX + width;
                     float bottom = glyphY;
                     float top = glyphY + height;
+
+                    lineSize.y = Mathf.Max(lineSize.y, height);
 
                     vertices.Add(new Vector3(left, bottom));
                     vertices.Add(new Vector3(right, bottom));
@@ -101,7 +144,18 @@ namespace Saffiano
 
                     index += 1;
                     current.x += characterInfo.advance.x;
+                    lineSize.x = Mathf.Max(lineSize.x, current.x);
                 }
+
+                // TODO: multiple lines
+                ;
+
+                preferredSize = lineSize;
+                Vector2 alignmentValue = alignments[alignment];
+                var size = rectTransform.rect.size;
+                var delta = (size - preferredSize) * alignmentValue;
+                vertices = vertices.Select((v) => v + new Vector3(delta.x, delta.y, 0)).ToList();
+
                 mesh = new Mesh()
                 {
                     primitiveType = PrimitiveType.Quads,

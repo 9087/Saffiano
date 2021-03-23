@@ -31,12 +31,12 @@
             this.gameObject.RemoveComponent(this);
         }
 
-        public T GetComponent<T>() where T : Component
+        public T GetComponent<T>() where T : class
         {
             return this.gameObject.GetComponent<T>();
         }
 
-        public T[] GetComponents<T>() where T : Component
+        public T[] GetComponents<T>() where T : class
         {
             return this.gameObject.GetComponents<T>();
         }

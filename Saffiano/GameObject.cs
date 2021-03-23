@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace Saffiano
 {
-    public sealed class GameObject : Object
+    public class GameObject : Object
     {
         private List<Component> components = new List<Component>();
 
@@ -109,12 +109,12 @@ namespace Saffiano
             return component;
         }
 
-        public T GetComponent<T>() where T : Component
+        public T GetComponent<T>() where T : class
         {
             return this.components.Find(c => c is T) as T;
         }
 
-        public T[] GetComponents<T>() where T : Component
+        public T[] GetComponents<T>() where T : class
         {
             return this.components.FindAll(c => c is T).Select((c) => c as T).ToArray();
         }

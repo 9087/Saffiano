@@ -117,7 +117,7 @@ namespace Saffiano
         public void ForceUpdateRectTransforms()
         {
             RectTransform parent = this.parent as RectTransform;
-            Vector2 windowSize = Vector2.zero;
+            Vector2 parentSize = Vector2.zero;
             Canvas canvas = GetComponent<Canvas>();
             if (canvas == null && parent == null)
             {
@@ -125,19 +125,19 @@ namespace Saffiano
             }
             if (canvas == null)
             {
-                windowSize = parent.rect.size;
+                parentSize = parent.rect.size;
             }
             else
             {
-                windowSize = Window.GetSize();
+                parentSize = Window.GetSize();
             }
             var anchorSize = anchorMax - anchorMin;
             Rect anchor = new Rect()
             {
-                x = (anchorMin.x - 0.5f) * windowSize.x,
-                y = (anchorMin.y - 0.5f) * windowSize.y,
-                width = anchorSize.x * windowSize.x,
-                height = anchorSize.y * windowSize.y,
+                x = (anchorMin.x - 0.5f) * parentSize.x,
+                y = (anchorMin.y - 0.5f) * parentSize.y,
+                width = anchorSize.x * parentSize.x,
+                height = anchorSize.y * parentSize.y,
             };
             Rect screenRect = Rect.zero;
             screenRect.left = anchor.left + offsetMin.x;
@@ -214,6 +214,11 @@ namespace Saffiano
                     throw new NotImplementedException();
             }
             ForceUpdateRectTransforms();
+        }
+
+        public void SetSizeWithCurrentAnchors(RectTransform.Axis axis, float size)
+        {
+            throw new NotImplementedException();
         }
     }
 }

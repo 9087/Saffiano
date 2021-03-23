@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Saffiano.UI
+{
+    public class TextView : Widget
+    {
+        private Text textComponent = null;
+
+        public TextView()
+        {
+            AddComponent<CanvasRenderer>();
+            textComponent = AddComponent<Text>();
+            this.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 22);
+        }
+
+        public string text
+        {
+            get => textComponent.text;
+            set { textComponent.text = value; }
+        }
+
+        public Font font
+        {
+            get => textComponent.font;
+            set { textComponent.font = value; }
+        }
+    }
+}
