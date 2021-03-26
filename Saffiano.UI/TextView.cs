@@ -11,8 +11,9 @@ namespace Saffiano.UI
         public TextView()
         {
             AddComponent<CanvasRenderer>();
-            textComponent = AddComponent<Text>();
+            this.textComponent = AddComponent<Text>();
             this.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 22);
+            AddComponent<ContentSizeFitter>();
         }
 
         public string text

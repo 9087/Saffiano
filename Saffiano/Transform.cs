@@ -25,7 +25,7 @@ namespace Saffiano
         private Transform internalParent = null;
         internal List<Transform> children = new List<Transform>();
 
-        public Vector3 localPosition { get; set; } = Vector3.zero;
+        public virtual Vector3 localPosition { get; set; } = Vector3.zero;
 
         public Vector3 position
         {
@@ -148,6 +148,7 @@ namespace Saffiano
 
         protected virtual void OnParentChanged(Transform old, Transform current)
         {
+            Array.ForEach(GetComponents<Behaviour>(), (b) => { b.Invoke("OnTransformParentChanged"); });
         }
 
         protected virtual void OnInternalParentChanged(Transform old, Transform current)

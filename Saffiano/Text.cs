@@ -1,4 +1,5 @@
 ﻿using Saffiano.Rendering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,7 +18,7 @@ namespace Saffiano
         LowerRight,
     }
 
-    public class Text : Graphic
+    public class Text : Graphic , ILayoutElement
     {
         private bool dirty = false;
         private string _text = string.Empty;
@@ -74,6 +75,18 @@ namespace Saffiano
             }
         }
 
+        public float flexibleWidth => throw new NotImplementedException();
+
+        public float flexibleHeight => throw new NotImplementedException();
+
+        public float minWidth => throw new NotImplementedException();
+
+        public float minHeight => throw new NotImplementedException();
+
+        public float preferredHeight { get => preferredSize.y; }
+
+        public float preferredWidth { get => preferredSize.x; }
+
         internal override Command CreateCommand(RectTransform rectTransform)
         {
             if (material == null)
@@ -120,8 +133,7 @@ namespace Saffiano
                     float bottom = glyphY;
                     float top = glyphY + height;
 
-                    lineSize.y = Mathf.Max(lineSize.y, height);
-
+                    lineSize.y = Mathf.Max(lineSize.y, characterInfo.ascender - characterInfo.descender);
                     vertices.Add(new Vector3(left, bottom));
                     vertices.Add(new Vector3(right, bottom));
                     vertices.Add(new Vector3(right, top));
@@ -154,7 +166,11 @@ namespace Saffiano
                 Vector2 alignmentValue = alignments[alignment];
                 var size = rectTransform.rect.size;
                 var delta = (size - preferredSize) * alignmentValue;
-                vertices = vertices.Select((v) => v + new Vector3(delta.x, delta.y, 0)).ToList();
+                vertices = vertices
+                    .Select((v) => v + new Vector3(delta.x, delta.y, 0))
+                    .ToList();
+
+                AutoLayout.MarkLayoutForRebuild(this.transform as RectTransform);
 
                 mesh = new Mesh()
                 {
@@ -181,6 +197,11 @@ namespace Saffiano
                 blend = true,
                 material = material,
             };
+        }
+
+        public void CalculateLayoutInput()
+        {
+            return;
         }
     }
 }

@@ -17,12 +17,17 @@ namespace Saffiano.Console
             console.AddComponent<RectTransform>();
             var canvas = console.AddComponent<Canvas>();
 
-            TextView textView;
-
-            new Widget() { } [
-                textView = new TextView() {
-                    text = "Hello Saffiano",
-                }
+            new Widget()
+            { }[
+                new ListView()
+                { itemsMargin = 5, }[
+                    new UI.TextView()
+                    { text = "Hello Saffiano", },
+                    new UI.TextView()
+                    { text = "List view item", },
+                    new UI.TextView()
+                    { text = "Text", }
+                ]
             ]
             .transform.parent = canvas.transform;
 

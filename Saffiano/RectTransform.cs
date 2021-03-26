@@ -36,6 +36,20 @@ namespace Saffiano
             pivot = new Vector2(0.5f, 0.5f),
         };
 
+        public override Vector3 localPosition
+        {
+            get
+            {
+                var contentRect = GetContentRectToParent();
+                return new Vector3(contentRect.left + contentRect.width * pivot.x, contentRect.bottom + contentRect.height * pivot.y, 0);
+            }
+            set
+            {
+                var contentRect = GetContentRectToParent();
+                pivot = new Vector2((value.x - contentRect.left) / contentRect.width, (value.y - contentRect.bottom) / contentRect.height);
+            }
+        }
+
         public Vector2 anchorMax
         {
             get
@@ -114,15 +128,12 @@ namespace Saffiano
             ForceUpdateRectTransforms();
         }
 
-        public void ForceUpdateRectTransforms()
+        internal Rect GetAnchorRectToParent()  // anchor rect to parent
         {
             RectTransform parent = this.parent as RectTransform;
             Vector2 parentSize = Vector2.zero;
             Canvas canvas = GetComponent<Canvas>();
-            if (canvas == null && parent == null)
-            {
-                return;
-            }
+            Debug.Assert(canvas != null || parent != null);
             if (canvas == null)
             {
                 parentSize = parent.rect.size;
@@ -132,24 +143,39 @@ namespace Saffiano
                 parentSize = Window.GetSize();
             }
             var anchorSize = anchorMax - anchorMin;
-            Rect anchor = new Rect()
+            Rect anchorRect = new Rect()
             {
                 x = (anchorMin.x - 0.5f) * parentSize.x,
                 y = (anchorMin.y - 0.5f) * parentSize.y,
                 width = anchorSize.x * parentSize.x,
                 height = anchorSize.y * parentSize.y,
             };
-            Rect screenRect = Rect.zero;
-            screenRect.left = anchor.left + offsetMin.x;
-            screenRect.right = anchor.right + offsetMax.x;
-            screenRect.bottom = anchor.bottom + offsetMin.y;
-            screenRect.top = anchor.top + offsetMax.y;
-            position = new Vector3(screenRect.left + screenRect.width * pivot.x, screenRect.bottom + screenRect.height * pivot.y, 0);
-            Rect rect = Rect.zero;
-            rect.left = -pivot.x * screenRect.width;
-            rect.right = (1 - pivot.x) * screenRect.width;
-            rect.bottom = -pivot.y * screenRect.height;
-            rect.top = (1 - pivot.y) * screenRect.height;
+            return anchorRect;
+        }
+
+        internal Rect GetContentRectToParent()
+        {
+            var anchorRect = this.GetAnchorRectToParent();
+            Rect contentRect = Rect.zero;
+            contentRect.left = anchorRect.left + offsetMin.x;
+            contentRect.right = anchorRect.right + offsetMax.x;
+            contentRect.bottom = anchorRect.bottom + offsetMin.y;
+            contentRect.top = anchorRect.top + offsetMax.y;
+            return contentRect;
+        }
+
+        public void ForceUpdateRectTransforms()
+        {
+            if (GetComponent<Canvas>() == null && this.parent as RectTransform == null)
+            {
+                return;
+            }
+            Rect contentRect = this.GetContentRectToParent();
+            Rect rect = Rect.zero;  // content rect to pivot
+            rect.left = -pivot.x * contentRect.width;
+            rect.right = (1 - pivot.x) * contentRect.width;
+            rect.bottom = -pivot.y * contentRect.height;
+            rect.top = (1 - pivot.y) * contentRect.height;
             var lastSize = this.rect.size;
             var currentSize = rect.size;
             this.rect = rect;
@@ -218,7 +244,38 @@ namespace Saffiano
 
         public void SetSizeWithCurrentAnchors(RectTransform.Axis axis, float size)
         {
-            throw new NotImplementedException();
+            var half = size * (axis == Axis.Horizontal ? this.pivot.x : this.pivot.y);
+            var centerAxis = axis == Axis.Horizontal ? this.localPosition.x : this.localPosition.y;
+            var lowerAxis = centerAxis - half;
+            var upperAxis = centerAxis + half;
+            var anchorRect = GetAnchorRectToParent();
+            var anchorMinAxis = axis == Axis.Horizontal ? anchorRect.left : anchorRect.bottom;
+            var anchorMaxAxis = axis == Axis.Horizontal ? anchorRect.right : anchorRect.top;
+            var offsetMinAxis = lowerAxis - anchorMinAxis;
+            var offsetMaxAxis = upperAxis - anchorMaxAxis;
+            switch (axis)
+            {
+                case Axis.Horizontal:
+                    offsetMin = new Vector2(offsetMinAxis, offsetMin.y);
+                    offsetMax = new Vector2(offsetMaxAxis, offsetMax.y);
+                    break;
+                case Axis.Vertical:
+                    offsetMin = new Vector2(offsetMin.x, offsetMinAxis);
+                    offsetMax = new Vector2(offsetMax.x, offsetMaxAxis);
+                    break;
+            }
+        }
+
+        protected override void OnChildAdded(Transform child)
+        {
+            base.OnChildAdded(child);
+            Array.ForEach(GetComponents<Behaviour>(), (b) => { b.Invoke("OnRectTransformDimensionsChange"); });
+        }
+
+        protected override void OnChildRemoved(Transform child)
+        {
+            base.OnChildRemoved(child);
+            Array.ForEach(GetComponents<Behaviour>(), (b) => { b.Invoke("OnRectTransformDimensionsChange"); });
         }
     }
 }

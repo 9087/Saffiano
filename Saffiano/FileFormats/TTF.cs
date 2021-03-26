@@ -85,7 +85,13 @@
                 default:
                     throw new NotImplementedException();
             }
-            return new CharacterInfo(this, charactorCode, new Vector2((int)glyphSlot.advance.x >> 6, (int)glyphSlot.advance.y >> 6), texture, new Vector2(0, glyphSlot.bitmap_top));
+            return new CharacterInfo(
+                this,
+                charactorCode,
+                new Vector2((float)glyphSlot.advance.x / (float)(1 << 6), (float)glyphSlot.advance.y / (float)(1 << 6)),
+                texture,
+                new Vector2(0, glyphSlot.bitmap_top)
+            );
         }
     }
 }

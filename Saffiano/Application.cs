@@ -25,6 +25,7 @@ namespace Saffiano
             typeof(Window),
             typeof(Canvas),
             typeof(Input),
+            typeof(AutoLayout),
             typeof(RenderPipeline),
             typeof(Resources),
         };
