@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saffiano.Sample", "Saffiano
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saffiano.Console", "Saffiano.Console\Saffiano.Console.csproj", "{85B4CB59-B49A-4B72-93A5-1D703F15339B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saffiano.UI", "Saffiano.UI\Saffiano.UI.csproj", "{C9BEF216-0889-4CCE-AC8B-79FA5F0F9B82}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saffiano.Widgets", "Saffiano.Widgets\Saffiano.Widgets.csproj", "{C9BEF216-0889-4CCE-AC8B-79FA5F0F9B82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

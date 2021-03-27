@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Saffiano.UI\Saffiano.UI.csproj" />
+    <ProjectReference Include="..\Saffiano.Widgets\Saffiano.Widgets.csproj" />
     <ProjectReference Include="..\Saffiano\Saffiano.csproj" />
   </ItemGroup>
 

@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Saffiano.UI
+namespace Saffiano.Widgets
 {
     public class Widget : GameObject, IEnumerable<Widget>
     {

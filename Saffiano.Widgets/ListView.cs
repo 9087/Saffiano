@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Saffiano.UI
+namespace Saffiano.Widgets
 {
     public class ListView : Widget
     {

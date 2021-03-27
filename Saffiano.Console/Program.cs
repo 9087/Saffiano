@@ -1,4 +1,4 @@
-﻿using Saffiano.UI;
+﻿using Saffiano.Widgets;
 using System;
 
 namespace Saffiano.Console
@@ -21,11 +21,11 @@ namespace Saffiano.Console
             { }[
                 new ListView()
                 { itemsMargin = 5, }[
-                    new UI.TextView()
+                    new TextView()
                     { text = "Hello Saffiano", },
-                    new UI.TextView()
+                    new TextView()
                     { text = "List view item", },
-                    new UI.TextView()
+                    new TextView()
                     { text = "Text", }
                 ]
             ]
