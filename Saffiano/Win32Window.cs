@@ -801,6 +801,11 @@ namespace Saffiano
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool CloseHandle(IntPtr hHandle);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
+
+        static int IDC_ARROW = 32512;
+
         #endregion
 
         #region Common system call
@@ -962,7 +967,7 @@ namespace Saffiano
             wndClass.cbClsExtra = 0;
             wndClass.cbWndExtra = 0;
             wndClass.hbrBackground = GetStockObject(StockObjects.WHITE_BRUSH);
-            wndClass.hCursor = IntPtr.Zero;
+            wndClass.hCursor = LoadCursor(IntPtr.Zero, IDC_ARROW);
             wndClass.hIcon = IntPtr.Zero;
             wndClass.hIconSm = IntPtr.Zero;
             wndClass.hInstance = IntPtr.Zero;
