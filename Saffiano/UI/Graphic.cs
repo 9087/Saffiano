@@ -1,4 +1,4 @@
-﻿namespace Saffiano
+﻿namespace Saffiano.UI
 {
     public abstract class Graphic : Behaviour
     {

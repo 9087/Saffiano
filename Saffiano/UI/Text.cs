@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Saffiano
+namespace Saffiano.UI
 {
     public enum TextAnchor
     {

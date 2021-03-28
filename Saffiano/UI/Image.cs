@@ -1,6 +1,6 @@
 ﻿using Saffiano.Rendering;
 
-namespace Saffiano
+namespace Saffiano.UI
 {
     public sealed class Image : Graphic
     {

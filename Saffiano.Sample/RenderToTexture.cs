@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using Saffiano.UI;
 
 namespace Saffiano.Sample
 {

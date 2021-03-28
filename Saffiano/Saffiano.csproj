@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="UI\" />
     <Folder Include="Rendering\" />
   </ItemGroup>
 

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Saffiano
+namespace Saffiano.UI
 {
     public class Shadow : BaseMeshEffect
     {
