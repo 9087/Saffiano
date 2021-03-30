@@ -6,14 +6,13 @@ namespace Saffiano
     {
         KeyDown = 1,
         KeyUp = 2,
-        Char = 3,
-        DeadChar = 4,
     }
 
     internal class KeyboardEvent
     {
-        public KeyboardEventType eventType;
-        public KeyCode keyCode;
+        public KeyboardEventType eventType { get; private set; }
+
+        public KeyCode keyCode { get; private set; }
 
         public KeyboardEvent(KeyboardEventType eventType, KeyCode keyCode)
         {

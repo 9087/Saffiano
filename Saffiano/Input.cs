@@ -7,6 +7,7 @@ namespace Saffiano
     {
         internal List<KeyCode> downs = new List<KeyCode>();
         internal List<KeyCode> ups = new List<KeyCode>();
+        internal List<char> chars = new List<char>();
     };
 
     public sealed class Input
@@ -24,7 +25,13 @@ namespace Saffiano
         {
             Window.KeyboardEvent += OnWindowKeyboardEventDispatched;
             Window.MouseEvent += OnWindowMouseEventDispatched;
+            Window.CharEvent += OnWindowCharEventDispatched;
             mousePosition = Window.GetMousePosition();
+        }
+
+        private static void OnWindowCharEventDispatched(CharEvent args)
+        {
+            Input.nextFrameInputContext.chars.Add(args.@char);
         }
 
         private static void OnWindowMouseEventDispatched(MouseEvent args)
@@ -107,6 +114,11 @@ namespace Saffiano
                 throw new Exception();
             }
             return Input.inputContext.ups.Contains(KeyCode.Mouse0 + button);
+        }
+
+        internal static string GetChars()
+        {
+            return new string(Input.inputContext.chars.ToArray());
         }
     }
 }

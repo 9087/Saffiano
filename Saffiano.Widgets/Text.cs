@@ -5,14 +5,14 @@ using System.Text;
 
 namespace Saffiano.Widgets
 {
-    public class TextView : Widget
+    public class Text : Widget
     {
-        private Text textComponent = null;
+        protected UI.Text textComponent = null;
 
-        public TextView()
+        public Text()
         {
             AddComponent<CanvasRenderer>();
-            this.textComponent = AddComponent<Text>();
+            this.textComponent = AddComponent<UI.Text>();
             this.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 22);
             AddComponent<ContentSizeFitter>();
         }

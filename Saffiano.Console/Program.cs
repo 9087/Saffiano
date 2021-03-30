@@ -21,12 +21,14 @@ namespace Saffiano.Console
             { }[
                 new ListView()
                 { itemsMargin = 5, }[
-                    new TextView()
+                    new Text()
                     { text = "Hello Saffiano", },
-                    new TextView()
+                    new Text()
                     { text = "List view item", },
-                    new TextView()
-                    { text = "Text", }
+                    new Text()
+                    { text = "Text", },
+                    new TextField()
+                    { }
                 ]
             ]
             .transform.parent = canvas.transform;

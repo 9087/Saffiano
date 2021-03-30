@@ -1,4 +1,5 @@
 ﻿using OpenGL;
+using System.Text;
 
 namespace Saffiano
 {
@@ -8,6 +9,7 @@ namespace Saffiano
         public static event MouseEventHandler MouseEvent;
         public static event ResizedEventHandler Resized;
         public static event CreatedEventHandler Created;
+        public static event CharEventHandler CharEvent;
 
         public static Win32Window window
         {
@@ -32,6 +34,7 @@ namespace Saffiano
             window.MouseEvent += OnWindowMouseEventDispatched;
             window.Resized += OnWindowResized;
             window.Created += OnWindowCreated;
+            window.CharEvent += OnWindowCharEventDispatched;
         }
 
         private static void Uninitialize()
@@ -40,6 +43,7 @@ namespace Saffiano
             window.MouseEvent -= OnWindowMouseEventDispatched;
             window.Resized -= OnWindowResized;
             window.Created -= OnWindowCreated;
+            window.CharEvent -= OnWindowCharEventDispatched;
             window = null;
         }
 
@@ -61,6 +65,11 @@ namespace Saffiano
         private static void OnWindowKeyboradEventDispatched(KeyboardEvent args)
         {
             KeyboardEvent?.Invoke(args);
+        }
+
+        private static void OnWindowCharEventDispatched(CharEvent args)
+        {
+            CharEvent?.Invoke(args);
         }
 
         private static bool Update()

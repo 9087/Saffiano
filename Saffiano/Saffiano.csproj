@@ -13,10 +13,10 @@
     <PackageReference Include="FreeTypeSharp" Version="1.1.2" />
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="OpenGL.Net" Version="0.7.1" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="UI\" />
     <Folder Include="Rendering\" />
   </ItemGroup>
 

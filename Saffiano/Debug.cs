@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Text;
 
 namespace Saffiano
 {
@@ -10,6 +11,11 @@ namespace Saffiano
             Info = ConsoleColor.Gray,
             Warning = ConsoleColor.DarkYellow,
             Error = ConsoleColor.Red,
+        }
+
+        static Debug()
+        {
+            Console.OutputEncoding = Encoding.Unicode;
         }
 
         private static void WriteLineInternal(LogType logType, object message)

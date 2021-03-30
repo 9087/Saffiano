@@ -933,6 +933,15 @@ namespace Saffiano
             this.KeyboradEvent?.Invoke(new KeyboardEvent(keyboradEventType, virtualKeyToKeyCodeMap[virtualKey]));
         }
 
+        public event CharEventHandler CharEvent;
+
+        List<uint> charQueue = new List<uint>();
+
+        protected void DispatchCharEvent(CharEventType charEventType, char @char)
+        {
+            this.CharEvent?.Invoke(new CharEvent(charEventType, @char));
+        }
+
         #endregion
 
         #region Common window event
@@ -957,6 +966,7 @@ namespace Saffiano
 
         static Win32Window()
         {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             MakeVirtualKeyTokeyCodeMap();
             QueryPerformanceFrequency(ref frequency);
         }
@@ -999,6 +1009,29 @@ namespace Saffiano
                     break;
                 case WindowsMessages.SIZE:
                     Resized?.Invoke(new Vector2((float)(((uint)lParam) & 0xffff), (float)(((uint)lParam) >> 16)));
+                    break;
+                case WindowsMessages.UNICHAR:
+                    DispatchCharEvent(CharEventType.Unicode, (char)wParam);
+                    break;
+                case WindowsMessages.CHAR:
+                    char @char = (char)wParam;
+                    if (0 <= @char && @char < 0x80)
+                    {
+                        Debug.Assert(charQueue.Count == 0);
+                        DispatchCharEvent(CharEventType.Char, @char);
+                    }
+                    else
+                    {
+                        charQueue.Add(@char);
+                        if (charQueue.Count == 2)
+                        {
+                            Encoding encoding = Encoding.GetEncoding("GB2312");
+                            var @string = encoding.GetString(new byte[] { (byte)charQueue[0], (byte)charQueue[1] });
+                            Debug.Assert(@string.Length == 1);
+                            charQueue.Clear();
+                            DispatchCharEvent(CharEventType.Char, @string[0]);
+                        }
+                    }
                     break;
                 case WindowsMessages.KEYDOWN:
                 case WindowsMessages.SYSKEYDOWN:
