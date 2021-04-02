@@ -25,7 +25,18 @@ namespace Saffiano
         private Transform internalParent = null;
         internal List<Transform> children = new List<Transform>();
 
-        public virtual Vector3 localPosition { get; set; } = Vector3.zero;
+
+        private Vector3 _localPosition = Vector3.zero;
+
+        public virtual Vector3 localPosition
+        {
+            get => _localPosition;
+            set
+            {
+                _localPosition = value;
+                SendMessage("OnTransformParentChanged");
+            }
+        }
 
         public Vector3 position
         {
@@ -45,10 +56,21 @@ namespace Saffiano
                     var p = parent.worldToLocalMatrix * new Vector4(value.x, value.y, value.z, 1);
                     localPosition = new Vector3(p.x, p.y, p.z);
                 }
+                SendMessage("OnTransformParentChanged");
             }
         }
 
-        public Quaternion localRotation { get; set; } = Quaternion.Euler(0, 0, 0);
+        private Quaternion _localRotation = Quaternion.Euler(0, 0, 0);
+
+        public Quaternion localRotation
+        {
+            get => _localRotation;
+            set
+            {
+                _localRotation = value;
+                SendMessage("OnTransformParentChanged");
+            }
+        }
         
         public Quaternion rotation
         {
@@ -68,9 +90,17 @@ namespace Saffiano
             }
         }
 
-        public Vector3 scale => new Vector3(1, 1, 1);
+        private Vector3 _localScale = new Vector3(1, 1, 1);
 
-        public Vector3 localScale { get; set; } = new Vector3(1, 1, 1);
+        public Vector3 localScale
+        {
+            get => _localScale;
+            set
+            {
+                _localScale = value;
+                SendMessage("OnTransformParentChanged");
+            }
+        }
 
         public Vector3 right => this.rotation * Vector3.right;
 

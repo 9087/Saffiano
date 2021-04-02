@@ -47,6 +47,8 @@ namespace Saffiano
             {
                 var contentRect = GetContentRectToParent();
                 pivot = new Vector2((value.x - contentRect.left) / contentRect.width, (value.y - contentRect.bottom) / contentRect.height);
+                ForceUpdateRectTransforms();
+                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -60,6 +62,7 @@ namespace Saffiano
             {
                 data.anchorMax = value;
                 ForceUpdateRectTransforms();
+                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -73,6 +76,7 @@ namespace Saffiano
             {
                 data.anchorMin = value;
                 ForceUpdateRectTransforms();
+                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -86,6 +90,7 @@ namespace Saffiano
             {
                 data.offsetMax = value;
                 ForceUpdateRectTransforms();
+                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -99,6 +104,7 @@ namespace Saffiano
             {
                 data.offsetMin = value;
                 ForceUpdateRectTransforms();
+                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -112,6 +118,7 @@ namespace Saffiano
             {
                 data.pivot = value;
                 ForceUpdateRectTransforms();
+                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -126,6 +133,7 @@ namespace Saffiano
         internal void OnParentResized(Vector2 size)
         {
             ForceUpdateRectTransforms();
+            SendMessage("OnTransformParentChanged");
         }
 
         internal Rect GetAnchorRectToParent()  // anchor rect to parent
@@ -240,6 +248,7 @@ namespace Saffiano
                     throw new NotImplementedException();
             }
             ForceUpdateRectTransforms();
+            SendMessage("OnTransformParentChanged");
         }
 
         public void SetSizeWithCurrentAnchors(RectTransform.Axis axis, float size)
@@ -264,6 +273,9 @@ namespace Saffiano
                     offsetMax = new Vector2(offsetMax.x, offsetMaxAxis);
                     break;
             }
+            ForceUpdateRectTransforms();
+            SendMessage("OnTransformParentChanged");
+
         }
 
         protected override void OnChildAdded(Transform child)
