@@ -2,8 +2,17 @@
 {
     public abstract class Graphic : Behaviour
     {
-        protected Mesh mesh = null;
+        protected RectTransform rectTransform => transform as RectTransform;
 
-        internal abstract Command CreateCommand(RectTransform rectTransform);
+        protected Mesh mesh { get; set; }
+
+        internal abstract Command GenerateCommand();
+
+        protected abstract Mesh OnPopulateMesh(Mesh mesh);
+
+        void LateUpdate()
+        {
+            mesh = OnPopulateMesh(mesh);
+        }
     }
 }

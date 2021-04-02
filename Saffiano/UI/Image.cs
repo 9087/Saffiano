@@ -10,25 +10,28 @@ namespace Saffiano.UI
 
         public Material material { get; set; } = new Resources.Default.Material.Basic();
 
-        internal override Command CreateCommand(RectTransform rectTransform)
+        protected override Mesh OnPopulateMesh(Mesh old)
         {
-            if (sprite == null || material == null)
+            if (sprite == null || material == null || (this.mesh != null && this.rect == rectTransform.rect))
             {
-                return null;
+                return old;
             }
-            if (this.mesh == null || this.rect != rectTransform.rect)
+            var @new = new Resources.Default.Mesh.Plane();
+            this.rect = rectTransform.rect;
+            old.vertices[0] = new Vector3(rect.left, rect.top);
+            old.vertices[1] = new Vector3(rect.left, rect.bottom);
+            old.vertices[2] = new Vector3(rect.right, rect.bottom);
+            old.vertices[3] = new Vector3(rect.right, rect.top);
+            foreach (var modifier in this.GetComponents<BaseMeshEffect>())
             {
-                this.mesh = new Resources.Default.Mesh.Plane();
-                this.rect = rectTransform.rect;
-                mesh.vertices[0] = new Vector3(rect.left, rect.top);
-                mesh.vertices[1] = new Vector3(rect.left, rect.bottom);
-                mesh.vertices[2] = new Vector3(rect.right, rect.bottom);
-                mesh.vertices[3] = new Vector3(rect.right, rect.top);
-                foreach (var modifier in this.GetComponents<BaseMeshEffect>())
-                {
-                    modifier.ModifyMesh(this.mesh);
-                }
+                modifier.ModifyMesh(this.mesh);
             }
+            return @new;
+        }
+
+        internal override Command GenerateCommand()
+        {
+            mesh = OnPopulateMesh(mesh);
             return new Command()
             {
                 projection = RenderPipeline.projection,

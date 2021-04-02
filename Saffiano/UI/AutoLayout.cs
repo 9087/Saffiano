@@ -27,12 +27,12 @@ namespace Saffiano.UI
             {
                 PerformCalculateLayoutInput(child);
             }
-            transform.GetComponent<ILayoutElement>()?.CalculateLayoutInput();
+            foreach (var x in transform.GetComponents<ILayoutElement>()) { x.CalculateLayoutInput(); }
         }
 
         private static void PerformSetLayout(Transform transform)
         {
-            transform.GetComponent<ILayoutController>()?.SetLayout();
+            foreach (var x in transform.GetComponents<ILayoutController>()) { x.SetLayout(); }
             foreach (var child in transform)
             {
                 PerformSetLayout(child);

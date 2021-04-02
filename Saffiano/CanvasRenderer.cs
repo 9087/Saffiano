@@ -11,7 +11,7 @@ namespace Saffiano
         {
             foreach (var graphic in gameObject.GetComponents<Graphic>())
             {
-                Command command = graphic.CreateCommand(rectTransform);
+                Command command = graphic.GenerateCommand();
                 if (command == null)
                 {
                     continue;
