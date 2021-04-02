@@ -75,7 +75,7 @@ namespace Saffiano
             base.OnComponentRemoved();
         }
 
-        internal void Invoke(string methodName)
+        internal void Invoke(string methodName, params object[] value)
         {
             Dictionary<string, MethodInfo> methodInfos;
             Type type = this.GetType();
@@ -90,7 +90,7 @@ namespace Saffiano
                 methodInfo = GetMethodInfo(methodName);
                 methodInfos.Add(methodName, methodInfo);
             }
-            methodInfo?.Invoke(this, null);
+            methodInfo?.Invoke(this, value);
         }
 
         internal MethodInfo GetMethodInfo(string methodName)

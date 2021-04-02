@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -133,29 +134,37 @@ namespace Saffiano
 
         internal void RequestUpdate()
         {
-            if (!activeInHierarchy)
+            foreach (var x in EnumerateBehaviours().Where((x) => x.enabled))
             {
-                return;
+                x.Invoke("Update");
             }
+            foreach (var child in transform)
+            {
+                child.gameObject.RequestUpdate();
+            }
+        }
+
+        internal void RequestLateUpdate()
+        {
+            foreach (var x in EnumerateBehaviours().Where((x) => x.enabled))
+            {
+                x.Invoke("LateUpdate");
+            }
+            foreach (var child in transform)
+            {
+                child.gameObject.RequestLateUpdate();
+            }
+        }
+
+        private IEnumerable<Behaviour> EnumerateBehaviours()
+        {
             foreach (Component component in this.components)
             {
-                Behaviour behaviour = component as Behaviour;
-                if (behaviour == null || !behaviour.enabled)
+                if (!(component is Behaviour))
                 {
                     continue;
                 }
-                try
-                {
-                    behaviour.RequestUpdate();
-                }
-                catch (TargetInvocationException tie)
-                {
-                    Debug.LogException(tie);
-                }
-            }
-            foreach (Transform transform in this.transform.children)
-            {
-                transform.gameObject.RequestUpdate();
+                yield return component as Behaviour;
             }
         }
     }

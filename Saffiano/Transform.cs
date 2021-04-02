@@ -257,10 +257,8 @@ namespace Saffiano
 
         private static bool Update()
         {
-            foreach (Transform transform in Transform.scene.children)
-            {
-                transform.gameObject.RequestUpdate();
-            }
+            Transform.scene.gameObject.RequestUpdate();
+            Transform.scene.gameObject.RequestLateUpdate();
             return true;
         }
 
