@@ -49,5 +49,10 @@
         {
             return string.Format("({0}: {1})", this.GetType().Name, this.gameObject.name);
         }
+
+        public void SendMessage(string methodName, params object[] value)
+        {
+            gameObject.SendMessage(methodName, value);
+        }
     }
 }

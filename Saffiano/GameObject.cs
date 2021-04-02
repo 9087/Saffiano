@@ -156,6 +156,38 @@ namespace Saffiano
             }
         }
 
+        public void SendMessage(string methodName, params object[] value)
+        {
+            if (!activeInHierarchy)
+            {
+                return;
+            }
+            foreach (var behaviour in EnumerateBehaviours())
+            {
+                try
+                {
+                    behaviour.Invoke(methodName, value);
+                }
+                catch (TargetInvocationException tie)
+                {
+                    Debug.LogException(tie);
+                }
+            }
+        }
+
+        public void BroadcastMessage(string methodName, params object[] value)
+        {
+            if (!activeInHierarchy)
+            {
+                return;
+            }
+            SendMessage(methodName, value);
+            foreach (Transform transform in this.transform.children)
+            {
+                transform.gameObject.BroadcastMessage(methodName, value);
+            }
+        }
+
         private IEnumerable<Behaviour> EnumerateBehaviours()
         {
             foreach (Component component in this.components)
