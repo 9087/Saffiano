@@ -896,6 +896,12 @@ namespace Saffiano
             {KeyCode.Mouse2, VirtualKeys.MiddleButton},
             {KeyCode.Space, VirtualKeys.Space},
             {KeyCode.Escape, VirtualKeys.Escape},
+            {KeyCode.Backspace, VirtualKeys.Back},
+            {KeyCode.Return, VirtualKeys.Return},
+            {KeyCode.LeftControl, VirtualKeys.LeftControl},
+            {KeyCode.RightControl, VirtualKeys.RightControl},
+            {KeyCode.LeftAlt, VirtualKeys.LeftMenu},
+            {KeyCode.RightAlt, VirtualKeys.RightMenu},
         };
 
         private static Dictionary<VirtualKeys, KeyCode> virtualKeyToKeyCodeMap;

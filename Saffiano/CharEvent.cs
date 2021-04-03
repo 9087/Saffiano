@@ -11,7 +11,7 @@ namespace Saffiano
         Unicode = 3,
     }
 
-    internal class CharEvent
+    internal class CharEvent : InputEvent
     {
         public CharEventType eventType { get; private set; }
 

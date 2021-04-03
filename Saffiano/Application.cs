@@ -20,12 +20,12 @@ namespace Saffiano
         private static Type[] systems = new Type[]
         {
             typeof(Time),
-            typeof(Transform),
-            typeof(Timer),
             typeof(Window),
-            typeof(Canvas),
             typeof(Input),
-            typeof(Saffiano.UI.AutoLayout),
+            typeof(Timer),
+            typeof(Transform),
+            typeof(Canvas),
+            typeof(UI.AutoLayout),
             typeof(RenderPipeline),
             typeof(Resources),
         };

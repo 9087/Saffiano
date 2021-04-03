@@ -130,6 +130,11 @@ namespace Saffiano.UI
             {
                 var characterInfo = font.GetCharacterInfo(ch);
 
+                if (characterInfo == null)
+                {
+                    continue;
+                }
+
                 if (characterInfo.texture == null)
                 {
                     current.x += characterInfo.advance.x;

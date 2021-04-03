@@ -7,13 +7,15 @@ namespace Saffiano
     {
         internal List<KeyCode> downs = new List<KeyCode>();
         internal List<KeyCode> ups = new List<KeyCode>();
-        internal List<char> chars = new List<char>();
     };
 
     public sealed class Input
     {
         private static InputContext inputContext = new InputContext();
         private static InputContext nextFrameInputContext = new InputContext();
+        private static Queue<InputEvent> inputEventQueue = new Queue<InputEvent>();
+
+        internal static event InputEventHandler InputEvent;
 
         public static Vector3 mousePosition
         {
@@ -29,41 +31,64 @@ namespace Saffiano
             mousePosition = Window.GetMousePosition();
         }
 
-        private static void OnWindowCharEventDispatched(CharEvent args)
-        {
-            Input.nextFrameInputContext.chars.Add(args.@char);
-        }
-
-        private static void OnWindowMouseEventDispatched(MouseEvent args)
-        {
-            switch (args.eventType)
-            {
-                case MouseEventType.MouseDown:
-                    Input.nextFrameInputContext.downs.Add(args.keyCode);
-                    break;
-                case MouseEventType.MouseUp:
-                    Input.nextFrameInputContext.ups.Add(args.keyCode);
-                    break;
-            };
-        }
-
         private static void Uninitialize()
         {
+            Window.CharEvent -= OnWindowCharEventDispatched;
             Window.MouseEvent -= OnWindowMouseEventDispatched;
             Window.KeyboardEvent -= OnWindowKeyboardEventDispatched;
         }
 
+        private static void OnWindowCharEventDispatched(CharEvent args)
+        {
+            inputEventQueue.Enqueue(args);
+        }
+
+        private static void OnWindowMouseEventDispatched(MouseEvent args)
+        {
+            inputEventQueue.Enqueue(args);
+        }
+
         private static void OnWindowKeyboardEventDispatched(KeyboardEvent args)
         {
-            switch (args.eventType)
+            inputEventQueue.Enqueue(args);
+        }
+
+        private static void ProcessInputEventQueue()
+        {
+            while (inputEventQueue.Count != 0)
             {
-                case KeyboardEventType.KeyDown:
-                    Input.nextFrameInputContext.downs.Add(args.keyCode);
-                    break;
-                case KeyboardEventType.KeyUp:
-                    Input.nextFrameInputContext.ups.Add(args.keyCode);
-                    break;
-            };
+                var inputEvent = inputEventQueue.Dequeue();
+                switch (inputEvent)
+                {
+                    case CharEvent charEvent:
+                        break;
+                    case MouseEvent mouseEvent:
+                        switch (mouseEvent.eventType)
+                        {
+                            case MouseEventType.MouseDown:
+                                Input.nextFrameInputContext.downs.Add(mouseEvent.keyCode);
+                                break;
+                            case MouseEventType.MouseUp:
+                                Input.nextFrameInputContext.ups.Add(mouseEvent.keyCode);
+                                break;
+                        };
+                        break;
+                    case KeyboardEvent keyboardEvent:
+                        switch (keyboardEvent.eventType)
+                        {
+                            case KeyboardEventType.KeyDown:
+                                Input.nextFrameInputContext.downs.Add(keyboardEvent.keyCode);
+                                break;
+                            case KeyboardEventType.KeyUp:
+                                Input.nextFrameInputContext.ups.Add(keyboardEvent.keyCode);
+                                break;
+                        };
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+                InputEvent(inputEvent);
+            }
         }
 
         public static bool GetKey(KeyCode key)
@@ -83,6 +108,7 @@ namespace Saffiano
 
         private static bool Update()
         {
+            ProcessInputEventQueue();
             inputContext = nextFrameInputContext;
             nextFrameInputContext = new InputContext();
             mousePosition = Window.GetMousePosition();
@@ -114,11 +140,6 @@ namespace Saffiano
                 throw new Exception();
             }
             return Input.inputContext.ups.Contains(KeyCode.Mouse0 + button);
-        }
-
-        internal static string GetChars()
-        {
-            return new string(Input.inputContext.chars.ToArray());
         }
     }
 }

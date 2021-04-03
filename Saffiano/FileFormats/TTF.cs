@@ -35,7 +35,7 @@
             var glyphIndex = FT.FT_Get_Char_Index(face.Face, (uint)charactorCode);
             if (glyphIndex == 0)
             {
-                throw new FreeTypeException(FT_Error.FT_Err_Invalid_Character_Code);
+                return null;
             }
             FT_Error error;
             error = FT.FT_Load_Glyph(face.Face, glyphIndex, FT.FT_LOAD_DEFAULT);

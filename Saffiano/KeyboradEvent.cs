@@ -8,7 +8,7 @@ namespace Saffiano
         KeyUp = 2,
     }
 
-    internal class KeyboardEvent
+    internal class KeyboardEvent : InputEvent
     {
         public KeyboardEventType eventType { get; private set; }
 

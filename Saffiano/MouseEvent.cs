@@ -8,7 +8,7 @@ namespace Saffiano
         MouseUp = 1,
     }
 
-    internal class MouseEvent
+    internal class MouseEvent : InputEvent
     {
         public MouseEventType eventType;
         public KeyCode keyCode;

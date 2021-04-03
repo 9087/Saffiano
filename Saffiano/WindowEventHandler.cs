@@ -6,4 +6,5 @@
     internal delegate void DestroyedEventHandler();
     internal delegate void CreatedEventHandler();
     internal delegate void CharEventHandler(CharEvent args);
+    internal delegate void InputEventHandler(InputEvent args);
 }
