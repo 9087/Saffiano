@@ -8,12 +8,52 @@ namespace Saffiano.UI
     {
         public new RectTransform transform => base.transform as RectTransform;
 
+        private bool _childControlHeight = true;
+
+        private bool _childControlWidth = true;
+
+        public bool childControlHeight
+        {
+            get => _childControlHeight;
+            set
+            {
+                if (_childControlHeight == value)
+                {
+                    return;
+                }
+                _childControlHeight = value;
+                SetDirty();
+            }
+        }
+
+        public bool childControlWidth
+        {
+            get => _childControlWidth;
+            set
+            {
+                if (_childControlWidth == value)
+                {
+                    return;
+                }
+                _childControlWidth = value;
+                SetDirty();
+            }
+        }
+
         private RectTransform.Axis _axis = RectTransform.Axis.Vertical;
 
         public RectTransform.Axis axis
         {
             get => _axis;
-            set { _axis = value; }
+            set 
+            {
+                if (_axis == value)
+                {
+                    return;
+                }
+                _axis = value;
+                SetDirty();
+            }
         }
 
         private float _spacing = 0;
@@ -23,7 +63,12 @@ namespace Saffiano.UI
             get => _spacing;
             set
             {
+                if (_spacing == value)
+                {
+                    return;
+                }
                 _spacing = value;
+                SetDirty();
             }
         }
 
@@ -56,20 +101,23 @@ namespace Saffiano.UI
                 }
                 var childRect = child.rect;
                 child.pivot = new Vector2(0.5f, 0.5f);
-                switch(_axis)
+                var layoutElement = child.GetComponent<ILayoutElement>();
+                var width = _childControlWidth ? layoutElement.preferredWidth : childRect.width;
+                var height = _childControlHeight ? layoutElement.preferredHeight : childRect.height;
+                switch (_axis)
                 {
                     case RectTransform.Axis.Horizontal:
                         child.anchorMin = new Vector2(0, 1);
                         child.anchorMax = new Vector2(0, 1);
-                        child.offsetMin = new Vector2(step, -childRect.height);
-                        child.offsetMax = new Vector2(childRect.width + step, 0);
+                        child.offsetMin = new Vector2(step, -height);
+                        child.offsetMax = new Vector2(width + step, 0);
                         step += childRect.width;
                         break;
                     case RectTransform.Axis.Vertical:
                         child.anchorMin = new Vector2(0, 1);
                         child.anchorMax = new Vector2(0, 1);
-                        child.offsetMin = new Vector2(0, -childRect.height - step);
-                        child.offsetMax = new Vector2(childRect.width, -step);
+                        child.offsetMin = new Vector2(0, -height - step);
+                        child.offsetMax = new Vector2(width, -step);
                         step += childRect.height;
                         break;
                     default:

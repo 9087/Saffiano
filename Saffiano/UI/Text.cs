@@ -46,6 +46,10 @@ namespace Saffiano.UI
 
             set
             {
+                if (_text == value)
+                {
+                    return;
+                }
                 _text = value;
                 dirty = true;
             }
@@ -57,6 +61,10 @@ namespace Saffiano.UI
 
             set
             {
+                if (_font == value)
+                {
+                    return;
+                }
                 _font = value;
                 dirty = true;
             }
@@ -70,6 +78,10 @@ namespace Saffiano.UI
 
             set
             {
+                if (_alignment == value)
+                {
+                    return;
+                }
                 _alignment = value;
                 dirty = true;
             }
@@ -204,6 +216,11 @@ namespace Saffiano.UI
                 blend = true,
                 material = material,
             };
+        }
+
+        protected void OnTransformParentChanged()
+        {
+            dirty = true;
         }
 
         public void CalculateLayoutInput()
