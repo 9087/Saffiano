@@ -18,6 +18,8 @@ namespace Saffiano
 
         internal int descender => ttf.face.Descender;
 
+        internal int lineHeight => ascender - descender;
+
         internal int lineSpacing => ttf.face.LineSpacing;
 
         public Vector2 uvBottomRight => this.texture.uvBottomRight;

@@ -7,10 +7,25 @@ namespace Saffiano.Widgets
 {
     public class ImageView : Widget
     {
+        protected Image imageComponent = null;
+
         public ImageView()
         {
             AddComponent<CanvasRenderer>();
-            AddComponent<Image>();
+            imageComponent = AddComponent<Image>();
+        }
+
+        public Sprite sprite
+        {
+            get => imageComponent.sprite;
+            set
+            {
+                if (imageComponent.sprite == value)
+                {
+                    return;
+                }
+                imageComponent.sprite = value;
+            }
         }
     }
 }

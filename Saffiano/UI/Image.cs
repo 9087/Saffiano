@@ -18,10 +18,10 @@ namespace Saffiano.UI
             }
             var @new = new Resources.Default.Mesh.Plane();
             this.rect = rectTransform.rect;
-            old.vertices[0] = new Vector3(rect.left, rect.top);
-            old.vertices[1] = new Vector3(rect.left, rect.bottom);
-            old.vertices[2] = new Vector3(rect.right, rect.bottom);
-            old.vertices[3] = new Vector3(rect.right, rect.top);
+            @new.vertices[0] = new Vector3(rect.left, rect.top);
+            @new.vertices[1] = new Vector3(rect.left, rect.bottom);
+            @new.vertices[2] = new Vector3(rect.right, rect.bottom);
+            @new.vertices[3] = new Vector3(rect.right, rect.top);
             foreach (var modifier in this.GetComponents<BaseMeshEffect>())
             {
                 modifier.ModifyMesh(this.mesh);

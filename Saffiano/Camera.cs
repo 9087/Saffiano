@@ -13,6 +13,8 @@ namespace Saffiano
             private set;
         }
 
+        public Color backgroundColor { get; set; } = new Color(0.192157f, 0.301961f, 0.474510f, 1.0f);
+
         public float farClipPlane { set; get; } = 1000;
 
         public float nearClipPlane { get; set; } = 0.01f;

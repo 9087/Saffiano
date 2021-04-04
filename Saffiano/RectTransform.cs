@@ -36,19 +36,23 @@ namespace Saffiano
             pivot = new Vector2(0.5f, 0.5f),
         };
 
+        private bool dirty = true;
+
+        private Vector3 _localPosition = Vector3.zero;
+
         public override Vector3 localPosition
         {
             get
             {
-                var contentRect = GetContentRectToParent();
-                return new Vector3(contentRect.left + contentRect.width * pivot.x, contentRect.bottom + contentRect.height * pivot.y, 0);
+                if (dirty)
+                {
+                    ForceUpdateRectTransforms();
+                }
+                return _localPosition;
             }
             set
             {
-                var contentRect = GetContentRectToParent();
-                pivot = new Vector2((value.x - contentRect.left) / contentRect.width, (value.y - contentRect.bottom) / contentRect.height);
-                ForceUpdateRectTransforms();
-                SendMessage("OnTransformParentChanged");
+                throw new NotImplementedException();
             }
         }
 
@@ -60,9 +64,12 @@ namespace Saffiano
             }
             set
             {
+                if (data.anchorMax == value)
+                {
+                    return;
+                }
                 data.anchorMax = value;
-                ForceUpdateRectTransforms();
-                SendMessage("OnTransformParentChanged");
+                dirty = true;
             }
         }
 
@@ -74,9 +81,12 @@ namespace Saffiano
             }
             set
             {
+                if (data.anchorMin == value)
+                {
+                    return;
+                }
                 data.anchorMin = value;
-                ForceUpdateRectTransforms();
-                SendMessage("OnTransformParentChanged");
+                dirty = true;
             }
         }
 
@@ -88,9 +98,12 @@ namespace Saffiano
             }
             set
             {
+                if (data.offsetMax == value)
+                {
+                    return;
+                }
                 data.offsetMax = value;
-                ForceUpdateRectTransforms();
-                SendMessage("OnTransformParentChanged");
+                dirty = true;
             }
         }
 
@@ -102,9 +115,12 @@ namespace Saffiano
             }
             set
             {
+                if (data.offsetMin == value)
+                {
+                    return;
+                }
                 data.offsetMin = value;
-                ForceUpdateRectTransforms();
-                SendMessage("OnTransformParentChanged");
+                dirty = true;
             }
         }
 
@@ -116,60 +132,33 @@ namespace Saffiano
             }
             set
             {
+                if (data.pivot == value)
+                {
+                    return;
+                }
                 data.pivot = value;
-                ForceUpdateRectTransforms();
-                SendMessage("OnTransformParentChanged");
+                dirty = true;
             }
         }
 
-        public Rect rect { get; private set; } = Rect.zero;
+        private Rect _rect = Rect.zero;
+
+        public Rect rect
+        {
+            get
+            {
+                if (dirty)
+                {
+                    ForceUpdateRectTransforms();
+                }
+                return _rect;
+            }
+        }
 
         protected override void OnParentChanged(Transform old, Transform current)
         {
+            dirty = true;
             base.OnParentChanged(old, current);
-            ForceUpdateRectTransforms();
-        }
-
-        internal void OnParentResized(Vector2 size)
-        {
-            ForceUpdateRectTransforms();
-            SendMessage("OnTransformParentChanged");
-        }
-
-        internal Rect GetAnchorRectToParent()  // anchor rect to parent
-        {
-            RectTransform parent = this.parent as RectTransform;
-            Vector2 parentSize = Vector2.zero;
-            Canvas canvas = GetComponent<Canvas>();
-            Debug.Assert(canvas != null || parent != null);
-            if (canvas == null)
-            {
-                parentSize = parent.rect.size;
-            }
-            else
-            {
-                parentSize = Window.GetSize();
-            }
-            var anchorSize = anchorMax - anchorMin;
-            Rect anchorRect = new Rect()
-            {
-                x = (anchorMin.x - 0.5f) * parentSize.x,
-                y = (anchorMin.y - 0.5f) * parentSize.y,
-                width = anchorSize.x * parentSize.x,
-                height = anchorSize.y * parentSize.y,
-            };
-            return anchorRect;
-        }
-
-        internal Rect GetContentRectToParent()
-        {
-            var anchorRect = this.GetAnchorRectToParent();
-            Rect contentRect = Rect.zero;
-            contentRect.left = anchorRect.left + offsetMin.x;
-            contentRect.right = anchorRect.right + offsetMax.x;
-            contentRect.bottom = anchorRect.bottom + offsetMin.y;
-            contentRect.top = anchorRect.top + offsetMax.y;
-            return contentRect;
         }
 
         public void ForceUpdateRectTransforms()
@@ -178,20 +167,38 @@ namespace Saffiano
             {
                 return;
             }
-            Rect contentRect = this.GetContentRectToParent();
-            Rect rect = Rect.zero;  // content rect to pivot
-            rect.left = -pivot.x * contentRect.width;
-            rect.right = (1 - pivot.x) * contentRect.width;
-            rect.bottom = -pivot.y * contentRect.height;
-            rect.top = (1 - pivot.y) * contentRect.height;
-            var lastSize = this.rect.size;
-            var currentSize = rect.size;
-            this.rect = rect;
-            if (lastSize != currentSize)
+
+            var parent = this.parent as RectTransform;
+
+            // current transform rect in parent space
+            Rect rect = new Rect();
+            if (GetComponent<Canvas>() != null)
             {
+                rect.size = offsetMax - offsetMin;
+            }
+            else
+            {
+                rect = parent.rect;
+                var lb = rect.size * anchorMin + rect.position + offsetMin;
+                var rt = rect.size * anchorMax + rect.position + offsetMax;
+                rect = new Rect(lb, rt - lb);
+            }
+
+            // pivot in parent space
+            Vector2 pivot = rect.position + this.pivot * rect.size;
+            
+            _localPosition = new Vector3(pivot, 0);
+
+            // convert rect to current space
+            rect.position -= pivot;
+
+            if (this._rect != rect)
+            {
+                this._rect = rect;
                 foreach (RectTransform child in this)
                 {
-                    child.OnParentResized(currentSize);
+                    child.dirty = true;
+                    child.SendMessage("OnTransformParentChanged");
                 }
             }
         }
@@ -247,35 +254,28 @@ namespace Saffiano
                 default:
                     throw new NotImplementedException();
             }
-            ForceUpdateRectTransforms();
-            SendMessage("OnTransformParentChanged");
         }
 
         public void SetSizeWithCurrentAnchors(RectTransform.Axis axis, float size)
         {
-            var half = size * (axis == Axis.Horizontal ? this.pivot.x : this.pivot.y);
-            var centerAxis = axis == Axis.Horizontal ? this.localPosition.x : this.localPosition.y;
-            var lowerAxis = centerAxis - half;
-            var upperAxis = centerAxis + half;
-            var anchorRect = GetAnchorRectToParent();
-            var anchorMinAxis = axis == Axis.Horizontal ? anchorRect.left : anchorRect.bottom;
-            var anchorMaxAxis = axis == Axis.Horizontal ? anchorRect.right : anchorRect.top;
-            var offsetMinAxis = lowerAxis - anchorMinAxis;
-            var offsetMaxAxis = upperAxis - anchorMaxAxis;
+            float low, high;
+            ForceUpdateRectTransforms();
             switch (axis)
             {
                 case Axis.Horizontal:
-                    offsetMin = new Vector2(offsetMinAxis, offsetMin.y);
-                    offsetMax = new Vector2(offsetMaxAxis, offsetMax.y);
+                    low = -this.pivot.x * size;
+                    high = (1 - this.pivot.x) * size;
+                    data.offsetMin = new Vector2(low - (this._rect.left - data.offsetMin.x), data.offsetMin.y);
+                    data.offsetMax = new Vector2(high - (this._rect.right - data.offsetMax.x), data.offsetMax.y);
                     break;
                 case Axis.Vertical:
-                    offsetMin = new Vector2(offsetMin.x, offsetMinAxis);
-                    offsetMax = new Vector2(offsetMax.x, offsetMaxAxis);
+                    low = -this.pivot.y * size;
+                    high = (1 - this.pivot.y) * size;
+                    data.offsetMin = new Vector2(data.offsetMin.x, low - (this._rect.bottom - data.offsetMin.y));
+                    data.offsetMax = new Vector2(data.offsetMax.x, high - (this._rect.top - data.offsetMax.y));
                     break;
             }
-            ForceUpdateRectTransforms();
-            SendMessage("OnTransformParentChanged");
-
+            dirty = true;
         }
 
         protected override void OnChildAdded(Transform child)

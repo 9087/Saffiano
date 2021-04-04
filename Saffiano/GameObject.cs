@@ -190,7 +190,8 @@ namespace Saffiano
 
         private IEnumerable<Behaviour> EnumerateBehaviours()
         {
-            foreach (Component component in this.components)
+            var components = this.components.ToList();
+            foreach (Component component in components)
             {
                 if (!(component is Behaviour))
                 {

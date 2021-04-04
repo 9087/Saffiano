@@ -15,6 +15,9 @@ namespace Saffiano
             this.y = y;
             this.z = 0;
         }
+        public Vector3(Vector2 v, float z) : this(v.x, v.y, z)
+        {
+        }
 
         public Vector3(float x, float y, float z)
         {

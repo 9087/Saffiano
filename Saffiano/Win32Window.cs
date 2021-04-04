@@ -902,6 +902,18 @@ namespace Saffiano
             {KeyCode.RightControl, VirtualKeys.RightControl},
             {KeyCode.LeftAlt, VirtualKeys.LeftMenu},
             {KeyCode.RightAlt, VirtualKeys.RightMenu},
+            {KeyCode.LeftShift, VirtualKeys.LeftShift},
+            {KeyCode.RightShift, VirtualKeys.RightShift},
+            {KeyCode.Alpha0, VirtualKeys.N0},
+            {KeyCode.Alpha1, VirtualKeys.N1},
+            {KeyCode.Alpha2, VirtualKeys.N2},
+            {KeyCode.Alpha3, VirtualKeys.N3},
+            {KeyCode.Alpha4, VirtualKeys.N4},
+            {KeyCode.Alpha5, VirtualKeys.N5},
+            {KeyCode.Alpha6, VirtualKeys.N6},
+            {KeyCode.Alpha7, VirtualKeys.N7},
+            {KeyCode.Alpha8, VirtualKeys.N8},
+            {KeyCode.Alpha9, VirtualKeys.N9},
         };
 
         private static Dictionary<VirtualKeys, KeyCode> virtualKeyToKeyCodeMap;

@@ -42,6 +42,14 @@ namespace Saffiano.UI
             current = this;
         }
 
+        void OnDestroy()
+        {
+            if (current == this)
+            {
+                current = null;
+            }
+        }
+
         private static void OnInputEventDispatched(InputEvent args)
         {
             Debug.Assert(current != null);

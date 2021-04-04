@@ -74,6 +74,16 @@ namespace Saffiano.Widgets
             }
         }
 
+        public int GetChildrenCount()
+        {
+            return transform.childCount;
+        }
+
+        public void AddChild(Widget widget)
+        {
+            widget.transform.parent = this.transform;
+        }
+
         public IEnumerator<Widget> GetEnumerator()
         {
             return GetChildren();
@@ -81,7 +91,7 @@ namespace Saffiano.Widgets
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public Widget this[params Widget[] widgets]
+        public dynamic this[params Widget[] widgets]
         {
             get
             {

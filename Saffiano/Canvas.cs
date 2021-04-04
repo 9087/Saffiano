@@ -37,26 +37,28 @@ namespace Saffiano
         {
             foreach (Canvas canvas in canvases)
             {
-                canvas.rectTransform.OnParentResized(size);
+                var rectTransform = canvas.rectTransform;
+                rectTransform.offsetMax = Window.GetSize();
+                rectTransform.ForceUpdateRectTransforms();
             }
         }
 
         internal override void OnComponentAdded(GameObject gameObject)
         {
-            base.OnComponentAdded(gameObject);
-            RectTransform rectTransform = this.rectTransform;
+            RectTransform rectTransform = gameObject.transform as RectTransform;
             switch (renderMode)
             {
                 case RenderMode.ScreenSpaceOverlay:
                     rectTransform.anchorMin = new Vector2(0, 0);
-                    rectTransform.anchorMax = new Vector2(1, 1);
+                    rectTransform.anchorMax = new Vector2(0, 0);
                     rectTransform.offsetMin = new Vector2(0, 0);
-                    rectTransform.offsetMax = new Vector2(0, 0);
+                    rectTransform.offsetMax = Window.GetSize();
                     rectTransform.pivot = new Vector2(0.5f, 0.5f);
                     break;
                 default:
                     throw new NotImplementedException();
             }
+            base.OnComponentAdded(gameObject);
             rectTransform.ForceUpdateRectTransforms();
         }
 

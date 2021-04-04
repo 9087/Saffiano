@@ -87,7 +87,7 @@ namespace Saffiano
                     default:
                         throw new NotImplementedException();
                 }
-                InputEvent(inputEvent);
+                InputEvent?.Invoke(inputEvent);
             }
         }
 

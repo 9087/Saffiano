@@ -108,10 +108,14 @@ namespace Saffiano
             }
         }
 
-        public Rect(float x, float y, float width, float height)
+        public Rect(float x, float y, float width, float height) : this(new Vector2(x, y), new Vector2(width, height))
         {
-            position = new Vector2(x, y);
-            size = new Vector2(width, height);
+        }
+
+        public Rect(Vector2 position, Vector2 size)
+        {
+            this.position = position;
+            this.size = size;
         }
 
         public static Rect zero => new Rect(0, 0, 0, 0);

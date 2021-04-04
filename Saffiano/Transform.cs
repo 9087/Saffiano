@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 
 namespace Saffiano
@@ -178,7 +179,7 @@ namespace Saffiano
 
         protected virtual void OnParentChanged(Transform old, Transform current)
         {
-            Array.ForEach(GetComponents<Behaviour>(), (b) => { b.Invoke("OnTransformParentChanged"); });
+            SendMessage("OnTransformParentChanged");
         }
 
         protected virtual void OnInternalParentChanged(Transform old, Transform current)
@@ -266,6 +267,7 @@ namespace Saffiano
 
         IEnumerator IEnumerable.GetEnumerator()
         {
+            var children = this.children.ToList();
             foreach (var child in children)
             {
                 yield return child;
@@ -274,6 +276,7 @@ namespace Saffiano
 
         IEnumerator<Transform> IEnumerable<Transform>.GetEnumerator()
         {
+            var children = this.children.ToList();
             foreach (var child in children)
             {
                 yield return child;
@@ -305,5 +308,18 @@ namespace Saffiano
             }
             return false;
         }
+
+        public void SetSiblingIndex(int index)
+        {
+            parent.children.Remove(this);
+            parent.children.Insert(index, this);
+        }
+
+        public int GetSiblingIndex()
+        {
+            return parent.children.IndexOf(this);
+        }
+
+        public int childCount => children.Count;
     }
 }

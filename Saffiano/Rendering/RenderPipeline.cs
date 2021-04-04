@@ -80,7 +80,7 @@ namespace Saffiano.Rendering
                 }
                 device.SetViewport(new Viewport() { width = (uint)size.x, height = (uint)size.y, });
                 device.BeginScene(camera.TargetTexture);
-                device.Clear();
+                device.Clear(camera.backgroundColor);
                 PushProjection(camera.projectionMatrix * camera.worldToCameraMatrix);
                 Traverse(camera, Transform.scene);
                 PopProjection();

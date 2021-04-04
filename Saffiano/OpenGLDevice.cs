@@ -312,8 +312,9 @@ namespace Saffiano
             this.deviceContext.SwapBuffers();
         }
 
-        public override void Clear()
+        public override void Clear(Color backgroundColor)
         {
+            Gl.ClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 

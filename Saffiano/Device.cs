@@ -59,7 +59,7 @@ namespace Saffiano
 
         public abstract void EndScene();
 
-        public abstract void Clear();
+        public abstract void Clear(Color backgroundColor);
 
         public virtual void SetViewport(Viewport viewport)
         {

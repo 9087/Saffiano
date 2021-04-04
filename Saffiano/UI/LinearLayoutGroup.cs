@@ -111,6 +111,7 @@ namespace Saffiano.UI
                         child.anchorMax = new Vector2(0, 1);
                         child.offsetMin = new Vector2(step, -height);
                         child.offsetMax = new Vector2(width + step, 0);
+                        child.ForceUpdateRectTransforms();
                         step += childRect.width;
                         break;
                     case RectTransform.Axis.Vertical:
@@ -118,6 +119,7 @@ namespace Saffiano.UI
                         child.anchorMax = new Vector2(0, 1);
                         child.offsetMin = new Vector2(0, -height - step);
                         child.offsetMax = new Vector2(width, -step);
+                        child.ForceUpdateRectTransforms();
                         step += childRect.height;
                         break;
                     default:

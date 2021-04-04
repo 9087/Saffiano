@@ -26,6 +26,16 @@ namespace Saffiano
 
         internal bool registered { get; set; }
 
+        public static Texture white
+        {
+            get
+            {
+                var texture = new Texture(1, 1);
+                texture.pixels[0] = new Color(1, 1, 1);
+                return texture;
+            }
+        }
+
         internal Vector2 uvBottomRight
         {
             get

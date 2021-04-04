@@ -66,21 +66,23 @@
             switch ((FT_Pixel_Mode) bitmap.pixel_mode)
             {
                 case FT_Pixel_Mode.FT_PIXEL_MODE_GRAY:
-                    uint length = bitmap.width * bitmap.rows;
-                    byte[] buffer = new Byte[length];
-                    Marshal.Copy(bitmap.buffer, buffer, 0, (int)length);
-                    Color[] pixels = new Color[length];
-                    int count = 0;
-                    for (int y = (int)bitmap.rows - 1; y >= 0; y--)
                     {
-                        for (int x = 0; x < bitmap.width; x++)
+                        uint length = bitmap.width * bitmap.rows;
+                        byte[] buffer = new Byte[length];
+                        Marshal.Copy(bitmap.buffer, buffer, 0, (int)length);
+                        Color[] pixels = new Color[length];
+                        int count = 0;
+                        for (int y = (int)bitmap.rows - 1; y >= 0; y--)
                         {
-                            int index = y * (int)bitmap.width + x;
-                            pixels[count] = new Color { r = 1, g = 1, b = 1, a = (float)buffer[index] / 255.0f };
-                            count++;
+                            for (int x = 0; x < bitmap.width; x++)
+                            {
+                                int index = y * (int)bitmap.width + x;
+                                pixels[count] = new Color { r = 1, g = 1, b = 1, a = (float)buffer[index] / 255.0f };
+                                count++;
+                            }
                         }
+                        texture.SetPixels(pixels);
                     }
-                    texture.SetPixels(pixels);
                     break;
                 default:
                     throw new NotImplementedException();
