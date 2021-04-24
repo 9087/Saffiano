@@ -37,17 +37,38 @@ namespace Saffiano.UI
             set { textComponent.text = value; }
         }
 
+        private Image caret { get; set; }
+
+        private Vector2 caretSize { get; set; } = new Vector2(10, 3);
+
         void Awake()
         {
             current = this;
+            var g = new GameObject();
+            g.AddComponent<RectTransform>().parent = this.transform;
+            g.AddComponent<CanvasRenderer>();
+            caret = g.AddComponent<Image>();
+            caret.sprite = Sprite.Create(Texture.white);
+            var transform = caret.transform as RectTransform;
+            transform.anchorMin = new Vector2(0, 1);
+            transform.anchorMax = new Vector2(0, 1);
+            transform.pivot = new Vector2(0, 0);
         }
 
         void OnDestroy()
         {
+            Object.Destroy(caret.gameObject);
             if (current == this)
             {
                 current = null;
             }
+        }
+
+        void Update()
+        {
+            var transform = caret.transform as RectTransform;
+            transform.offsetMin = textComponent.endpoint;
+            transform.offsetMax = caretSize + textComponent.endpoint;
         }
 
         private static void OnInputEventDispatched(InputEvent args)

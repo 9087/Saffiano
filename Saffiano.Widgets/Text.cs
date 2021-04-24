@@ -14,7 +14,6 @@ namespace Saffiano.Widgets
             AddComponent<CanvasRenderer>();
             this.textComponent = AddComponent<UI.Text>();
             this.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 22);
-            AddComponent<ContentSizeFitter>();
         }
 
         public string text

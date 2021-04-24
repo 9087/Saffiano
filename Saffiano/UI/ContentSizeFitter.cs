@@ -14,9 +14,9 @@ namespace Saffiano.UI
 
         public new RectTransform transform => base.transform as RectTransform;
 
-        public FitMode horizontalFit { get; set; }
+        public FitMode horizontalFit { get; set; } = FitMode.PreferredSize;
 
-        public FitMode verticalFit { get; set; }
+        public FitMode verticalFit { get; set; } = FitMode.PreferredSize;
 
         public void SetLayout()
         {

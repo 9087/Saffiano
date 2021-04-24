@@ -82,8 +82,17 @@ namespace Saffiano.UI
                     continue;
                 }
                 var layoutElement = child.GetComponent<ILayoutElement>();
-                size.x += layoutElement.preferredWidth;
-                size.y += layoutElement.preferredHeight;
+                switch (_axis)
+                {
+                    case RectTransform.Axis.Horizontal:
+                        size.x += layoutElement.preferredWidth;
+                        size.y = Mathf.Max(size.y, layoutElement.preferredHeight);
+                        break;
+                    case RectTransform.Axis.Vertical:
+                        size.y += layoutElement.preferredHeight;
+                        size.x = Mathf.Max(size.x, layoutElement.preferredWidth);
+                        break;
+                }
             }
             preferredWidth = size.x;
             preferredHeight = size.y;
@@ -100,10 +109,10 @@ namespace Saffiano.UI
                     continue;
                 }
                 var childRect = child.rect;
-                child.pivot = new Vector2(0.5f, 0.5f);
+                child.pivot = new Vector2(0, 1);
                 var layoutElement = child.GetComponent<ILayoutElement>();
-                var width = _childControlWidth ? layoutElement.preferredWidth : childRect.width;
-                var height = _childControlHeight ? layoutElement.preferredHeight : childRect.height;
+                var width = _childControlWidth ? transform.rect.width : layoutElement.preferredWidth;
+                var height = _childControlHeight ? transform.rect.height : layoutElement.preferredHeight;
                 switch (_axis)
                 {
                     case RectTransform.Axis.Horizontal:

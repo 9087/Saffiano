@@ -95,9 +95,25 @@ namespace Saffiano.UI
 
         public float minHeight => throw new NotImplementedException();
 
-        public float preferredHeight { get => preferredSize.y; }
+        public float preferredHeight
+        {
+            get
+            {
+                OnPopulateMesh(mesh);
+                return preferredSize.y;
+            }
+        }
 
-        public float preferredWidth { get => preferredSize.x; }
+        public float preferredWidth
+        {
+            get
+            {
+                OnPopulateMesh(mesh);
+                return preferredSize.x;
+            }
+        }
+
+        internal Vector2 endpoint { get; set; }
 
         protected override Mesh OnPopulateMesh(Mesh old)
         {
@@ -123,8 +139,8 @@ namespace Saffiano.UI
             List<Vector2> uv = new List<Vector2>();
             List<Color> colors = new List<Color>();
             Vector2 current = Vector2.zero;
-            Vector2 offset = new Vector2(rect.x, rect.y);
-            Vector2 lineSize = Vector2.zero;
+            Vector2 offset = new Vector2(rect.left, rect.top);
+            Vector2 size = Vector2.zero;
             uint index = 0;
             foreach (char ch in text)
             {
@@ -138,21 +154,28 @@ namespace Saffiano.UI
                 if (characterInfo.texture == null)
                 {
                     current.x += characterInfo.advance.x;
+                    size.x = Mathf.Max(size.x, current.x);
                     continue;
+                }
+
+                var target = current.x + characterInfo.advance.x;
+                if (target > rect.width)
+                {
+                    current.x = 0;
+                    current.y -= font.lineHeight;
                 }
 
                 float width = characterInfo.texture.width;
                 float height = characterInfo.texture.height;
 
                 float glyphX = current.x + offset.x;
-                float glyphY = current.y + offset.y + characterInfo.bitmapOffset.y - characterInfo.texture.height - characterInfo.descender;
+                float glyphY = current.y + offset.y + characterInfo.bitmapOffset.y - height - font.lineHeight;
 
                 float left = glyphX;
                 float right = glyphX + width;
                 float bottom = glyphY;
                 float top = glyphY + height;
 
-                lineSize.y = Mathf.Max(lineSize.y, characterInfo.ascender - characterInfo.descender);
                 vertices.Add(new Vector3(left, bottom));
                 vertices.Add(new Vector3(right, bottom));
                 vertices.Add(new Vector3(right, top));
@@ -174,20 +197,18 @@ namespace Saffiano.UI
                 colors.Add(new Color(1, 1, 1, 1));
 
                 index += 1;
+                size.x = Mathf.Max(size.x, current.x);
                 current.x += characterInfo.advance.x;
-                lineSize.x = Mathf.Max(lineSize.x, current.x);
             }
 
-            // TODO: multiple lines
-            ;
-
-            preferredSize = lineSize;
+            preferredSize = new Vector2(size.x, Mathf.Abs(current.y - font.lineHeight));
             Vector2 alignmentValue = alignments[alignment];
-            var size = rectTransform.rect.size;
-            var delta = (size - preferredSize) * alignmentValue;
+            var delta = (rectTransform.rect.size - preferredSize) * alignmentValue;
             vertices = vertices
                 .Select((v) => v + new Vector3(delta.x, delta.y, 0))
                 .ToList();
+
+            endpoint = current + delta + new Vector2(0, -font.lineHeight);
 
             AutoLayout.MarkLayoutForRebuild(this.transform as RectTransform);
 

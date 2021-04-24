@@ -259,6 +259,7 @@ namespace Saffiano
         public void SetSizeWithCurrentAnchors(RectTransform.Axis axis, float size)
         {
             float low, high;
+            Debug.Assert(this.parent as RectTransform != null);
             ForceUpdateRectTransforms();
             switch (axis)
             {

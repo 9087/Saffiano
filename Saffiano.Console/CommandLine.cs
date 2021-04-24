@@ -16,26 +16,12 @@ namespace Saffiano.Console
         }
     }
 
-    internal class CursorController : Behaviour
-    {
-        public new RectTransform transform => base.transform as RectTransform;
-
-        void Awake()
-        {
-            this.transform.anchorMin = new Vector2(1.0f, 0);
-            this.transform.anchorMax = new Vector2(1.0f, 0);
-            this.transform.pivot = new Vector2(0, 0);
-            this.transform.offsetMin = new Vector2(0, 0);
-            this.transform.offsetMax = new Vector2(10, 3);
-        }
-    }
-
     public class CommandLine : Widget
     {
         private Font font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 16);
         internal ListView listView = null;
         internal TextField textField = null;
-        internal ImageView cursor = null; 
+        internal ImageView cursor = null;
 
         public CommandLine()
         {
@@ -52,16 +38,15 @@ namespace Saffiano.Console
                     textField = new TextField()
                     {
                         font = font,
-                    }[
-                        cursor = new ImageView()
-                        {
-                            sprite = Sprite.Create(Texture.white)
-                        }
-                    ]
+                    }
                 ]
             ];
             this.AddComponent<CommandLineInputHandler>().TextEntered += OnCommandLineTextEntered;
-            cursor.AddComponent<CursorController>();
+            listView.GetComponent<UI.LinearLayoutGroup>().childControlHeight = false;
+            var textComponent = textField.GetComponent<UI.Text>();
+            textField.size = new Vector2(0, font.lineHeight);
+            textComponent.alignment = UI.TextAnchor.MiddleLeft;
+
         }
 
         private void OnCommandLineTextEntered()
@@ -75,7 +60,10 @@ namespace Saffiano.Console
             string text = string.Format(message, objects);
             var line = new Text() { text = text, font = font, };
             listView.AddChild(line);
+            line.size = new Vector2(0, font.lineHeight);
             line.transform.SetSiblingIndex(listView.GetChildrenCount() - 2);
+            var textComponent = line.GetComponent<UI.Text>();
+            textComponent.alignment = UI.TextAnchor.MiddleLeft;
         }
     }
 }

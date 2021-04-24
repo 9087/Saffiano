@@ -806,6 +806,16 @@ namespace Saffiano
 
         static int IDC_ARROW = 32512;
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MINMAXINFO
+        {
+            public POINT ptReserved;
+            public POINT ptMaxSize;
+            public POINT ptMaxPosition;
+            public POINT ptMinTrackSize;
+            public POINT ptMaxTrackSize;
+        }
+
         #endregion
 
         #region Common system call
@@ -1076,6 +1086,14 @@ namespace Saffiano
                     break;
                 case WindowsMessages.MBUTTONUP:
                     this.DispatchMouseEvent(MouseEventType.MouseUp, VirtualKeys.MiddleButton);
+                    break;
+                case WindowsMessages.GETMINMAXINFO:
+                    unsafe
+                    {
+                        MINMAXINFO* mminfo = (MINMAXINFO*)(lParam.ToPointer());
+                        mminfo->ptMinTrackSize.X = 640;
+                        mminfo->ptMinTrackSize.Y = 480;
+                    }
                     break;
             }
             return DefWindowProc(hWnd, (WindowsMessages)message, wParam, lParam);

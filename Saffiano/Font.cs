@@ -59,6 +59,8 @@ namespace Saffiano
             }
         }
 
+        public float lineHeight => _ttfs[0].face.Ascender - _ttfs[0].face.Descender;
+
         public int fontSize { get; private set; } = 14;
 
         public static Font CreateDynamicFontFromOSFont(string fontname, int size)
