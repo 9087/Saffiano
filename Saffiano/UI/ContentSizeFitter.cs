@@ -6,13 +6,41 @@ namespace Saffiano.UI
 {
     public class ContentSizeFitter : Behaviour, ILayoutController
     {
+        public enum FitMode
+        {
+            Unconstrained,
+            PreferredSize,
+        }
+
         public new RectTransform transform => base.transform as RectTransform;
+
+        public FitMode horizontalFit { get; set; }
+
+        public FitMode verticalFit { get; set; }
 
         public void SetLayout()
         {
             ILayoutElement layoutElement = GetComponent<ILayoutElement>();
-            transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, layoutElement.preferredWidth);
-            transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, layoutElement.preferredHeight);
+            switch (horizontalFit)
+            {
+                case FitMode.Unconstrained:
+                    break;
+                case FitMode.PreferredSize:
+                    transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, layoutElement.preferredWidth);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            switch (verticalFit)
+            {
+                case FitMode.Unconstrained:
+                    break;
+                case FitMode.PreferredSize:
+                    transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, layoutElement.preferredHeight);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
         }
 
         public void SetDirty()

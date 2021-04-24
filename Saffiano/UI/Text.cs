@@ -210,7 +210,6 @@ namespace Saffiano.UI
         internal override Command GenerateCommand()
         {
             mesh = OnPopulateMesh(mesh);
-            Debug.LogFormat("Text {0} {1}", rectTransform.rect, rectTransform.position);
             return new Command()
             {
                 projection = RenderPipeline.projection,

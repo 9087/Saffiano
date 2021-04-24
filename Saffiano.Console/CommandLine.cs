@@ -4,14 +4,14 @@ namespace Saffiano.Console
 {
     internal class CommandLineInputHandler : Behaviour
     {
-        public CommandLine commandLine { get; set; }
+        public delegate void TextEnteredHandler();
+        public event TextEnteredHandler TextEntered;
 
         void Update()
         {
             if (Input.GetKeyDown(KeyCode.Return))
             {
-                commandLine.WriteLine(commandLine.textField.text);
-                commandLine.textField.text = "";
+                TextEntered();
             }
         }
     }
@@ -26,29 +26,16 @@ namespace Saffiano.Console
             this.transform.anchorMax = new Vector2(1.0f, 0);
             this.transform.pivot = new Vector2(0, 0);
             this.transform.offsetMin = new Vector2(0, 0);
-            this.transform.offsetMax = new Vector2(20, 3);
+            this.transform.offsetMax = new Vector2(10, 3);
         }
     }
 
     public class CommandLine : Widget
     {
-        private Font _font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 16);
+        private Font font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 16);
         internal ListView listView = null;
         internal TextField textField = null;
         internal ImageView cursor = null; 
-
-        public Font font
-        {
-            get => _font;
-            set
-            {
-                if (_font == value)
-                {
-                    return;
-                }
-                _font = value;
-            }
-        }
 
         public CommandLine()
         {
@@ -67,12 +54,20 @@ namespace Saffiano.Console
                         font = font,
                     }[
                         cursor = new ImageView()
+                        {
+                            sprite = Sprite.Create(Texture.white)
+                        }
                     ]
                 ]
             ];
-            this.AddComponent<CommandLineInputHandler>().commandLine = this;
+            this.AddComponent<CommandLineInputHandler>().TextEntered += OnCommandLineTextEntered;
             cursor.AddComponent<CursorController>();
-            cursor.sprite = Sprite.Create(Texture.white);
+        }
+
+        private void OnCommandLineTextEntered()
+        {
+            WriteLine(textField.text);
+            textField.text = "";
         }
 
         public void WriteLine(string message, params object[] objects)

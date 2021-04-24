@@ -61,6 +61,17 @@ namespace Saffiano.Widgets
             set { transform.pivot = value; }
         }
 
+        public Vector2 size
+        {
+            get => transform.rect.size;
+
+            set
+            {
+                transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, value.x);
+                transform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, value.y);
+            }
+        }
+
         public IEnumerator<Widget> GetChildren()
         {
             foreach (var child in transform)
