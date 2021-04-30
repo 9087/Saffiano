@@ -29,7 +29,25 @@ namespace Saffiano.UI
             }
         }
 
-        public Text textComponent { get; set; }
+        private Text _textComponent = null;
+
+        public Text textComponent
+        {
+            get => _textComponent;
+            set
+            {
+                if (value == _textComponent)
+                {
+                    return;
+                }
+                if (_textComponent != null)
+                {
+                    _textComponent.EndpointChanged -= OnTextEndpointChanged;
+                }
+                _textComponent = value;
+                _textComponent.EndpointChanged += OnTextEndpointChanged;
+            }
+        }
 
         public string text
         {
@@ -57,18 +75,16 @@ namespace Saffiano.UI
 
         void OnDestroy()
         {
+            if (_textComponent != null)
+            {
+                _textComponent.EndpointChanged -= OnTextEndpointChanged;
+                _textComponent = null;
+            }
             Object.Destroy(caret.gameObject);
             if (current == this)
             {
                 current = null;
             }
-        }
-
-        void Update()
-        {
-            var transform = caret.transform as RectTransform;
-            transform.offsetMin = textComponent.endpoint;
-            transform.offsetMax = caretSize + textComponent.endpoint;
         }
 
         private static void OnInputEventDispatched(InputEvent args)
@@ -111,6 +127,13 @@ namespace Saffiano.UI
                     break;
             }
             current.text = new string(buffer.ToArray());
+        }
+
+        private void OnTextEndpointChanged()
+        {
+            var transform = caret.transform as RectTransform;
+            transform.offsetMin = textComponent.endpoint + new Vector2(0, -caretSize.y);
+            transform.offsetMax = textComponent.endpoint + new Vector2(+caretSize.x, 0);
         }
     }
 }

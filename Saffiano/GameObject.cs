@@ -10,7 +10,7 @@ namespace Saffiano
     {
         private List<Component> components = new List<Component>();
 
-        internal Transform target { get; set; }
+        internal Transform target { get; set; } = Transform.scene;
 
         public bool activeSelf { get; private set; } = true;
 
@@ -74,14 +74,14 @@ namespace Saffiano
             }
         }
 
-        public GameObject()
-        {
-            target = Transform.scene;
-        }
-
-        public GameObject(String name) : this()
+        public GameObject(String name)
         {
             this.name = name;
+        }
+
+        public GameObject()
+        {
+            this.name = GetType().Name;
         }
 
         private void AddComponent(Component component)

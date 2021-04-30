@@ -23,7 +23,7 @@ namespace Saffiano
             typeof(Window),
             typeof(Input),
             typeof(Timer),
-            typeof(Transform),
+            typeof(Transform),  // Update/LateUpdate
             typeof(Canvas),
             typeof(UI.AutoLayout),
             typeof(RenderPipeline),

@@ -6,7 +6,6 @@ namespace Saffiano.Console
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             Application.Initialize();

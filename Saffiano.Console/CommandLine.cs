@@ -46,7 +46,6 @@ namespace Saffiano.Console
             var textComponent = textField.GetComponent<UI.Text>();
             textField.size = new Vector2(0, font.lineHeight);
             textComponent.alignment = UI.TextAnchor.MiddleLeft;
-
         }
 
         private void OnCommandLineTextEntered()

@@ -27,6 +27,9 @@ namespace Saffiano.UI
         private TextAnchor _alignment = TextAnchor.MiddleCenter;
         private Vector2 preferredSize;
 
+        internal delegate void EndpointChangedHandler();
+        internal EndpointChangedHandler EndpointChanged;
+
         private static Dictionary<TextAnchor, Vector2> alignments = new Dictionary<TextAnchor, Vector2>
         {
             {TextAnchor.UpperLeft,    new Vector2(0.0f, 1.0f)},
@@ -208,7 +211,12 @@ namespace Saffiano.UI
                 .Select((v) => v + new Vector3(delta.x, delta.y, 0))
                 .ToList();
 
-            endpoint = current + delta + new Vector2(0, -font.lineHeight);
+            var tmp = current + delta + new Vector2(0, -font.lineHeight);
+            if (tmp != endpoint)
+            {
+                endpoint = tmp;
+                EndpointChanged?.Invoke();
+            }
 
             AutoLayout.MarkLayoutForRebuild(this.transform as RectTransform);
 
