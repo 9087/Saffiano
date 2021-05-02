@@ -14,9 +14,9 @@ namespace Saffiano.UI
             while (dirtyTransforms.Count != 0)
             {
                 var transform = dirtyTransforms.First();
+                FlushSubTreeTransform(transform);
                 PerformCalculateLayoutInput(transform);
                 PerformSetLayout(transform);
-                FlushSubTreeTransform(transform);
             }
             return true;
         }

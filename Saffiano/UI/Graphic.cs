@@ -9,10 +9,5 @@
         internal abstract Command GenerateCommand();
 
         protected abstract Mesh OnPopulateMesh(Mesh mesh);
-
-        void LateUpdate()
-        {
-            mesh = OnPopulateMesh(mesh);
-        }
     }
 }

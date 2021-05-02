@@ -20,7 +20,7 @@ namespace Saffiano.UI
 
     public class Text : Graphic , ILayoutElement
     {
-        private bool dirty = false;
+        private bool dirty = true;
         private string _text = string.Empty;
         private Font _font = null;
         private Rect rect;
@@ -54,7 +54,7 @@ namespace Saffiano.UI
                     return;
                 }
                 _text = value;
-                dirty = true;
+                SetDirty();
             }
         }
 
@@ -69,7 +69,7 @@ namespace Saffiano.UI
                     return;
                 }
                 _font = value;
-                dirty = true;
+                SetDirty();
             }
         }
 
@@ -86,7 +86,7 @@ namespace Saffiano.UI
                     return;
                 }
                 _alignment = value;
-                dirty = true;
+                SetDirty();
             }
         }
 
@@ -102,7 +102,7 @@ namespace Saffiano.UI
         {
             get
             {
-                OnPopulateMesh(mesh);
+                mesh = OnPopulateMesh(mesh);
                 return preferredSize.y;
             }
         }
@@ -111,12 +111,18 @@ namespace Saffiano.UI
         {
             get
             {
-                OnPopulateMesh(mesh);
+                mesh = OnPopulateMesh(mesh);
                 return preferredSize.x;
             }
         }
 
         internal Vector2 endpoint { get; set; }
+
+        private void SetDirty()
+        {
+            dirty = true;
+            AutoLayout.MarkLayoutForRebuild(this.transform as RectTransform);
+        }
 
         protected override Mesh OnPopulateMesh(Mesh old)
         {
@@ -254,7 +260,7 @@ namespace Saffiano.UI
 
         protected void OnTransformParentChanged()
         {
-            dirty = true;
+            SetDirty();
         }
 
         public void CalculateLayoutInput()

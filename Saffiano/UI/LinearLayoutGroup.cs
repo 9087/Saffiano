@@ -100,7 +100,6 @@ namespace Saffiano.UI
 
         public override void SetLayout()
         {
-            var rect = this.transform.rect;
             float step = 0;
             foreach (RectTransform child in transform)
             {
