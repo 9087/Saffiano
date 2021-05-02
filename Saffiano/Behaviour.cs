@@ -145,5 +145,10 @@ namespace Saffiano
             }
             this.Invoke("Update");
         }
+
+        internal void RequestLateUpdate()
+        {
+            this.Invoke("LateUpdate");
+        }
     }
 }

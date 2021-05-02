@@ -136,7 +136,7 @@ namespace Saffiano
         {
             foreach (var x in EnumerateBehaviours().Where((x) => x.enabled))
             {
-                x.Invoke("Update");
+                x.RequestUpdate();
             }
             foreach (var child in transform)
             {
@@ -148,7 +148,7 @@ namespace Saffiano
         {
             foreach (var x in EnumerateBehaviours().Where((x) => x.enabled))
             {
-                x.Invoke("LateUpdate");
+                x.RequestLateUpdate();
             }
             foreach (var child in transform)
             {

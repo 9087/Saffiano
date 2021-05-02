@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Saffiano.UI
@@ -52,12 +53,19 @@ namespace Saffiano.UI
         public string text
         {
             get => textComponent.text;
-            set { textComponent.text = value; }
+            set
+            {
+                textComponent.text = value;
+                _blinking?.Interrupt();
+                _blinking = StartCoroutine(Blinking());
+            }
         }
 
         private Image caret { get; set; }
 
-        private Vector2 caretSize { get; set; } = new Vector2(10, 3);
+        private Vector2 caretSize { get; set; } = new Vector2(10, 4);
+
+        private Coroutine _blinking = null;
 
         void Awake()
         {
@@ -71,6 +79,22 @@ namespace Saffiano.UI
             transform.anchorMin = new Vector2(0, 1);
             transform.anchorMax = new Vector2(0, 1);
             transform.pivot = new Vector2(0, 0);
+        }
+
+        void Start()
+        {
+            _blinking = StartCoroutine(Blinking());
+        }
+
+        public IEnumerator Blinking()
+        {
+            while (true)
+            {
+                caret.gameObject.SetActive(true);
+                yield return new WaitForSeconds(0.5f);
+                caret.gameObject.SetActive(false);
+                yield return new WaitForSeconds(0.5f);
+            }
         }
 
         void OnDestroy()
@@ -132,8 +156,8 @@ namespace Saffiano.UI
         private void OnTextEndpointChanged()
         {
             var transform = caret.transform as RectTransform;
-            transform.offsetMin = textComponent.endpoint + new Vector2(0, -caretSize.y);
-            transform.offsetMax = textComponent.endpoint + new Vector2(+caretSize.x, 0);
+            transform.offsetMin = textComponent.endpoint + new Vector2(0, -caretSize.y * 0.5f);
+            transform.offsetMax = textComponent.endpoint + new Vector2(+caretSize.x, caretSize.y * 0.5f);
         }
     }
 }
