@@ -114,7 +114,7 @@ namespace Saffiano.UI
         private static void OnInputEventDispatched(InputEvent args)
         {
             Debug.Assert(current != null);
-            if (current.textComponent == null)
+            if (current.textComponent == null || !current.isActiveAndEnabled)
             {
                 return;
             }

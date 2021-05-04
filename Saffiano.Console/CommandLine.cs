@@ -22,6 +22,8 @@ namespace Saffiano.Console
         internal ListView listView = null;
         internal TextField textField = null;
         internal ImageView cursor = null;
+        public delegate void TextEnteredHandler(string text);
+        public event TextEnteredHandler TextEntered;
 
         public CommandLine()
         {
@@ -50,8 +52,10 @@ namespace Saffiano.Console
 
         private void OnCommandLineTextEntered()
         {
-            WriteLine(textField.text);
+            var text = textField.text;
+            WriteLine(text);
             textField.text = "";
+            TextEntered?.Invoke(text);
         }
 
         public void WriteLine(string message, params object[] objects)
@@ -63,6 +67,11 @@ namespace Saffiano.Console
             line.transform.SetSiblingIndex(listView.GetChildrenCount() - 2);
             var textComponent = line.GetComponent<UI.Text>();
             textComponent.alignment = UI.TextAnchor.MiddleLeft;
+        }
+
+        public virtual void SetInputActive(bool active)
+        {
+            textField.SetActive(active);
         }
     }
 }
