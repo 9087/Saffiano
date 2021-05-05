@@ -75,6 +75,7 @@ namespace Saffiano.Console
             this.TextEntered += OnCommandLineTextEntered;
             this.WriteLine("Console initializing...");
             Execute(() => Initialize());
+            textField.header = ">>>";
         }
 
         void Execute(Action action)
@@ -99,9 +100,9 @@ namespace Saffiano.Console
                 {
                     switch (level)
                     {
-                        case Dotnet.Script.DependencyModel.Logging.LogLevel.Warning:
-                        case Dotnet.Script.DependencyModel.Logging.LogLevel.Error:
-                        case Dotnet.Script.DependencyModel.Logging.LogLevel.Critical:
+                        case LogLevel.Warning:
+                        case LogLevel.Error:
+                        case LogLevel.Critical:
                             Debug.LogWarning(message);
                             break;
                     }
@@ -137,8 +138,7 @@ namespace Saffiano.Console
                 }
                 catch (Exception exception)
                 {
-                    var message = string.Format("{0}\n{1}", exception.ToString(), exception.StackTrace);
-                    Debug.Log(message);
+                    Debug.Log(exception.ToString());
                 }
             }
         }
@@ -152,12 +152,19 @@ namespace Saffiano.Console
                     var task = state.ContinueWithAsync(source, options, ex => true);
                     task.Wait();
                     state = task.Result;
-                    RunFrameAction(() => { this.WriteLine(state.ReturnValue.ToString()); });
+                    if (state.Exception != null)
+                    {
+                        RunFrameAction(() => { this.WriteLine(state.Exception.ToString()); });
+                    }
+                    if (state.ReturnValue != null)
+                    {
+                        RunFrameAction(() => { this.WriteLine(state.ReturnValue.ToString()); });
+                    }
                 }
                 catch (Exception exception)
                 {
-                    var message = string.Format("{0}\n{1}", exception.ToString(), exception.StackTrace);
-                    Debug.Log(message);
+                    Debug.Log(exception.ToString());
+                    WriteLine(exception.Message);
                 }
             });
         }

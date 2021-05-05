@@ -52,8 +52,8 @@ namespace Saffiano.Console
 
         private void OnCommandLineTextEntered()
         {
+            WriteLine(textField.GetComponent<UI.Text>().text);
             var text = textField.text;
-            WriteLine(text);
             textField.text = "";
             TextEntered?.Invoke(text);
         }

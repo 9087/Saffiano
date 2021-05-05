@@ -32,7 +32,7 @@ namespace Saffiano.UI
 
         private Text _textComponent = null;
 
-        public Text textComponent
+        public virtual Text textComponent
         {
             get => _textComponent;
             set
@@ -50,7 +50,7 @@ namespace Saffiano.UI
             }
         }
 
-        public string text
+        public virtual string text
         {
             get => textComponent.text;
             set

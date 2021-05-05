@@ -16,7 +16,7 @@ namespace Saffiano.Widgets
             this.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 22);
         }
 
-        public string text
+        public virtual string text
         {
             get => textComponent.text;
             set { textComponent.text = value; }
