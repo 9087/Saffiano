@@ -13,7 +13,7 @@ namespace Saffiano.Widgets
         {
             AddComponent<CanvasRenderer>();
             this.textComponent = AddComponent<UI.Text>();
-            this.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 22);
+            this.font = Font.CreateDynamicFontFromOSFont("fonts/JetBrainsMono-Regular.ttf", 22);
         }
 
         public virtual string text

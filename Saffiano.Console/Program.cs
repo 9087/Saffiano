@@ -6,6 +6,7 @@ namespace Saffiano.Console
     {
         static void Main(string[] args)
         {
+            Resources.SetRootDirectory("../../../../Resources");
             Application.Initialize();
 
             GameObject camera = new GameObject("Camera");

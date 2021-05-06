@@ -18,7 +18,7 @@ namespace Saffiano.Console
 
     public class CommandLine : Widget
     {
-        private Font font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 16);
+        private Font font = Font.CreateDynamicFontFromOSFont("fonts/JetBrainsMono-Regular.ttf", 16);
         internal ListView listView = null;
         internal TextField textField = null;
         internal ImageView cursor = null;

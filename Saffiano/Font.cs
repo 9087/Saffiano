@@ -1,6 +1,7 @@
 ﻿using Saffiano.FileFormats;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Saffiano
 {
@@ -65,6 +66,7 @@ namespace Saffiano
 
         public static Font CreateDynamicFontFromOSFont(string fontname, int size)
         {
+            fontname = Path.Combine(Resources.rootDirectory, fontname);
             Identity identity = new Identity(fontname, size);
             if (instances.TryGetValue(identity, out Font font))
             {

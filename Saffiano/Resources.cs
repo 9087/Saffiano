@@ -39,6 +39,7 @@ namespace Saffiano
         private static Dictionary<string, Type> extensionNames = new Dictionary<string, Type>();
         private static List<Type> supportedAssetTypes = new List<Type> { typeof(Saffiano.Mesh), typeof(Texture), };
         private static Dictionary<string, LoadingInfo> loadingInfos = new Dictionary<string, LoadingInfo>();
+        internal static string rootDirectory = string.Empty;
 
         static Resources()
         {
@@ -170,6 +171,7 @@ namespace Saffiano
 
         internal static Asset LoadInternal(string path)
         {
+            path = Path.Combine(rootDirectory, path);
             if (Asset.TryGetCachedAssetByFilePath(path, out Asset asset))
             {
                 return asset;
@@ -190,6 +192,11 @@ namespace Saffiano
             object[] parameters = new object[] { path };
             asset = Activator.CreateInstance(assetType, flags, null, parameters, null) as Asset;
             return asset;
+        }
+
+        public static void SetRootDirectory(string path)
+        {
+            rootDirectory = path;
         }
     }
 }

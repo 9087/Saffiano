@@ -17,10 +17,10 @@ namespace Saffiano.Sample
             rectTransform.offsetMax = new Vector2(256, 128);
             lena.transform.parent = gameObject.transform;
             lena.AddComponent<CanvasRenderer>();
-            lena.AddComponent<Image>().sprite = Sprite.Create(Resources.Load("../../../../Resources/lena.png") as Texture);
+            lena.AddComponent<Image>().sprite = Sprite.Create(Resources.Load("textures/lena.png") as Texture);
             var text = lena.AddComponent<Text>();
             text.text = "Lena picture";
-            text.font = Font.CreateDynamicFontFromOSFont("../../../../Resources/JetBrainsMono-Regular.ttf", 18);
+            text.font = Font.CreateDynamicFontFromOSFont("fonts/JetBrainsMono-Regular.ttf", 18);
         }
     }
 }
