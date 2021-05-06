@@ -74,7 +74,8 @@ namespace Saffiano
             }
             font = new Font();
             font.fontSize = size;
-            font.fontNames = new string[] { fontname };
+            var fallback = Path.Combine(Resources.rootDirectory, "fonts/simsun.ttc");
+            font.fontNames = new string[] { fontname, fallback };
             instances.Add(identity, font);
             return font;
         }
@@ -104,6 +105,7 @@ namespace Saffiano
                         continue;
                     }
                     characterInfos.Add(ch, characterInfo);
+                    break;
                 }
             }
         }

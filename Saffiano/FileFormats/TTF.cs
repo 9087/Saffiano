@@ -84,15 +84,36 @@
                         texture.SetPixels(pixels);
                     }
                     break;
+                case FT_Pixel_Mode.FT_PIXEL_MODE_MONO:
+                    {
+                        uint length = bitmap.width * bitmap.rows;
+                        byte[] buffer = new Byte[bitmap.pitch * bitmap.rows];
+                        Marshal.Copy(bitmap.buffer, buffer, 0, (int)buffer.Length);
+                        Color[] pixels = new Color[length];
+                        int count = 0;
+                        for (int y = (int)bitmap.rows - 1; y >= 0; y--)
+                        {
+                            for (int x = 0; x < bitmap.width; x++)
+                            {
+                                int index = y * bitmap.pitch + (int)(x / 8);
+                                byte group = buffer[index];
+                                float pixel = (group & (1 << (7 - x % 8))) > 0 ? 255.0f : 0;
+                                pixels[count] = new Color { r = 1, g = 1, b = 1, a = pixel / 255.0f };
+                                count++;
+                            }
+                        }
+                        texture.SetPixels(pixels);
+                    }
+                    break;
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException(string.Format("Pixel mode ({0})", bitmap.pixel_mode.ToString()));
             }
             return new CharacterInfo(
                 this,
                 charactorCode,
                 new Vector2((float)glyphSlot.advance.x / (float)(1 << 6), (float)glyphSlot.advance.y / (float)(1 << 6)),
                 texture,
-                new Vector2(0, glyphSlot.bitmap_top)
+                new Vector2(glyphSlot.bitmap_left, glyphSlot.bitmap_top)
             );
         }
     }
