@@ -36,6 +36,16 @@ namespace Saffiano
             }
         }
 
+        public static Texture red
+        {
+            get
+            {
+                var texture = new Texture(1, 1);
+                texture.pixels[0] = new Color(1, 0, 0, 0.5f);
+                return texture;
+            }
+        }
+
         internal Vector2 uvBottomRight
         {
             get

@@ -35,7 +35,7 @@ namespace Saffiano.Console
                     anchorMax = new Vector2(1, 1),
                     offsetMin = new Vector2(0, 0),
                     offsetMax = new Vector2(0, 0),
-                    itemsMargin = -2,
+                    itemsMargin = 0,
                 }[
                     textField = new TextField()
                     {

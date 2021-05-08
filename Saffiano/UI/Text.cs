@@ -178,7 +178,7 @@ namespace Saffiano.UI
                 float height = characterInfo.texture.height;
 
                 float glyphX = current.x + offset.x + characterInfo.bitmapOffset.x;
-                float glyphY = current.y + offset.y + characterInfo.bitmapOffset.y - height - font.lineHeight;
+                float glyphY = current.y + offset.y - height - characterInfo.lineSpacing - characterInfo.descender + characterInfo.bitmapOffset.y;
 
                 float left = glyphX;
                 float right = glyphX + width;
