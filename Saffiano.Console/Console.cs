@@ -24,7 +24,7 @@ namespace Saffiano.Console
             actions.Add(action);
         }
 
-        void Update()
+        void LateUpdate()
         {
             foreach (var action in actions)
             {
@@ -134,6 +134,11 @@ namespace Saffiano.Console
             {
                 try
                 {
+                    if (assembly.IsDynamic)
+                    {
+                        continue;
+                    }
+                    Debug.LogFormat("Add reference: {0}", assembly.FullName);
                     options = options.AddReferences(assembly);
                 }
                 catch (Exception exception)

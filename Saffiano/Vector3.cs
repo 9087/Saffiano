@@ -126,6 +126,14 @@ namespace Saffiano
             }
         }
 
+        public Vector2 xy
+        {
+            get
+            {
+                return new Vector2(x, y);
+            }
+        }
+
         public float sqrMagnitude
         {
             get

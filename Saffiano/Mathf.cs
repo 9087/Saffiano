@@ -59,6 +59,11 @@ namespace Saffiano
             return MathF.Max(a, b);
         }
 
+        public static int Max(int a, int b)
+        {
+            return Math.Max(a, b);
+        }
+
         [Shader(OpenGL: "max({0}, {1})")]
         public static Vector2 Max(Vector2 a, Vector2 b)
         {
@@ -81,6 +86,11 @@ namespace Saffiano
         public static float Min(float a, float b)
         {
             return MathF.Min(a, b);
+        }
+
+        public static int Min(int a, int b)
+        {
+            return Math.Min(a, b);
         }
 
         [Shader(OpenGL: "min({0}, {1})")]

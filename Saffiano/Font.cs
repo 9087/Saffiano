@@ -60,7 +60,11 @@ namespace Saffiano
             }
         }
 
-        public float lineHeight => _ttfs[0].face.Ascender - _ttfs[0].face.Descender;
+        public float lineHeight => ascender - descender;
+
+        public float ascender => _ttfs[0].face.Ascender;
+
+        public float descender => _ttfs[0].face.Descender;
 
         public int fontSize { get; private set; } = 14;
 

@@ -27,8 +27,10 @@ namespace Saffiano.UI
         private TextAnchor _alignment = TextAnchor.MiddleCenter;
         private Vector2 preferredSize;
 
-        internal delegate void EndpointChangedHandler();
-        internal EndpointChangedHandler EndpointChanged;
+        internal delegate void MeshPopulatedChangedHandler(Mesh mesh);
+        internal MeshPopulatedChangedHandler MeshPopulatedChanged;
+
+        internal Vector2[] carets { get; set; }
 
         private static Dictionary<TextAnchor, Vector2> alignments = new Dictionary<TextAnchor, Vector2>
         {
@@ -116,8 +118,6 @@ namespace Saffiano.UI
             }
         }
 
-        internal Vector2 endpoint { get; set; }
-
         private void SetDirty()
         {
             dirty = true;
@@ -150,6 +150,7 @@ namespace Saffiano.UI
             Vector2 current = Vector2.zero;
             Vector2 offset = new Vector2(rect.left, rect.top);
             Vector2 size = Vector2.zero;
+            List<Vector2> carets = new List<Vector2>() { new Vector2(0, -font.lineHeight) };
             uint index = 0;
             foreach (char ch in text)
             {
@@ -157,6 +158,7 @@ namespace Saffiano.UI
 
                 if (characterInfo == null)
                 {
+                    carets.Add(current + new Vector2(0, -font.lineHeight));
                     continue;
                 }
 
@@ -164,6 +166,7 @@ namespace Saffiano.UI
                 {
                     current.x += characterInfo.advance.x;
                     size.x = Mathf.Max(size.x, current.x);
+                    carets.Add(current + new Vector2(0, -font.lineHeight));
                     continue;
                 }
 
@@ -208,6 +211,8 @@ namespace Saffiano.UI
                 index += 1;
                 size.x = Mathf.Max(size.x, current.x);
                 current.x += characterInfo.advance.x;
+
+                carets.Add(current + new Vector2(0, -font.lineHeight));
             }
 
             preferredSize = new Vector2(size.x, Mathf.Abs(current.y - font.lineHeight));
@@ -216,13 +221,7 @@ namespace Saffiano.UI
             vertices = vertices
                 .Select((v) => v + new Vector3(delta.x, delta.y, 0))
                 .ToList();
-
-            var tmp = current + delta + new Vector2(0, -font.lineHeight);
-            if (tmp != endpoint)
-            {
-                endpoint = tmp;
-                EndpointChanged?.Invoke();
-            }
+            this.carets = carets.Select((v) => v + delta).ToArray();
 
             AutoLayout.MarkLayoutForRebuild(this.transform as RectTransform);
 
@@ -238,6 +237,7 @@ namespace Saffiano.UI
             {
                 modifier.ModifyMesh(this.mesh);
             }
+            MeshPopulatedChanged?.Invoke(@new);
             dirty = false;
             return @new;
         }

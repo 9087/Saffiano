@@ -43,29 +43,58 @@ namespace Saffiano.UI
                 }
                 if (_textComponent != null)
                 {
-                    _textComponent.EndpointChanged -= OnTextEndpointChanged;
+                    _textComponent.MeshPopulatedChanged -= OnMeshPopulatedChanged;
                 }
                 _textComponent = value;
-                _textComponent.EndpointChanged += OnTextEndpointChanged;
+                _textComponent.MeshPopulatedChanged += OnMeshPopulatedChanged;
             }
         }
+
+        private string _text = string.Empty;
 
         public virtual string text
         {
-            get => textComponent.text;
+            get => _text;
             set
             {
-                textComponent.text = value;
-                _blinking?.Interrupt();
-                _blinking = StartCoroutine(Blinking());
+                if (_text == value)
+                {
+                    return;
+                }
+                _text = value;
+                caretPosition = _text.Length;
+                UpdateText();
             }
         }
 
-        private Image caret { get; set; }
+        private string _header = string.Empty;
 
-        private Vector2 caretSize { get; set; } = new Vector2(10, 4);
+        public string header
+        {
+            get => _header;
+            set
+            {
+                if (_header == value)
+                {
+                    return;
+                }
+                _header = value;
+                UpdateText();
+            }
+        }
 
-        private Coroutine _blinking = null;
+        private void UpdateText()
+        {
+            textComponent.text = _header + _text;
+        }
+
+        protected Image caret { get; set; }
+
+        protected Vector2 caretSize { get; set; } = new Vector2(10, 4);
+
+        protected int caretPosition { get; set; }
+
+        protected Coroutine _blinking = null;
 
         void Awake()
         {
@@ -101,7 +130,7 @@ namespace Saffiano.UI
         {
             if (_textComponent != null)
             {
-                _textComponent.EndpointChanged -= OnTextEndpointChanged;
+                _textComponent.MeshPopulatedChanged -= OnMeshPopulatedChanged;
                 _textComponent = null;
             }
             Object.Destroy(caret.gameObject);
@@ -125,9 +154,12 @@ namespace Saffiano.UI
                     switch (charEvent.@char)
                     {
                         case '\b':
+                        case '\n':
+                        case '\r':
                             return;
                     }
-                    buffer.Add(charEvent.@char);
+                    buffer.Insert(current.caretPosition, charEvent.@char);
+                    current.caretPosition += 1;
                     break;
                 case KeyboardEvent keyboardEvent:
                     if (keyboardEvent.eventType == KeyboardEventType.KeyUp)
@@ -137,11 +169,27 @@ namespace Saffiano.UI
                     switch (keyboardEvent.keyCode)
                     {
                         case KeyCode.Backspace:
-                            if (buffer.Count == 0)
+                            if (buffer.Count != 0 && current.caretPosition >= 1)
                             {
-                                return;
+                                buffer.RemoveAt(current.caretPosition - 1);
+                                current.caretPosition -= 1;
                             }
-                            buffer.RemoveAt(buffer.Count - 1);
+                            break;
+                        case KeyCode.LeftArrow:
+                            current.caretPosition = Mathf.Max(current.caretPosition - 1, 0);
+                            current.UpdateCaret();
+                            break;
+                        case KeyCode.RightArrow:
+                            current.caretPosition = Mathf.Min(current.caretPosition + 1, buffer.Count);
+                            current.UpdateCaret();
+                            break;
+                        case KeyCode.Home:
+                            current.caretPosition = 0;
+                            current.UpdateCaret();
+                            break;
+                        case KeyCode.End:
+                            current.caretPosition = buffer.Count;
+                            current.UpdateCaret();
                             break;
                         default:
                             return;
@@ -150,14 +198,23 @@ namespace Saffiano.UI
                 default:
                     break;
             }
-            current.text = new string(buffer.ToArray());
+            current._text = new string(buffer.ToArray());
+            current.UpdateText();
         }
 
-        private void OnTextEndpointChanged()
+        protected virtual void OnMeshPopulatedChanged(Mesh mesh)
+        {
+            UpdateCaret();
+        }
+
+        protected virtual void UpdateCaret()
         {
             var transform = caret.transform as RectTransform;
-            transform.offsetMin = textComponent.endpoint + new Vector2(0, -caretSize.y * 0.5f);
-            transform.offsetMax = textComponent.endpoint + new Vector2(+caretSize.x, caretSize.y * 0.5f);
+            Vector2 endpoint = textComponent.carets[caretPosition + _header.Length];
+            transform.offsetMin = endpoint + new Vector2(0, -caretSize.y * 0.5f - textComponent.font.descender);
+            transform.offsetMax = endpoint + new Vector2(+caretSize.x, caretSize.y * 0.5f - textComponent.font.descender);
+            _blinking?.Interrupt();
+            _blinking = StartCoroutine(Blinking());
         }
     }
 }

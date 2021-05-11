@@ -73,14 +73,7 @@ namespace Saffiano
 #if DEBUG
             if (!condition)
             {
-                if (message == null)
-                {
-                    throw new Exception();
-                }
-                else
-                {
-                    throw new Exception(message.ToString());
-                }
+                throw message == null ? new Exception() : new Exception(message.ToString());
             }
 #endif
         }

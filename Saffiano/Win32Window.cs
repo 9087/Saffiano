@@ -924,6 +924,8 @@ namespace Saffiano
             {KeyCode.Alpha7, VirtualKeys.N7},
             {KeyCode.Alpha8, VirtualKeys.N8},
             {KeyCode.Alpha9, VirtualKeys.N9},
+            {KeyCode.Home, VirtualKeys.Home},
+            {KeyCode.End, VirtualKeys.End},
         };
 
         private static Dictionary<VirtualKeys, KeyCode> virtualKeyToKeyCodeMap;
@@ -1004,7 +1006,7 @@ namespace Saffiano
             var wndClass = WNDCLASSEX.Build();
             wndClass.cbClsExtra = 0;
             wndClass.cbWndExtra = 0;
-            wndClass.hbrBackground = GetStockObject(StockObjects.WHITE_BRUSH);
+            wndClass.hbrBackground = GetStockObject(StockObjects.BLACK_BRUSH);
             wndClass.hCursor = LoadCursor(IntPtr.Zero, IDC_ARROW);
             wndClass.hIcon = IntPtr.Zero;
             wndClass.hIconSm = IntPtr.Zero;

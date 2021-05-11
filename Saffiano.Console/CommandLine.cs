@@ -1,4 +1,6 @@
 ﻿using Saffiano.Widgets;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Saffiano.Console
 {
@@ -7,11 +9,25 @@ namespace Saffiano.Console
         public delegate void TextEnteredHandler();
         public event TextEnteredHandler TextEntered;
 
+        public delegate void HistoryUpHandler();
+        public event HistoryUpHandler HistoryUp;
+
+        public delegate void HistoryDownHandler();
+        public event HistoryDownHandler HistoryDown;
+
         void Update()
         {
             if (Input.GetKeyDown(KeyCode.Return))
             {
-                TextEntered();
+                TextEntered?.Invoke();
+            }
+            else if (Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                HistoryDown?.Invoke();
+            }
+            else if (Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                HistoryUp?.Invoke();
             }
         }
     }
@@ -24,6 +40,8 @@ namespace Saffiano.Console
         internal ImageView cursor = null;
         public delegate void TextEnteredHandler(string text);
         public event TextEnteredHandler TextEntered;
+        private List<string> histroy = new List<string>();
+        private int histroyIndex = 0;
 
         public CommandLine()
         {
@@ -43,11 +61,34 @@ namespace Saffiano.Console
                     }
                 ]
             ];
-            this.AddComponent<CommandLineInputHandler>().TextEntered += OnCommandLineTextEntered;
+            var inputHandler = this.AddComponent<CommandLineInputHandler>();
+            inputHandler.TextEntered += OnCommandLineTextEntered;
+            inputHandler.HistoryUp += OnCommandLineHistoryUp;
+            inputHandler.HistoryDown += OnCommandLineHistoryDown;
             listView.GetComponent<UI.LinearLayoutGroup>().childControlHeight = false;
             var textComponent = textField.GetComponent<UI.Text>();
             textField.size = new Vector2(0, font.lineHeight);
             textComponent.alignment = UI.TextAnchor.MiddleLeft;
+        }
+
+        private void OnCommandLineHistoryDown()
+        {
+            histroyIndex -= 1;
+            histroyIndex = Mathf.Max(1, histroyIndex);
+            if (histroy.Count != 0)
+            {
+                textField.text = histroy[histroy.Count - histroyIndex];
+            }
+        }
+
+        private void OnCommandLineHistoryUp()
+        {
+            histroyIndex += 1;
+            histroyIndex = Mathf.Min(histroy.Count, histroyIndex);
+            if (histroyIndex != 0)
+            {
+                textField.text = histroy[histroy.Count - histroyIndex];
+            }
         }
 
         private void OnCommandLineTextEntered()
@@ -55,6 +96,11 @@ namespace Saffiano.Console
             WriteLine(textField.GetComponent<UI.Text>().text);
             var text = textField.text;
             textField.text = "";
+            if (text.Length != 0)
+            {
+                histroy.Add(text);
+            }
+            histroyIndex = 0;
             TextEntered?.Invoke(text);
         }
 
