@@ -652,6 +652,18 @@ namespace Saffiano
             return GetKey(keyCodeToVirtualKeyMap[key]);
         }
 
+        public enum MapVirtualKeyMapTypes : uint
+        {
+            MAPVK_VK_TO_VSC = 0x00,
+            MAPVK_VSC_TO_VK = 0x01,
+            MAPVK_VK_TO_CHAR = 0x02,
+            MAPVK_VSC_TO_VK_EX = 0x03,
+            MAPVK_VK_TO_VSC_EX = 0x04,
+        }
+
+        [DllImport("user32.dll")]
+        static extern uint MapVirtualKey(uint uCode, MapVirtualKeyMapTypes uMapType);
+
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool GetCursorPos(out POINT lpPoint);
@@ -1065,11 +1077,25 @@ namespace Saffiano
                     break;
                 case WindowsMessages.KEYDOWN:
                 case WindowsMessages.SYSKEYDOWN:
-                    this.DispatchKeyboradEvent(KeyboardEventType.KeyDown, (VirtualKeys)wParam);
-                    break;
                 case WindowsMessages.KEYUP:
                 case WindowsMessages.SYSKEYUP:
-                    this.DispatchKeyboradEvent(KeyboardEventType.KeyUp, (VirtualKeys)wParam);
+                    var keyboardEventType = ((uint)message & 1) == 0 ? KeyboardEventType.KeyDown : KeyboardEventType.KeyUp;
+                    VirtualKeys virtualKeys = (VirtualKeys)wParam;
+                    bool extended = ((ulong)lParam & 0x01000000) != 0;
+                    switch (virtualKeys)
+                    {
+                        case VirtualKeys.Shift:
+                            ulong scancode = ((ulong)lParam & 0x00ff0000) >> 16;
+                            virtualKeys = (VirtualKeys)MapVirtualKey((uint)scancode, MapVirtualKeyMapTypes.MAPVK_VSC_TO_VK_EX);
+                            break;
+                        case VirtualKeys.Control:
+                            virtualKeys = extended ? VirtualKeys.RightControl : VirtualKeys.LeftControl;
+                            break;
+                        case VirtualKeys.Menu:
+                            virtualKeys = extended ? VirtualKeys.RightMenu : VirtualKeys.LeftMenu;
+                            break;
+                    }
+                    this.DispatchKeyboradEvent(keyboardEventType, virtualKeys);
                     break;
                 case WindowsMessages.LBUTTONDOWN:
                     this.DispatchMouseEvent(MouseEventType.MouseDown, VirtualKeys.LeftButton);
