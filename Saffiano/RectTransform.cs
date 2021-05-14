@@ -2,7 +2,7 @@
 
 namespace Saffiano
 {
-    public sealed class RectTransform : Transform
+    public class RectTransform : Transform
     {
         public enum Axis
         {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Saffiano.Console
 {
-    internal class CommandLineInputHandler : Behaviour
+    internal class CommandLineInputComponent : Behaviour
     {
         public delegate void TextEnteredHandler();
         public event TextEnteredHandler TextEntered;
@@ -37,7 +37,6 @@ namespace Saffiano.Console
         private Font font = Font.CreateDynamicFontFromOSFont("fonts/JetBrainsMono-Regular.ttf", 16);
         internal ListView listView = null;
         internal TextField textField = null;
-        internal ImageView cursor = null;
         public delegate void TextEnteredHandler(string text);
         public event TextEnteredHandler TextEntered;
         private List<string> histroy = new List<string>();
@@ -61,11 +60,12 @@ namespace Saffiano.Console
                     }
                 ]
             ];
-            var inputHandler = this.AddComponent<CommandLineInputHandler>();
-            inputHandler.TextEntered += OnCommandLineTextEntered;
-            inputHandler.HistoryUp += OnCommandLineHistoryUp;
-            inputHandler.HistoryDown += OnCommandLineHistoryDown;
+            var inputComponent = this.AddComponent<CommandLineInputComponent>();
+            inputComponent.TextEntered += OnCommandLineTextEntered;
+            inputComponent.HistoryUp += OnCommandLineHistoryUp;
+            inputComponent.HistoryDown += OnCommandLineHistoryDown;
             listView.GetComponent<UI.LinearLayoutGroup>().childControlHeight = false;
+
             var textComponent = textField.GetComponent<UI.Text>();
             textField.size = new Vector2(0, font.lineHeight);
             textComponent.alignment = UI.TextAnchor.MiddleLeft;

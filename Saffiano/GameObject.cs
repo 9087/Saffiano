@@ -84,7 +84,7 @@ namespace Saffiano
             this.name = GetType().Name;
         }
 
-        private void AddComponent(Component component)
+        protected virtual void AddComponent(Component component)
         {
             this.components.Add(component);
             component.OnComponentAdded(this);

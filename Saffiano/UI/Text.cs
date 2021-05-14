@@ -203,10 +203,10 @@ namespace Saffiano.UI
                 indices.Add(index * 4 + 2);
                 indices.Add(index * 4 + 3);
 
-                colors.Add(new Color(1, 1, 1, 1));
-                colors.Add(new Color(1, 1, 1, 1));
-                colors.Add(new Color(1, 1, 1, 1));
-                colors.Add(new Color(1, 1, 1, 1));
+                colors.Add(color);
+                colors.Add(color);
+                colors.Add(color);
+                colors.Add(color);
 
                 index += 1;
                 size.x = Mathf.Max(size.x, current.x);

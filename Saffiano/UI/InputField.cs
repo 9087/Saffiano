@@ -103,7 +103,7 @@ namespace Saffiano.UI
             g.AddComponent<RectTransform>().parent = this.transform;
             g.AddComponent<CanvasRenderer>();
             caret = g.AddComponent<Image>();
-            caret.sprite = Sprite.Create(Texture.white);
+            caret.sprite = Sprite.Create(Texture.whiteTexture);
             var transform = caret.transform as RectTransform;
             transform.anchorMin = new Vector2(0, 1);
             transform.anchorMax = new Vector2(0, 1);

@@ -26,7 +26,7 @@ namespace Saffiano
 
         internal bool registered { get; set; }
 
-        public static Texture white
+        public static Texture whiteTexture
         {
             get
             {
@@ -36,12 +36,12 @@ namespace Saffiano
             }
         }
 
-        public static Texture red
+        public static Texture blackTexture
         {
             get
             {
                 var texture = new Texture(1, 1);
-                texture.pixels[0] = new Color(1, 0, 0, 0.5f);
+                texture.pixels[0] = new Color(0, 0, 0, 0);
                 return texture;
             }
         }
