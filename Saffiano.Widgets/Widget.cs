@@ -142,10 +142,14 @@ namespace Saffiano.Widgets
             return this.ToList();
         }
 
+        public IEnumerable<Widget> children => GetChildren();
+
         public int GetChildrenCount()
         {
             return transform.childCount;
         }
+
+        public int childrenCount => GetChildrenCount();
 
         public void AddChild(Widget widget)
         {
@@ -155,6 +159,20 @@ namespace Saffiano.Widgets
         public Widget GetParent()
         {
             return transform.parent?.gameObject as Widget;
+        }
+
+        public void SetParent(Widget parent)
+        {
+            transform.parent = parent.transform;
+        }
+
+        public Widget parent
+        {
+            get => GetParent();
+            set
+            {
+                SetParent(value);
+            }
         }
 
         public IEnumerator<Widget> GetEnumerator()

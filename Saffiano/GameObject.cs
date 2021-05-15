@@ -74,7 +74,7 @@ namespace Saffiano
             }
         }
 
-        public GameObject(String name)
+        public GameObject(string name)
         {
             this.name = name;
         }

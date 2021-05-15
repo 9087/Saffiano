@@ -1,6 +1,4 @@
-﻿
-
-using Saffiano.Widgets;
+﻿using Saffiano.Widgets;
 
 namespace Saffiano.Console
 {
@@ -14,43 +12,28 @@ namespace Saffiano.Console
 
             GameObject camera = new GameObject("Camera");
             camera.AddComponent<Transform>();
-            camera.AddComponent<Camera>().backgroundColor = new Color(0, 0, 0);
+            camera.AddComponent<Camera>().backgroundColor = PlayerSettings.backgroundColor;
 
-            var canvas = new GameObject();
-            canvas.AddComponent<RectTransform>();
-            canvas.AddComponent<Canvas>();
-
-            #region Solid background
-            {
-                var texture = new Texture(1, 1);
-                texture.SetPixels(
-                    new Color[] { PlayerSettings.backgroundColor }
-                );
-                var background = new ImageView()
+            var canvas = new Widget()
+            [
+                new ImageView()
                 {
-                    sprite = Sprite.Create(texture),
-                };
-                background.transform.parent = canvas.transform;
-                background.offsetMin = Vector2.zero;
-                background.offsetMax = Vector2.zero;
-                background.anchorMin = Vector2.zero;
-                background.anchorMax = new Vector2(1, 1);
-            }
-            #endregion
-
-            #region Console
-            {
-                var console = new Console()
-                {
-                    anchorMin = new Vector2(0, 0),
+                    anchorMin = Vector2.zero,
                     anchorMax = new Vector2(1, 1),
                     offsetMin = Vector2.zero,
                     offsetMax = Vector2.zero,
-                };
-                console.transform.parent = canvas.transform;
-                console.color = (Color)(new Vector4(Vector3.one * 212.0f / 255.9f, 1.0f));
-            }
-            #endregion
+                    sprite = Sprite.Create(Texture.blackTexture),
+                },
+                new Console()
+                {
+                    anchorMin = Vector2.zero,
+                    anchorMax = new Vector2(1, 1),
+                    offsetMin = Vector2.zero,
+                    offsetMax = Vector2.zero,
+                    color = (Color)(new Vector4(Vector3.one * 212.0f / 255.9f, 1.0f)),
+                }
+            ]
+            .AddComponent<Canvas>();
 
             Application.Run();
             Application.Uninitialize();

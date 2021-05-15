@@ -126,6 +126,10 @@ namespace Saffiano
                 {
                     return;
                 }
+                if (this.parent == value)
+                {
+                    return;
+                }
                 var old = this.parent;
                 this.SetInternalParent(value == null ? Transform.scene : value);
                 if (old != this.parent)
