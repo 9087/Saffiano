@@ -315,6 +315,31 @@ namespace Saffiano
         [DllImport("user32.dll")]
         static extern bool UpdateWindow(IntPtr hWnd);
 
+        [StructLayout(LayoutKind.Explicit, Size = 4)]
+        struct COLORREF
+        {
+            [FieldOffset(0)]
+            public byte R;
+
+            [FieldOffset(1)]
+            public byte G;
+
+            [FieldOffset(2)]
+            public byte B;
+
+            public static COLORREF Create(Color color)
+            {
+                var colorref = new COLORREF();
+                colorref.R = (byte)(color.r * 255);
+                colorref.G = (byte)(color.g * 255);
+                colorref.B = (byte)(color.b * 255);
+                return colorref;
+            }
+        }
+
+        [DllImport("gdi32.dll")]
+        static extern IntPtr CreateSolidBrush(COLORREF color);
+
         [StructLayout(LayoutKind.Sequential)]
         public struct WNDCLASSEX
         {
@@ -333,7 +358,7 @@ namespace Saffiano
             public String lpszClassName;
             public IntPtr hIconSm;
 
-            public static WNDCLASSEX Build()
+            public static WNDCLASSEX Create()
             {
                 var nw = new WNDCLASSEX();
                 nw.cbSize = Marshal.SizeOf(typeof(WNDCLASSEX));
@@ -1015,10 +1040,10 @@ namespace Saffiano
 
         public Win32Window()
         {
-            var wndClass = WNDCLASSEX.Build();
+            var wndClass = WNDCLASSEX.Create();
             wndClass.cbClsExtra = 0;
             wndClass.cbWndExtra = 0;
-            wndClass.hbrBackground = GetStockObject(StockObjects.BLACK_BRUSH);
+            wndClass.hbrBackground = CreateSolidBrush(COLORREF.Create(PlayerSettings.backgroundColor));
             wndClass.hCursor = LoadCursor(IntPtr.Zero, IDC_ARROW);
             wndClass.hIcon = IntPtr.Zero;
             wndClass.hIconSm = IntPtr.Zero;
