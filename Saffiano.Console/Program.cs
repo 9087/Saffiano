@@ -8,6 +8,7 @@ namespace Saffiano.Console
     {
         static void Main(string[] args)
         {
+            PlayerSettings.backgroundColor = (Color)(new Vector4(Vector3.one * 30.0f / 255.9f, 1.0f));
             Resources.SetRootDirectory("../../../../Resources");
             Application.Initialize();
 
@@ -23,7 +24,7 @@ namespace Saffiano.Console
             {
                 var texture = new Texture(1, 1);
                 texture.SetPixels(
-                    new Color[] { new Color(30.0f / 255.9f, 30.0f / 255.9f, 30.0f / 255.9f) }
+                    new Color[] { PlayerSettings.backgroundColor }
                 );
                 var background = new ImageView()
                 {
@@ -47,7 +48,7 @@ namespace Saffiano.Console
                     offsetMax = Vector2.zero,
                 };
                 console.transform.parent = canvas.transform;
-                console.color = new Color(212.0f / 255.9f, 212.0f / 255.9f, 212.0f / 255.9f);
+                console.color = (Color)(new Vector4(Vector3.one * 212.0f / 255.9f, 1.0f));
             }
             #endregion
 

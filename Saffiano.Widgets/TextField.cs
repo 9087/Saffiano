@@ -1,4 +1,5 @@
 ﻿using Saffiano.UI;
+using System.Linq;
 
 namespace Saffiano.Widgets
 {
@@ -22,5 +23,13 @@ namespace Saffiano.Widgets
         }
 
         public override string text { get => inputField.text; set => inputField.text = value; }
+
+        protected override void UpdateCascadeColor()
+        {
+            base.UpdateCascadeColor();
+            inputField?.caret?.GetComponents<UI.Graphic>()
+                .ToList()
+                .ForEach((x) => { x.color = _finalColor; });
+        }
     }
 }

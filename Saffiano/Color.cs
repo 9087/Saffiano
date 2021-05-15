@@ -3,7 +3,7 @@
 namespace Saffiano
 {
     [Shader(OpenGL: "vec4")]
-    public struct Color
+    public struct Color : IEquatable<Color>
     {
         public float r;
         public float g;
@@ -60,5 +60,27 @@ namespace Saffiano
 
         public static Color yellow => new Color(1, 0.92f, 0.016f, 1);
 
+        public override bool Equals(object obj)
+        {
+            return obj is Color color && Equals(color);
+        }
+
+        public bool Equals(Color other)
+        {
+            return r == other.r &&
+                   g == other.g &&
+                   b == other.b &&
+                   a == other.a;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -490236692;
+            hashCode = hashCode * -1521134295 + r.GetHashCode();
+            hashCode = hashCode * -1521134295 + g.GetHashCode();
+            hashCode = hashCode * -1521134295 + b.GetHashCode();
+            hashCode = hashCode * -1521134295 + a.GetHashCode();
+            return hashCode;
+        }
     }
 }

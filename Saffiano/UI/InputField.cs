@@ -88,7 +88,7 @@ namespace Saffiano.UI
             textComponent.text = _header + _text;
         }
 
-        protected Image caret { get; set; }
+        public Image caret { get; private set; }
 
         protected Vector2 caretSize { get; set; } = new Vector2(10, 4);
 

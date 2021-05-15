@@ -22,6 +22,10 @@ namespace Saffiano.UI
             @new.vertices[1] = new Vector3(rect.left, rect.bottom);
             @new.vertices[2] = new Vector3(rect.right, rect.bottom);
             @new.vertices[3] = new Vector3(rect.right, rect.top);
+            @new.colors[0] = color;
+            @new.colors[1] = color;
+            @new.colors[2] = color;
+            @new.colors[3] = color;
             foreach (var modifier in this.GetComponents<BaseMeshEffect>())
             {
                 modifier.ModifyMesh(this.mesh);

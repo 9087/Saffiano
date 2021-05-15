@@ -185,7 +185,7 @@ namespace Saffiano.Widgets
         }
 
         private Color _color = Color.white;
-        private Color _finalColor = Color.white;
+        protected Color _finalColor = Color.white;
 
         public Color GetColor()
         {
@@ -219,10 +219,9 @@ namespace Saffiano.Widgets
             {
                 _finalColor = (Color)((Vector4)_color * (Vector4)parent._finalColor);
             }
-            foreach (var graphic in GetComponents<UI.Graphic>())
-            {
-                graphic.color = _finalColor;
-            }
+            GetComponents<UI.Graphic>()
+                .ToList()
+                .ForEach((x) => { x.color = _finalColor; });
             foreach (var child in this)
             {
                 child.UpdateCascadeColor();
@@ -232,11 +231,7 @@ namespace Saffiano.Widgets
         protected override void AddComponent(Component component)
         {
             base.AddComponent(component);
-            var graphic = component as UI.Graphic;
-            if (graphic != null)
-            {
-                graphic.color = _finalColor;
-            }
+            UpdateCascadeColor();
         }
     }
 }
