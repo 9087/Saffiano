@@ -19,13 +19,13 @@ namespace Saffiano.Widgets
         public virtual string text
         {
             get => textComponent.text;
-            set { textComponent.text = value; }
+            set => textComponent.text = value;
         }
 
         public Font font
         {
             get => textComponent.font;
-            set { textComponent.font = value; }
+            set => textComponent.font = value;
         }
     }
 }

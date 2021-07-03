@@ -4,6 +4,7 @@
     {
         static void Main(string[] arguments)
         {
+            Resources.SetRootDirectory("../../../../Resources");
             Application.Initialize();
 
             // Camera

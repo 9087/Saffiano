@@ -6,7 +6,7 @@
 
         protected Mesh mesh { get; set; }
 
-        public virtual Color color { get; set; }
+        public virtual Color color { get; set; } = Color.white;
 
         internal abstract Command GenerateCommand();
 

@@ -235,7 +235,7 @@ namespace Saffiano.UI
             };
             foreach (var modifier in this.GetComponents<BaseMeshEffect>())
             {
-                modifier.ModifyMesh(this.mesh);
+                modifier.ModifyMesh(@new);
             }
             MeshPopulatedChanged?.Invoke(@new);
             dirty = false;

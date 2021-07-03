@@ -32,12 +32,13 @@ namespace Saffiano.Sample
             rectTransform.anchorMin = new Vector2(0, 0);
             rectTransform.anchorMax = new Vector2(0, 0);
             rectTransform.offsetMin = new Vector2(0, 0);
-            rectTransform.offsetMax = new Vector2(128, 128);
+            rectTransform.offsetMax = new Vector2(256, 26);
             renderStatus.transform.parent = canvas.transform;
             renderStatus.AddComponent<CanvasRenderer>();
             renderStatusText = renderStatus.AddComponent<Text>();
             renderStatus.AddComponent<Shadow>();
             renderStatusText.font = Font.CreateDynamicFontFromOSFont("fonts/JetBrainsMono-Regular.ttf", 22);
+            renderStatusText.alignment = TextAnchor.MiddleLeft;
         }
 
         void Update()

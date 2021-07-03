@@ -90,6 +90,8 @@ namespace Saffiano.UI
 
         public Image caret { get; private set; }
 
+        public MeshFilter selection { get; private set; }
+
         protected Vector2 caretSize { get; set; } = new Vector2(10, 4);
 
         protected int caretPosition { get; set; }
@@ -98,16 +100,36 @@ namespace Saffiano.UI
 
         void Awake()
         {
+            Debug.Assert(current == null);
             current = this;
-            var g = new GameObject();
-            g.AddComponent<RectTransform>().parent = this.transform;
-            g.AddComponent<CanvasRenderer>();
-            caret = g.AddComponent<Image>();
-            caret.sprite = Sprite.Create(Texture.whiteTexture);
-            var transform = caret.transform as RectTransform;
-            transform.anchorMin = new Vector2(0, 1);
-            transform.anchorMax = new Vector2(0, 1);
-            transform.pivot = new Vector2(0, 0);
+
+            // Caret
+            {
+                var g = new GameObject();
+                g.AddComponent<RectTransform>();
+                g.AddComponent<CanvasRenderer>();
+                caret = g.AddComponent<Image>();
+                caret.sprite = Sprite.Create(Texture.whiteTexture);
+                var transform = caret.transform as RectTransform;
+                transform.anchorMin = new Vector2(0, 1);
+                transform.anchorMax = new Vector2(0, 1);
+                transform.pivot = new Vector2(0, 0);
+                transform.parent = this.transform;
+            }
+
+            // Selection
+            {
+                var g = new GameObject();
+                g.AddComponent<RectTransform>();
+                var material = new Resources.Default.Material.Basic();
+                g.AddComponent<MeshRenderer>().material = material;
+                selection = g.AddComponent<MeshFilter>();
+                var transform = selection.transform as RectTransform;
+                transform.anchorMin = Vector2.zero;
+                transform.anchorMax = new Vector2(1, 1);
+                transform.pivot = new Vector2(0, 0);
+                transform.parent = this.transform;
+            }
         }
 
         void Start()
