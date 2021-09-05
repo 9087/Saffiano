@@ -9,11 +9,6 @@ namespace Saffiano.ShaderCompilation
 {
     public class ShaderCompiler
     {
-        internal EvaluationStack evaluationStack { get; private set; } = new EvaluationStack();
-
-        internal VariableAllocator internalVariableAllocator { get; private set; } = new VariableAllocator("internal");
-
-        internal VariableAllocator localVariableAllocator { get; private set; } = new VariableAllocator("local");
 
         public ShaderCompiler()
         {

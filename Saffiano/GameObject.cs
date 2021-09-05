@@ -18,6 +18,25 @@ namespace Saffiano
 
         public int layer { get; set; } = LayerMask.NameToLayer("Default");
 
+        public static GameObject Find(string name)
+        {
+            Queue<Transform> queue = new Queue<Transform>();
+            queue.Enqueue(Transform.scene);
+            while (queue.Count != 0)
+            {
+                var transform = queue.Dequeue();
+                if (transform.gameObject.name == name)
+                {
+                    return transform.gameObject;
+                }
+                foreach (var child in transform)
+                {
+                    queue.Enqueue(child);
+                }
+            }
+            return null;
+        }
+
         public void SetActive(bool active)
         {
             if (this.activeSelf == active)

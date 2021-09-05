@@ -144,6 +144,7 @@ namespace Saffiano
 
         public float magnitude
         {
+            [Shader(OpenGL: "length({0})")]
             get
             {
                 return Mathf.Sqrt(this.sqrMagnitude);

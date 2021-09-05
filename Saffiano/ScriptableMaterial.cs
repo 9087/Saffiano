@@ -57,7 +57,7 @@ namespace Saffiano
         }
     }
 
-    internal class ShaderSourceData
+    public class ShaderSourceData
     {
         public Dictionary<ShaderType, string> codes { get; private set; }
 
@@ -74,7 +74,7 @@ namespace Saffiano
     {
         private static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
 
-        internal static ShaderSourceData GetShaderSourceData(Type type)
+        public static ShaderSourceData GetShaderSourceData(Type type)
         {
             if (ShaderSourceCache.TryGetValue(type, out var data))
             {
@@ -146,9 +146,12 @@ namespace Saffiano
                 string source = new ShaderCompiler().Compile(methodReference, out var uniformList);
                 var description = string.Format("// {0} generated from {1}\n", shaderType.ToString(), type.FullName);
                 shaderSourceData.codes[shaderType] = description + source;
-                foreach (var uniform in uniformList)
+                if (uniformList != null)
                 {
-                    shaderSourceData.uniforms.Add(uniform);
+                    foreach (var uniform in uniformList)
+                    {
+                        shaderSourceData.uniforms.Add(uniform);
+                    }
                 }
             }
             SetShaderSourceData(type, shaderSourceData);

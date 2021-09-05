@@ -6,6 +6,7 @@ namespace Saffiano
     public sealed class Camera : Behaviour
     {
         internal static List<Camera> allCameras = new List<Camera>();
+        internal Dictionary<string, GPUProgram> replacementShaders = new Dictionary<string, GPUProgram>();
 
         public static Camera main
         {
@@ -42,15 +43,15 @@ namespace Saffiano
         {
             get
             {
-                var viewport = RenderPipeline.viewport;
+                var viewportSize = this.GetViewportSize();
                 if (!this.orthographic)
                 {
-                    return Matrix4x4.Perspective(this.fieldOfView, (float)viewport.width / (float)viewport.height, this.nearClipPlane, this.farClipPlane);
+                    return Matrix4x4.Perspective(this.fieldOfView, (float)viewportSize.x / (float)viewportSize.y, this.nearClipPlane, this.farClipPlane);
                 }
                 else
                 {
                     float verticalHalfSize = this.orthographicSize;
-                    float horizontalHalfSize = verticalHalfSize * (float)viewport.width / (float)viewport.height;
+                    float horizontalHalfSize = verticalHalfSize * (float)viewportSize.x / (float)viewportSize.y;
                     return Matrix4x4.Ortho(-horizontalHalfSize, horizontalHalfSize, -verticalHalfSize, verticalHalfSize, this.nearClipPlane, this.farClipPlane);
                 }
             }
@@ -78,6 +79,28 @@ namespace Saffiano
             if (main is null)
             {
                 main = this;
+            }
+        }
+
+        public void SetReplacementShader(GPUProgram shader, string replaceTag)
+        {
+            replacementShaders[replaceTag] = shader;
+        }
+
+        public void ResetReplacementShader()
+        {
+            replacementShaders.Clear();
+        }
+
+        internal Vector2 GetViewportSize()
+        {
+            if (this.TargetTexture == null)
+            {
+                return Window.GetSize();
+            }
+            else
+            {
+                return new Vector2(this.TargetTexture.width, this.TargetTexture.height);
             }
         }
     }

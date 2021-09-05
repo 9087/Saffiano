@@ -2,7 +2,7 @@
 
 namespace Saffiano
 {
-    internal enum ShaderType
+    public enum ShaderType
     {
         VertexShader = 0,
         FragmentShader = 35632,
@@ -10,7 +10,7 @@ namespace Saffiano
 
     public abstract class Material
     {
-        internal GPUProgram shader { get; set; }
+        public GPUProgram shader { get; internal set; }
 
         internal HashSet<Uniform> uniforms { get; set; }
 

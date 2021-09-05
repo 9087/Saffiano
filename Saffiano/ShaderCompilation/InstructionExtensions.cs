@@ -89,6 +89,16 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        [Instruction(Mono.Cecil.Cil.Code.Ldarga_S)]
+        public static bool Ldarga_S(Instruction instruction, CompileContext compileContext)
+        {
+            // ldloca.s indx - Load address of local variable with index indx, short form.
+            var parameterDefinition = instruction.Operand as ParameterDefinition;
+            var local = compileContext.Push(parameterDefinition);
+            local.isAddress = true;
+            return true;
+        }
+
         public static bool Call(MethodReference methodReference, CompileContext compileContext)
         {
             Value @internal = null;
@@ -314,7 +324,7 @@ namespace Saffiano.ShaderCompilation
         public static bool Ldfld(Instruction instruction, CompileContext compileContext)
         {
             // ldfld field - Push the value of field of object (or value type) obj, onto the stack.
-            var fieldDefinition = instruction.Operand as FieldDefinition;
+            var fieldDefinition = (instruction.Operand as FieldReference).Resolve();
             var @this = compileContext.Pop();
             compileContext.Push(fieldDefinition.FieldType, compileContext.Field(@this, fieldDefinition));
             return true;
@@ -369,8 +379,79 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        [Instruction(Mono.Cecil.Cil.Code.Rem)]
+        public static bool Rem(Instruction instruction, CompileContext compileContext)
+        {
+            var b = compileContext.Pop();
+            var a = compileContext.Pop();
+            var @internal = compileContext.AllocateInternal(a.type);
+            compileContext.Assign(@internal, compileContext.Format("mod({0}, {1})", a, b));
+            compileContext.Push(@internal);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Stind_R4)]
+        public static bool Stind_R4(Instruction instruction, CompileContext compileContext)
+        {
+            var value = compileContext.Pop();
+            var target = compileContext.Pop();
+            compileContext.Assign(target, value);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Neg)]
+        public static bool Neg(Instruction instruction, CompileContext compileContext)
+        {
+            var value = compileContext.Pop();
+            compileContext.Push(value.type, compileContext.Format("-({0})", value));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Clt)]
+        public static bool Clt(Instruction instruction, CompileContext compileContext)
+        {
+            // clt –  Push 1 (of type int32) if value1 < value2, else push 0.
+            var value2 = compileContext.Pop();
+            var value1 = compileContext.Pop();
+            compileContext.Push(typeof(bool).GetTypeDefinition(), compileContext.Format("({0} < {1})", value1, value2));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Brfalse)]
+        public static bool Brfalse(Instruction instruction, CompileContext compileContext)
+        {
+            // brfalse target - Branch to target if value is zero (false)
+            compileContext.If(compileContext.Pop());
+            compileContext.Begin(instruction, (instruction.Operand as Instruction).Previous);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Br_S)]
+        public static bool Br_S(Instruction instruction, CompileContext compileContext)
+        {
+            // br.s target - Branch to target, short form
+            compileContext.Else();
+            compileContext.Begin(instruction, (instruction.Operand as Instruction).Previous);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Conv_I4)]
+        public static bool Conv_I4(Instruction instruction, CompileContext compileContext)
+        {
+            compileContext.Push(typeof(int).GetTypeDefinition(), compileContext.Format("int({0})", compileContext.Pop()));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Conv_R4)]
+        public static bool Conv_R4(Instruction instruction, CompileContext compileContext)
+        {
+            compileContext.Push(typeof(float).GetTypeDefinition(), compileContext.Format("float({0})", compileContext.Pop()));
+            return true;
+        }
+
         public static bool Step(this Instruction instruction, CompileContext compileContext)
         {
+            compileContext.TryEnd(instruction);
             var code = instruction.OpCode.Code;
             MethodInfo method = null;
             if (!methods.TryGetValue(code, out method))

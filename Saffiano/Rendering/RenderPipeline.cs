@@ -69,17 +69,9 @@ namespace Saffiano.Rendering
             device.Start();
             foreach (var camera in Camera.allCameras)
             {
-                Vector2 size;
-                if (camera.TargetTexture == null)
-                {
-                    size = Window.GetSize();
-                }
-                else
-                {
-                    size = new Vector2(camera.TargetTexture.width, camera.TargetTexture.height);
-                }
+                Vector2 size = camera.GetViewportSize();
                 device.SetViewport(new Viewport() { width = (uint)size.x, height = (uint)size.y, });
-                device.BeginScene(camera.TargetTexture);
+                device.BeginScene(camera);
                 device.Clear(camera.backgroundColor);
                 PushProjection(camera.projectionMatrix * camera.worldToCameraMatrix);
                 Traverse(camera, Transform.scene);

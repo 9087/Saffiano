@@ -1,4 +1,5 @@
 ﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace Saffiano.ShaderCompilation
     internal class CompileContext
     {
         private EvaluationStack evaluationStack = new EvaluationStack();
+        private CodeBlockStack codeBlockStack = new CodeBlockStack();
         private TextWriter writer = new StringWriter();
         private VariableAllocator internalAllocator = new VariableAllocator("internal");
         private VariableAllocator localAllocator = new VariableAllocator("local");
@@ -151,6 +153,26 @@ namespace Saffiano.ShaderCompilation
             return evaluationStack.Peek();
         }
 
+        public void Begin(Instruction start, Instruction end)
+        {
+            codeBlockStack.Push(new Block(start, end));
+            writer.WriteLine("{");
+        }
+
+        public bool TryEnd(Instruction current)
+        {
+            if (codeBlockStack.Count == 0)
+            {
+                return false;
+            }
+            if (codeBlockStack.Peek().end == current)
+            {
+                writer.WriteLine("}");
+                codeBlockStack.Pop();
+            }
+            return true;
+        }
+
         public bool AddUniform(Uniform uniform)
         {
             return uniforms.Add(uniform);
@@ -225,13 +247,11 @@ namespace Saffiano.ShaderCompilation
         {
             // built-in shader type
             var type = typeReference.Resolve().GetRuntimeType();
-            if (type == typeof(float))
+            if (type.IsValueType)
             {
-                return "float";
-            }
-            else if (type == typeof(bool))
-            {
-                return "bool";
+                if (type == typeof(bool))  return "bool" ;
+                if (type == typeof(int))   return "int"  ;
+                if (type == typeof(float)) return "float";
             }
             var shaderAttributes = type.GetCustomAttributes<ShaderAttribute>();
             if (!shaderAttributes.Any())
@@ -298,6 +318,16 @@ namespace Saffiano.ShaderCompilation
             }
             var s = Format(format, target.type, target.name, value);
             writer.WriteLine(s);
+        }
+
+        public void If(Value value)
+        {
+            writer.WriteLine("if({0})", value);
+        }
+
+        public void Else()
+        {
+            writer.WriteLine("else");
         }
     }
 }

@@ -207,6 +207,7 @@ namespace Saffiano
         internal TextureCache textureCache;
         internal GPUProgramCache shaderCache;
         internal FrameBufferCache frameBufferCache;
+        internal Camera currentCamera;
 
         static OpenGLDevice()
         {
@@ -318,9 +319,11 @@ namespace Saffiano
             Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
-        public override void BeginScene(RenderTexture renderTexture)
+        public override void BeginScene(Camera camera)
         {
+            currentCamera = camera;
             MakeCurrent();
+            var renderTexture = camera.TargetTexture;
             if (renderTexture is null)
             {
                 Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -334,6 +337,7 @@ namespace Saffiano
         public override void EndScene()
         {
             Gl.Flush();
+            currentCamera = null;
         }
 
         public override void SetViewport(Viewport viewport)
@@ -447,6 +451,10 @@ namespace Saffiano
             // apply shader
             var material = command.material;
             var shader = material.shader;
+            if (currentCamera.replacementShaders.TryGetValue("", out GPUProgram replacementShader))
+            {
+                shader = replacementShader;
+            }
             uint program = shaderCache.TryRegister(shader).program;
             Gl.UseProgram(program);
             int textureIndex = 0;
@@ -471,7 +479,7 @@ namespace Saffiano
                 }
                 if (uniform.propertyInfo.PropertyType == typeof(Texture))
                 {
-                    if (!BindTexture(textureIndex, command.mainTexture))
+                    if (!BindTexture(textureIndex, value as Texture))
                     {
                         continue;
                     }
