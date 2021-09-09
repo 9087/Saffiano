@@ -9,7 +9,6 @@ namespace Saffiano.ShaderCompilation
 {
     public class ShaderCompiler
     {
-
         public ShaderCompiler()
         {
         }
@@ -28,16 +27,57 @@ namespace Saffiano.ShaderCompilation
 
             // Reference: ECMA-335
             // http://www.ecma-international.org/publications/standards/Ecma-335.htm
+            
+            HashSet<string> visited = new HashSet<string>();
+            Dictionary<string, MethodDefinition> methods = new Dictionary<string, MethodDefinition>();
+            methods.Add("main", methodReference.Resolve());
+            Dictionary<string, CompileContext> contexts = new Dictionary<string, CompileContext>();
+            List<string> sources = new List<string>();
 
-            CompileContext compileContext = new CompileContext(methodReference);
+            uniforms = new HashSet<Uniform>();
 
-            foreach (var instruction in methodDefinition.Body.Instructions)
+            while (methods.Count != 0)
             {
-                instruction.Step(compileContext);
+                Dictionary<string, MethodDefinition> tmp = new Dictionary<string, MethodDefinition>();
+                foreach (var name in methods.Keys)
+                {
+                    if (visited.Contains(name))
+                    {
+                        continue;
+                    }
+                    var md = methods[name];
+                    CompileContext cc = new CompileContext(md);
+                    contexts[name] = cc;
+                    cc.Generate();
+                    uniforms.UnionWith(cc.uniforms);
+                    sources.Insert(0, cc.GetMethodSourceCode(name));
+                    visited.Add(name);
+                    foreach (var n in cc.methods.Keys)
+                    {
+                        if (visited.Contains(n))
+                        {
+                            continue;
+                        }
+                        tmp[n] = cc.methods[n];
+                    }
+                }
+                methods.Clear();
+                foreach (var name in tmp.Keys)
+                {
+                    methods[name] = tmp[name];
+                }
             }
-            uniforms = compileContext.uniforms;
 
-            return compileContext.shadercode;
+            var code = new StringWriter();
+            code.WriteLine("#version 330 core");
+            code.WriteLine(CompileContext.GetUniformSourceCode(uniforms));
+            code.WriteLine(contexts["main"].GetAttributeSourceCode());
+            foreach (var source in sources)
+            {
+                code.WriteLine(source);
+            }
+            
+            return code.ToString();
         }
     }
 }

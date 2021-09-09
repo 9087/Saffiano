@@ -11,30 +11,33 @@ namespace Saffiano.ShaderCompilation
 {
     internal class CompileContext
     {
+        private TextWriter writer = new StringWriter();
+
         private EvaluationStack evaluationStack = new EvaluationStack();
         private CodeBlockStack codeBlockStack = new CodeBlockStack();
-        private TextWriter writer = new StringWriter();
         private VariableAllocator internalAllocator = new VariableAllocator("internal");
         private VariableAllocator localAllocator = new VariableAllocator("local");
 
         public HashSet<Uniform> uniforms { get; private set; } = new HashSet<Uniform>();
 
-        private string GetUniformDefinitions()
+        public Dictionary<string, MethodDefinition> methods { get; private set; } = new Dictionary<string, MethodDefinition>();
+
+        public string GetUniformSourceCode()
+        {
+            return GetUniformSourceCode(this.uniforms);
+        }
+
+        public static string GetUniformSourceCode(HashSet<Uniform> uniforms)
         {
             var uniformDefinitions = new StringWriter();
-            foreach (var uniform in this.uniforms)
+            foreach (var uniform in uniforms)
             {
                 uniformDefinitions.WriteLine(Format("uniform {0} {1};", uniform.propertyInfo.PropertyType, uniform.propertyInfo.Name));
             }
             return uniformDefinitions.ToString();
         }
 
-        private string GetStatement()
-        {
-            return writer.ToString();
-        }
-
-        private string GetAttributeDefinitions()
+        public string GetAttributeSourceCode()
         {
             var attributeDefinitions = new StringWriter();
             var methodInfo = this.methodDefinition.GetMethodInfo();
@@ -71,19 +74,13 @@ namespace Saffiano.ShaderCompilation
             return attributeDefinitions.ToString();
         }
 
-        public string shadercode
+        public string GetMethodSourceCode(string methodName)
         {
-            get
-            {
-                var code = new StringWriter();
-                code.WriteLine("#version 330 core");
-                code.WriteLine(GetUniformDefinitions());
-                code.WriteLine(GetAttributeDefinitions());
-                code.WriteLine("void main() {");
-                code.WriteLine(GetStatement());
-                code.WriteLine("}");
-                return code.ToString();
-            }
+            var code = new StringWriter();
+            code.WriteLine(string.Format("void {0}() {{", methodName));
+            code.WriteLine(writer.ToString());
+            code.WriteLine("}");
+            return code.ToString();
         }
 
         public TypeDefinition declaringType
@@ -94,12 +91,24 @@ namespace Saffiano.ShaderCompilation
 
         public Collection<ParameterDefinition> parameters => methodDefinition.Parameters;
 
-        private MethodDefinition methodDefinition;
+        private MethodDefinition methodDefinition { get; set; }
+
+        private bool processed = false;
 
         public CompileContext(MethodReference methodReference)
         {
             methodDefinition = methodReference.Resolve();
             declaringType = methodDefinition.DeclaringType;
+        }
+
+        public void Generate()
+        {
+            Debug.Assert(processed == false);
+            foreach (var instruction in methodDefinition.Body.Instructions)
+            {
+                instruction.Step(this);
+            }
+            processed = true;
         }
 
         public Value AllocateInternal(TypeReference type)
@@ -178,7 +187,7 @@ namespace Saffiano.ShaderCompilation
             return uniforms.Add(uniform);
         }
 
-        public string Format(string format, params object[] args)
+        public static string Format(string format, params object[] args)
         {
             List<object> parameters = new List<object>();
             foreach (var arg in args)
@@ -238,12 +247,12 @@ namespace Saffiano.ShaderCompilation
             return new Value(fieldDefinition.FieldType, string.Format("{0}.{1}", @this.name, fieldDefinition.Name));
         }
 
-        public string Type(Type type)
+        public static string Type(Type type)
         {
             return Type(type.GetTypeDefinition());
         }
 
-        public string Type(TypeReference typeReference)
+        public static string Type(TypeReference typeReference)
         {
             // built-in shader type
             var type = typeReference.Resolve().GetRuntimeType();
@@ -295,6 +304,14 @@ namespace Saffiano.ShaderCompilation
             {
                 return Format(pattern, parameters);
             }
+            var callerDeclaringType = methodDefinition.DeclaringType;
+            var calleeDeclaringType = methodReference.DeclaringType.Resolve();
+            if (calleeDeclaringType.IsBaseOf(callerDeclaringType) || calleeDeclaringType == callerDeclaringType)
+            {
+                string methodName = Format("{0}_{1}", callerDeclaringType.Name, methodReference.Resolve().Name);
+                methods[methodName] = methodReference.Resolve();
+                return Format("{0}();", methodName);
+            }
             Debug.LogErrorFormat("Method \"{0}.{1}\" is not a built-in shader method.", methodInfo.DeclaringType.FullName, methodInfo.Name);
             return null;
         }
@@ -328,6 +345,11 @@ namespace Saffiano.ShaderCompilation
         public void Else()
         {
             writer.WriteLine("else");
+        }
+
+        public void WriteLine(string content)
+        {
+            writer.WriteLine(content);
         }
     }
 }

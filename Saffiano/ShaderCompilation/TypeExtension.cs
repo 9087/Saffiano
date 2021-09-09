@@ -29,5 +29,30 @@ namespace Saffiano.ShaderCompilation
             }
             return null;
         }
+
+        public static bool IsBaseOf(this TypeDefinition baseType, TypeDefinition type)
+        {
+            var tr = type.BaseType;
+            while (tr != null)
+            {
+                var td = tr.Resolve();
+                if (td == baseType)
+                {
+                    return true;
+                }
+                tr = td.BaseType;
+            }
+            return false;
+        }
+
+        public static bool IsBaseOf(this TypeDefinition baseType, TypeReference type)
+        {
+            return baseType.IsBaseOf(type.Resolve());
+        }
+
+        public static bool IsSameRuntimeOf(this TypeDefinition a, TypeDefinition b)
+        {
+            return a.GetRuntimeType() == b.GetRuntimeType();
+        }
     }
 }

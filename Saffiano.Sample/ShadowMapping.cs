@@ -46,7 +46,6 @@ namespace Saffiano.Sample
 
     public class ShadowMappingPhong : Phong
     {
-
         [Uniform]
         public Texture shadowMapTexture { get; set; }
 
@@ -59,24 +58,7 @@ namespace Saffiano.Sample
         [Uniform]
         public float epsilon { get; set; } = 0.05f;
 
-        void VertexShader(
-            [Attribute(AttributeType.Position)] Vector3 a_position,
-            [Attribute(AttributeType.Normal)] Vector3 a_normal,
-            out Vector4 gl_Position,
-            out Vector4 v_position,
-            out Vector3 v_normal,
-            out Color v_diffuseColor
-        )
-        {
-            Vector3 normal = (mv * new Vector4(a_normal, 0)).xyz.normalized;
-            gl_Position = mvp * new Vector4(a_position, 1.0f);
-            Vector4 color = (Vector4)directionLightColor;
-            v_diffuseColor = (Color)new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
-            v_position = new Vector4(a_position, 1.0f);
-            v_normal = a_normal;
-        }
-
-        void FragmentShader(
+        public override void FragmentShader(
             Vector4 v_position,
             Vector3 v_normal,
             Color v_diffuseColor,
@@ -90,11 +72,7 @@ namespace Saffiano.Sample
             var distance = (v_position.xyz - lightPosition).magnitude;
             if (distance < depth + epsilon)
             {
-                Vector3 worldNormal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
-                var r = Vector3.Reflect(-directionLight.normalized, worldNormal) * Mathf.Max(Vector3.Dot(worldNormal, directionLight), 0);
-                var viewDirection = (-(mv * v_position).xyz + cameraPosition).normalized;
-                var specularColor = (Vector4)directionLightColor * Mathf.Pow(Mathf.Max(Vector3.Dot(viewDirection, r), 0), shininess);
-                f_color = (Color)(new Vector4(specularColor.xyz, 1) * 0.5f + (Vector4)v_diffuseColor * 0.5f + (Vector4)(ambientColor));
+                base.FragmentShader(v_position, v_normal, v_diffuseColor, out f_color);
             }
             else
             {

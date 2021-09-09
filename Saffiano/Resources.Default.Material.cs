@@ -11,7 +11,7 @@ namespace Saffiano
             {
                 public class Basic : ScriptableMaterial
                 {
-                    void VertexShader(
+                    public virtual void VertexShader(
                         [Attribute(AttributeType.Position)] Vector3 a_position,
                         [Attribute(AttributeType.Normal)] Vector3 a_normal,
                         [Attribute(AttributeType.TexCoord)] Vector2 a_texcoord,
@@ -26,7 +26,7 @@ namespace Saffiano
                         v_color = a_color;
                     }
 
-                    void FragmentShader(
+                    public virtual void FragmentShader(
                         Vector2 v_texcoord,
                         Color v_color,
                         out Color f_color
@@ -77,7 +77,7 @@ namespace Saffiano
                         }
                     }
 
-                    void VertexShader(
+                    public virtual void VertexShader(
                         [Attribute(AttributeType.Position)] Vector3 a_position,
                         [Attribute(AttributeType.Normal)] Vector3 a_normal,
                         [Attribute(AttributeType.TexCoord)] Vector2 a_texcoord,
@@ -93,7 +93,7 @@ namespace Saffiano
                         v_color = (Color)(diffuseColor + (Vector4)(ambientColor));
                     }
 
-                    void FragmentShader(
+                    public virtual void FragmentShader(
                         Vector4 v_color,
                         out Vector4 f_color
                     )
@@ -110,7 +110,7 @@ namespace Saffiano
                     [Uniform]
                     public Vector3 cameraPosition => Camera.main.transform.position;
 
-                    void VertexShader(
+                    public virtual void VertexShader(
                         [Attribute(AttributeType.Position)] Vector3 a_position,
                         [Attribute(AttributeType.Normal)] Vector3 a_normal,
                         out Vector4 gl_Position,
@@ -127,7 +127,7 @@ namespace Saffiano
                         v_normal = a_normal;
                     }
 
-                    void FragmentShader(
+                    public virtual void FragmentShader(
                         Vector4 v_position,
                         Vector3 v_normal,
                         Color v_diffuseColor,

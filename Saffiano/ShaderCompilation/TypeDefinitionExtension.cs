@@ -27,8 +27,17 @@ namespace Saffiano.ShaderCompilation
 
         public static MethodReference FindMethod(this TypeDefinition typeDefinition, string methodName)
         {
-            var list = typeDefinition.Methods.Where((md) => md.Name == methodName);
-            return list.Any() ? list.First() : null;
+            var td = typeDefinition;
+            while (td != null)
+            {
+                var list = td.Methods.Where((md) => md.Name == methodName);
+                if (list.Any())
+                {
+                    return list.First();
+                }
+                td = td.BaseType.Resolve();
+            }
+            return null;
         }
 
         public static PropertyDefinition FindPropertyDefinitionIncludeAncestors(this TypeDefinition typeDefinition, string name)

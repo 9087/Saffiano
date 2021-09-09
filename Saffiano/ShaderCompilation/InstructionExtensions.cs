@@ -153,10 +153,17 @@ namespace Saffiano.ShaderCompilation
                     {
                         parameters.Insert(0, compileContext.Pop());
                     }
-                    @internal = compileContext.AllocateInternal(methodDefinition.ReturnType);
                     var method = compileContext.Method(methodDefinition, parameters.ToArray());
-                    compileContext.Assign(@internal, method);
-                    compileContext.Push(@internal);
+                    if (!methodDefinition.ReturnType.Resolve().IsSameRuntimeOf(typeof(void).GetTypeDefinition()))
+                    {
+                        @internal = compileContext.AllocateInternal(methodDefinition.ReturnType);
+                        compileContext.Assign(@internal, method);
+                        compileContext.Push(@internal);
+                    }
+                    else
+                    {
+                        compileContext.WriteLine(method);
+                    }
                 }
             }
             return true;
@@ -346,7 +353,7 @@ namespace Saffiano.ShaderCompilation
             var b = compileContext.Pop();
             var a = compileContext.Pop();
             var @internal = compileContext.AllocateInternal(a.type);
-            compileContext.Assign(@internal, compileContext.Format("{0} {1} {2}", a, @operator, b));
+            compileContext.Assign(@internal, CompileContext.Format("{0} {1} {2}", a, @operator, b));
             compileContext.Push(@internal);
             return true;
         }
@@ -385,7 +392,7 @@ namespace Saffiano.ShaderCompilation
             var b = compileContext.Pop();
             var a = compileContext.Pop();
             var @internal = compileContext.AllocateInternal(a.type);
-            compileContext.Assign(@internal, compileContext.Format("mod({0}, {1})", a, b));
+            compileContext.Assign(@internal, CompileContext.Format("mod({0}, {1})", a, b));
             compileContext.Push(@internal);
             return true;
         }
@@ -403,7 +410,7 @@ namespace Saffiano.ShaderCompilation
         public static bool Neg(Instruction instruction, CompileContext compileContext)
         {
             var value = compileContext.Pop();
-            compileContext.Push(value.type, compileContext.Format("-({0})", value));
+            compileContext.Push(value.type, CompileContext.Format("-({0})", value));
             return true;
         }
 
@@ -413,7 +420,7 @@ namespace Saffiano.ShaderCompilation
             // clt –  Push 1 (of type int32) if value1 < value2, else push 0.
             var value2 = compileContext.Pop();
             var value1 = compileContext.Pop();
-            compileContext.Push(typeof(bool).GetTypeDefinition(), compileContext.Format("({0} < {1})", value1, value2));
+            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("({0} < {1})", value1, value2));
             return true;
         }
 
@@ -425,6 +432,17 @@ namespace Saffiano.ShaderCompilation
             compileContext.Begin(instruction, (instruction.Operand as Instruction).Previous);
             return true;
         }
+
+        [Instruction(Mono.Cecil.Cil.Code.Brfalse_S)]
+        public static bool Brfalse_S(Instruction instruction, CompileContext compileContext)
+        {
+            // brfalse.s - Branch to target if value is zero (false), short form.
+            compileContext.If(compileContext.Pop());
+            compileContext.Begin(instruction, (instruction.Operand as Instruction).Previous);
+            return true;
+        }
+
+        
 
         [Instruction(Mono.Cecil.Cil.Code.Br_S)]
         public static bool Br_S(Instruction instruction, CompileContext compileContext)
@@ -438,14 +456,14 @@ namespace Saffiano.ShaderCompilation
         [Instruction(Mono.Cecil.Cil.Code.Conv_I4)]
         public static bool Conv_I4(Instruction instruction, CompileContext compileContext)
         {
-            compileContext.Push(typeof(int).GetTypeDefinition(), compileContext.Format("int({0})", compileContext.Pop()));
+            compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0})", compileContext.Pop()));
             return true;
         }
 
         [Instruction(Mono.Cecil.Cil.Code.Conv_R4)]
         public static bool Conv_R4(Instruction instruction, CompileContext compileContext)
         {
-            compileContext.Push(typeof(float).GetTypeDefinition(), compileContext.Format("float({0})", compileContext.Pop()));
+            compileContext.Push(typeof(float).GetTypeDefinition(), CompileContext.Format("float({0})", compileContext.Pop()));
             return true;
         }
 
