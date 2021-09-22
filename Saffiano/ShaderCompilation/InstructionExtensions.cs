@@ -226,6 +226,7 @@ namespace Saffiano.ShaderCompilation
             {
                 throw new NotImplementedException();
             }
+            compileContext.WriteLine("return;");
             return true;
         }
 
@@ -429,7 +430,7 @@ namespace Saffiano.ShaderCompilation
         {
             // brfalse target - Branch to target if value is zero (false)
             compileContext.If(compileContext.Pop());
-            compileContext.Begin(instruction, (instruction.Operand as Instruction).Previous);
+            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
             return true;
         }
 
@@ -438,18 +439,35 @@ namespace Saffiano.ShaderCompilation
         {
             // brfalse.s - Branch to target if value is zero (false), short form.
             compileContext.If(compileContext.Pop());
-            compileContext.Begin(instruction, (instruction.Operand as Instruction).Previous);
+            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
             return true;
         }
-
-        
 
         [Instruction(Mono.Cecil.Cil.Code.Br_S)]
         public static bool Br_S(Instruction instruction, CompileContext compileContext)
         {
             // br.s target - Branch to target, short form
+            var blockType = compileContext.GetPeekCodeBlockType();
+            if (blockType != BlockType.If)
+            {
+                throw new NotImplementedException();
+            }
+            var block = compileContext.GetPeekCodeBlock();
+            compileContext.End();
             compileContext.Else();
-            compileContext.Begin(instruction, (instruction.Operand as Instruction).Previous);
+            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Bge_Un_S)]
+        public static bool Bge_Un_S(Instruction instruction, CompileContext compileContext)
+        {
+            // bge.un.s target - Branch to target if greater than or equal to(unsigned or unordered), short form.
+            var value2 = compileContext.Pop();
+            var value1 = compileContext.Pop();
+            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("({0} < {1})", value1, value2));
+            compileContext.If(compileContext.Pop());
+            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
             return true;
         }
 
@@ -467,16 +485,24 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        [Instruction(Mono.Cecil.Cil.Code.Dup)]
+        public static bool Dup(Instruction instruction, CompileContext compileContext)
+        {
+            compileContext.Push(compileContext.Peek());
+            return true;
+        }
+
         public static bool Step(this Instruction instruction, CompileContext compileContext)
         {
-            compileContext.TryEnd(instruction);
             var code = instruction.OpCode.Code;
             MethodInfo method = null;
             if (!methods.TryGetValue(code, out method))
             {
                 throw new Exception(string.Format("Unsupported operate code: {0}", code));
             }
-            return (bool)method.Invoke(null, new object[] { instruction, compileContext });
+            compileContext.TryEnd(instruction);
+            var success = (bool)method.Invoke(null, new object[] { instruction, compileContext });
+            return success;
         }
     }
 }

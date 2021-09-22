@@ -162,9 +162,9 @@ namespace Saffiano.ShaderCompilation
             return evaluationStack.Peek();
         }
 
-        public void Begin(Instruction start, Instruction end)
+        public void Begin(BlockType blockType, Instruction start, Instruction end)
         {
-            codeBlockStack.Push(new Block(start, end));
+            codeBlockStack.Push(new Block(blockType, start, end));
             writer.WriteLine("{");
         }
 
@@ -174,12 +174,28 @@ namespace Saffiano.ShaderCompilation
             {
                 return false;
             }
-            if (codeBlockStack.Peek().end == current)
+            if (GetPeekCodeBlock().end == current)
             {
-                writer.WriteLine("}");
-                codeBlockStack.Pop();
+                End();
             }
             return true;
+        }
+
+        public bool End()
+        {
+            writer.WriteLine("}");
+            codeBlockStack.Pop();
+            return true;
+        }
+
+        public Block GetPeekCodeBlock()
+        {
+            return codeBlockStack.Peek();
+        }
+
+        public BlockType GetPeekCodeBlockType()
+        {
+            return GetPeekCodeBlock().blockType;
         }
 
         public bool AddUniform(Uniform uniform)
