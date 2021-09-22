@@ -24,6 +24,12 @@ namespace Saffiano
 
         public uint height { get; private set; }
 
+        public Vector2 size
+        {
+            [Shader(OpenGL: "textureSize({0}, 0)")]
+            get => new Vector2(width, height);
+        }
+
         internal bool registered { get; set; }
 
         public static Texture whiteTexture

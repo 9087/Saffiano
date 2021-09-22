@@ -43,6 +43,17 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        [Instruction(Mono.Cecil.Cil.Code.Ldobj)]
+        public static bool Ldobj(Instruction instruction, CompileContext compileContext)
+        {
+            // ldobj – copy a value from an address to the stack
+            var value = compileContext.Pop();
+            var @internal = compileContext.AllocateInternal(value.type);
+            compileContext.Assign(@internal, value);
+            compileContext.Push(@internal);
+            return true;
+        }
+
         [Instruction(Mono.Cecil.Cil.Code.Ldarg_S)]
         public static bool Ldarg_S(Instruction instruction, CompileContext compileContext)
         {
@@ -459,15 +470,29 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        public static bool BXX_Un_S(Instruction instruction, CompileContext compileContext, string sign)
+        {
+            var value2 = compileContext.Pop();
+            var value1 = compileContext.Pop();
+            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("({0} {2} {1})", value1, value2, sign));
+            compileContext.If(compileContext.Pop());
+            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
+            return true;
+        }
+
         [Instruction(Mono.Cecil.Cil.Code.Bge_Un_S)]
         public static bool Bge_Un_S(Instruction instruction, CompileContext compileContext)
         {
             // bge.un.s target - Branch to target if greater than or equal to(unsigned or unordered), short form.
-            var value2 = compileContext.Pop();
-            var value1 = compileContext.Pop();
-            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("({0} < {1})", value1, value2));
-            compileContext.If(compileContext.Pop());
-            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
+            BXX_Un_S(instruction, compileContext, "<");
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ble_Un_S)]
+        public static bool Ble_Un_S(Instruction instruction, CompileContext compileContext)
+        {
+            // ble.un.s target - Branch to target if less than or equal to (unsigned or unordered), short form.
+            BXX_Un_S(instruction, compileContext, ">");
             return true;
         }
 
@@ -492,10 +517,17 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        [Instruction(Mono.Cecil.Cil.Code.Pop)]
+        public static bool Pop(Instruction instruction, CompileContext compileContext)
+        {
+            compileContext.Pop();
+            return true;
+        }
+
         public static bool Step(this Instruction instruction, CompileContext compileContext)
         {
             var code = instruction.OpCode.Code;
-            MethodInfo method = null;
+            MethodInfo method;
             if (!methods.TryGetValue(code, out method))
             {
                 throw new Exception(string.Format("Unsupported operate code: {0}", code));

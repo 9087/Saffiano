@@ -75,6 +75,12 @@ namespace Saffiano
         }
 
         [Shader(OpenGL: "({0} / {1})")]
+        public static Vector2 operator*(float a, Vector2 b)
+        {
+            return new Vector2(a * b.x, a * b.y);
+        }
+
+        [Shader(OpenGL: "({0} / {1})")]
         public static Vector2 operator/(Vector2 a, float b)
         {
             return new Vector2(a.x / b, a.y / b);
@@ -85,7 +91,13 @@ namespace Saffiano
         {
             return new Vector2(a.x / b.x, a.y / b.y);
         }
-        
+
+        [Shader(OpenGL: "({0} / {1})")]
+        public static Vector2 operator/(float a, Vector2 b)
+        {
+            return new Vector2(a / b.x, a / b.y);
+        }
+
         [Shader(OpenGL: "(-{0})")]
         public static Vector2 operator-(Vector2 a)
         {

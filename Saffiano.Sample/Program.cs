@@ -37,8 +37,6 @@ namespace Saffiano.Sample
 
             var material = GameObject.Find("Plane").GetComponent<MeshRenderer>().material as ShadowMappingPhong;
 
-            Debug.Log(ScriptableMaterial.GetShaderSourceData(typeof(ShadowMappingPhong)).codes[ShaderType.FragmentShader]);
-
             var lightCamera = shadowMapping.GetComponent<Camera>();
             material.shadowMapTexture = lightCamera.TargetTexture;
             material.lightMVP = lightCamera.projectionMatrix * lightCamera.worldToCameraMatrix;
