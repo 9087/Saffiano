@@ -48,9 +48,7 @@ namespace Saffiano.ShaderCompilation
         {
             // ldobj – copy a value from an address to the stack
             var value = compileContext.Pop();
-            var @internal = compileContext.AllocateInternal(value.type);
-            compileContext.Assign(@internal, value);
-            compileContext.Push(@internal);
+            compileContext.Push(value);
             return true;
         }
 
@@ -112,7 +110,6 @@ namespace Saffiano.ShaderCompilation
 
         public static bool Call(MethodReference methodReference, CompileContext compileContext)
         {
-            Value @internal = null;
             var methodDefinition = methodReference.Resolve();
             if (methodDefinition.IsGetter)  // call property getter
             {
@@ -138,9 +135,7 @@ namespace Saffiano.ShaderCompilation
                 }
                 else
                 {
-                    @internal = compileContext.AllocateInternal(propertyDefinition.PropertyType);
-                    compileContext.Assign(@internal, compileContext.Property(@this, propertyDefinition));
-                    compileContext.Push(@internal);
+                    compileContext.Push(compileContext.Property(@this, propertyDefinition));
                 }
             }
             else  // method
@@ -149,13 +144,11 @@ namespace Saffiano.ShaderCompilation
                 if (methodDefinition.IsConstructor)
                 {
                     // Call the initializer on the local (from ECMA-335: Page 163)
-                    @internal = compileContext.AllocateInternal(methodDefinition.DeclaringType);
                     var method = compileContext.Method(methodDefinition, parameters.ToArray());
-                    compileContext.Assign(@internal, method);
                     if (compileContext.Peek().isAddress)
                     {
                         var target = compileContext.Pop();
-                        compileContext.Assign(target, @internal);
+                        compileContext.Assign(target, method);
                     }
                 }
                 else
@@ -167,13 +160,11 @@ namespace Saffiano.ShaderCompilation
                     var method = compileContext.Method(methodDefinition, parameters.ToArray());
                     if (!methodDefinition.ReturnType.Resolve().IsSameRuntimeOf(typeof(void).GetTypeDefinition()))
                     {
-                        @internal = compileContext.AllocateInternal(methodDefinition.ReturnType);
-                        compileContext.Assign(@internal, method);
-                        compileContext.Push(@internal);
+                        compileContext.Push(method);
                     }
                     else
                     {
-                        compileContext.WriteLine(method);
+                        compileContext.WriteLine(method.ToString());
                     }
                 }
             }
@@ -198,17 +189,99 @@ namespace Saffiano.ShaderCompilation
         public static bool Ldc_R4(Instruction instruction, CompileContext compileContext)
         {
             // ldc.r4 num - Push num of type float32 onto the stack as F.
-            compileContext.Push(typeof(float).GetTypeDefinition(), (float)instruction.Operand);
+            compileContext.Push(typeof(float).GetTypeDefinition(), string.Format("float({0})", (float)instruction.Operand));
             return true;
+        }
+
+        public static bool Ldc_I4_X(Instruction instruction, CompileContext compileContext, int value)
+        {
+            // ldc.i4.m1 - Push -1 onto the stack as int32.
+            compileContext.Push(typeof(int).GetTypeDefinition(), value);
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_0)]
+        public static bool Ldc_I4_0(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 1 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 0);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_1)]
+        public static bool Ldc_I4_1(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 1 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 1);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_2)]
+        public static bool Ldc_I4_2(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 2 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 2);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_3)]
+        public static bool Ldc_I4_3(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 3 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 3);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_4)]
+        public static bool Ldc_I4_4(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 4 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 4);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_5)]
+        public static bool Ldc_I4_5(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 5 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 5);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_6)]
+        public static bool Ldc_I4_6(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 6 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 6);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_7)]
+        public static bool Ldc_I4_7(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 7 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 7);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_8)]
+        public static bool Ldc_I4_8(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 8 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, 8);
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_S)]
+        public static bool Ldc_I4_S(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.1 - Push 1 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, Convert.ToInt32((sbyte)instruction.Operand));
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ldc_I4_M1)]
+        public static bool Ldc_I4_M1(Instruction instruction, CompileContext compileContext)
+        {
+            // ldc.i4.m1 - Push -1 onto the stack as int32.
+            return Ldc_I4_X(instruction, compileContext, -1);
         }
 
         public static bool Construct(MethodReference methodReference, CompileContext compileContext)
         {
-            var @internal = compileContext.AllocateInternal(methodReference.DeclaringType);
             var parameters = compileContext.Pop(methodReference.Parameters.Count);
             var method = compileContext.Method(methodReference, parameters);
-            compileContext.Assign(@internal, method);
-            compileContext.Push(@internal);
+            compileContext.Push(method);
             return true;
         }
 
@@ -244,7 +317,7 @@ namespace Saffiano.ShaderCompilation
         public static bool Stloc_N(Instruction instruction, CompileContext compileContext, uint index)
         {
             var value = compileContext.Pop();
-            var local = compileContext.AllocateLocal(value.type, index);
+            var local = compileContext.Allocate(value.type, index);
             compileContext.Assign(local, value);
             return true;
         }
@@ -289,7 +362,7 @@ namespace Saffiano.ShaderCompilation
         {
             // ldloc.s indx - Load local variable of index indx onto stack, short form.
             var variableDefinition = instruction.Operand as VariableDefinition;
-            var local = compileContext.AllocateLocal(variableDefinition.VariableType, (uint)variableDefinition.Index);
+            var local = compileContext.Allocate(variableDefinition.VariableType, (uint)variableDefinition.Index);
             compileContext.Push(local);
             return true;
         }
@@ -333,7 +406,7 @@ namespace Saffiano.ShaderCompilation
         {
             // ldloca.s indx - Load address of local variable with index indx, short form.
             var variableDefinition = instruction.Operand as VariableDefinition;
-            var local = compileContext.AllocateLocal(variableDefinition.VariableType, (uint)variableDefinition.Index);
+            var local = compileContext.Allocate(variableDefinition.VariableType, (uint)variableDefinition.Index);
             local.isAddress = true;
             compileContext.Push(local);
             return true;
@@ -360,13 +433,20 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
-        public static bool Operator(Instruction instruction, CompileContext compileContext, string @operator)
+        public static bool Operator(Instruction instruction, CompileContext compileContext, string @operator, TypeReference type = null)
         {
             var b = compileContext.Pop();
             var a = compileContext.Pop();
-            var @internal = compileContext.AllocateInternal(a.type);
-            compileContext.Assign(@internal, CompileContext.Format("{0} {1} {2}", a, @operator, b));
-            compileContext.Push(@internal);
+            string pattern;
+            if (type != null)
+            {
+                pattern = "{3}({0} {1} {2})";
+            }
+            else
+            {
+                pattern = "({0} {1} {2})";
+            }
+            compileContext.Push(new Value(type != null ? type : a.type, CompileContext.Format(pattern, a, @operator, b, type)));
             return true;
         }
 
@@ -403,9 +483,7 @@ namespace Saffiano.ShaderCompilation
         {
             var b = compileContext.Pop();
             var a = compileContext.Pop();
-            var @internal = compileContext.AllocateInternal(a.type);
-            compileContext.Assign(@internal, CompileContext.Format("mod({0}, {1})", a, b));
-            compileContext.Push(@internal);
+            compileContext.Push(new Value(a.type, CompileContext.Format("mod({0}, {1})", a, b)));
             return true;
         }
 
@@ -441,7 +519,7 @@ namespace Saffiano.ShaderCompilation
         {
             // brfalse target - Branch to target if value is zero (false)
             compileContext.If(compileContext.Pop());
-            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
+            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
             return true;
         }
 
@@ -450,8 +528,14 @@ namespace Saffiano.ShaderCompilation
         {
             // brfalse.s - Branch to target if value is zero (false), short form.
             compileContext.If(compileContext.Pop());
-            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
+            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
             return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Br)]
+        public static bool Br(Instruction instruction, CompileContext compileContext)
+        {
+            throw new NotImplementedException();
         }
 
         [Instruction(Mono.Cecil.Cil.Code.Br_S)]
@@ -459,14 +543,14 @@ namespace Saffiano.ShaderCompilation
         {
             // br.s target - Branch to target, short form
             var blockType = compileContext.GetPeekCodeBlockType();
-            if (blockType != BlockType.If)
+            if (blockType != CodeBlockType.If)
             {
                 throw new NotImplementedException();
             }
             var block = compileContext.GetPeekCodeBlock();
             compileContext.End();
             compileContext.Else();
-            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
+            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
             return true;
         }
 
@@ -476,7 +560,7 @@ namespace Saffiano.ShaderCompilation
             var value1 = compileContext.Pop();
             compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("({0} {2} {1})", value1, value2, sign));
             compileContext.If(compileContext.Pop());
-            compileContext.Begin(BlockType.If, instruction, instruction.Operand as Instruction);
+            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
             return true;
         }
 
@@ -494,6 +578,29 @@ namespace Saffiano.ShaderCompilation
             // ble.un.s target - Branch to target if less than or equal to (unsigned or unordered), short form.
             BXX_Un_S(instruction, compileContext, ">");
             return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Cgt)]
+        public static bool Cgt(Instruction instruction, CompileContext compileContext)
+        {
+            // cgt - Push 1 (of type int32) if value1 > value2, else push 0.
+            Operator(instruction, compileContext, ">", typeof(int).GetTypeDefinition());
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ceq)]
+        public static bool Ceq(Instruction instruction, CompileContext compileContext)
+        {
+            // cgt - Push 1 (of type int32) if value1 > value2, else push 0.
+            Operator(instruction, compileContext, "==", typeof(int).GetTypeDefinition());
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Brtrue)]
+        public static bool Brtrue(Instruction instruction, CompileContext compileContext)
+        {
+            // brtrue target - Branch to target if value is non-zero (true).
+            throw new NotImplementedException();
         }
 
         [Instruction(Mono.Cecil.Cil.Code.Conv_I4)]
@@ -524,17 +631,23 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
-        public static bool Step(this Instruction instruction, CompileContext compileContext)
+        public static Instruction Step(this Instruction instruction, CompileContext compileContext)
         {
+            if (StatementStructure.Recognize(instruction, out StatementStructure statementStructure) != StatementStructureType.Unknown)
+            {
+                string s = statementStructure.Generate(compileContext);
+                Debug.LogFormat("Statement structure found: {0}", statementStructure);
+                compileContext.WriteLine(s);
+                return statementStructure.all.last.Next;
+            }
             var code = instruction.OpCode.Code;
-            MethodInfo method;
-            if (!methods.TryGetValue(code, out method))
+            if (!methods.TryGetValue(code, out MethodInfo method))
             {
                 throw new Exception(string.Format("Unsupported operate code: {0}", code));
             }
             compileContext.TryEnd(instruction);
-            var success = (bool)method.Invoke(null, new object[] { instruction, compileContext });
-            return success;
+            method.Invoke(null, new object[] { instruction, compileContext });
+            return instruction.Next;
         }
     }
 }

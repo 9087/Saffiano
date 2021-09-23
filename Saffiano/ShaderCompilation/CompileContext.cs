@@ -15,8 +15,7 @@ namespace Saffiano.ShaderCompilation
 
         private EvaluationStack evaluationStack = new EvaluationStack();
         private CodeBlockStack codeBlockStack = new CodeBlockStack();
-        private VariableAllocator internalAllocator = new VariableAllocator("internal");
-        private VariableAllocator localAllocator = new VariableAllocator("local");
+        private VariableAllocator allocator = new VariableAllocator("local");
 
         public HashSet<Uniform> uniforms { get; private set; } = new HashSet<Uniform>();
 
@@ -93,37 +92,82 @@ namespace Saffiano.ShaderCompilation
 
         private MethodDefinition methodDefinition { get; set; }
 
-        private bool processed = false;
+        private Instruction first { get; set; }
+
+        private Instruction last { get; set; }
 
         public CompileContext(MethodReference methodReference)
         {
             methodDefinition = methodReference.Resolve();
             declaringType = methodDefinition.DeclaringType;
+            var instructions = methodDefinition.Body.Instructions;
+            first = instructions.First();
+            last = instructions.Last();
         }
 
-        public void Generate()
+        public CompileContext(MethodReference methodReference, Instruction first, Instruction last)
         {
-            Debug.Assert(processed == false);
-            foreach (var instruction in methodDefinition.Body.Instructions)
+            methodDefinition = methodReference.Resolve();
+            declaringType = methodDefinition.DeclaringType;
+            this.first = first;
+            this.last = last;
+        }
+
+        private string GenerateInternal(Instruction first, Instruction last, TextWriter specific, ref EvaluationStack unhandled)
+        {
+            int evaluationStackPreviousCount = evaluationStack.Count;
+            var writer = this.writer;
+            this.writer = specific;
+            for (var instruction = first; instruction != last.Next;)
             {
-                instruction.Step(this);
+                instruction = instruction.Step(this);
             }
-            processed = true;
+            this.writer = writer;
+            int evaluationStackCount = evaluationStack.Count;
+            Debug.Assert(evaluationStackCount >= evaluationStackPreviousCount);
+            int count = evaluationStackCount - evaluationStackPreviousCount;
+            if (count != 0)
+            {
+                unhandled = new EvaluationStack();
+                Stack<Value> tmp = new Stack<Value>();
+                while ((count--) != 0)
+                {
+                    tmp.Push(evaluationStack.Pop());
+                }
+                while (tmp.Count != 0)
+                {
+                    unhandled.Push(tmp.Pop());
+                }
+            }
+            else
+            {
+                unhandled = null;
+            }
+            return specific.ToString();
         }
 
-        public Value AllocateInternal(TypeReference type)
+        internal string GenerateWithoutWriting(Instruction first, Instruction last, ref EvaluationStack unhandled)
         {
-            return internalAllocator.Allocate(type);
+            using (TextWriter writer = new StringWriter())
+            {
+                return GenerateInternal(first, last, writer, ref unhandled);
+            }
         }
 
-        public Value AllocateLocal(TypeReference type, uint index)
+        public string Generate()
         {
-            return localAllocator.Allocate(type, index);
+            EvaluationStack unhandled = null;
+            return GenerateInternal(this.first, this.last, this.writer, ref unhandled);
+        }
+
+        public Value Allocate(TypeReference type, uint index)
+        {
+            return allocator.Allocate(type, index);
         }
 
         public Value GetLocal(uint index)
         {
-            return localAllocator.Get(index);
+            return allocator.Get(index);
         }
 
         public Value Push(TypeReference type, object name)
@@ -162,9 +206,9 @@ namespace Saffiano.ShaderCompilation
             return evaluationStack.Peek();
         }
 
-        public void Begin(BlockType blockType, Instruction start, Instruction end)
+        public void Begin(CodeBlockType blockType, Instruction first, Instruction last)
         {
-            codeBlockStack.Push(new Block(blockType, start, end));
+            codeBlockStack.Push(new CodeBlock(first, last, blockType));
             writer.WriteLine("{");
         }
 
@@ -174,7 +218,7 @@ namespace Saffiano.ShaderCompilation
             {
                 return false;
             }
-            if (GetPeekCodeBlock().end == current)
+            if (GetPeekCodeBlock().last == current)
             {
                 End();
             }
@@ -188,14 +232,14 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
-        public Block GetPeekCodeBlock()
+        public CodeBlock GetPeekCodeBlock()
         {
             return codeBlockStack.Peek();
         }
 
-        public BlockType GetPeekCodeBlockType()
+        public CodeBlockType GetPeekCodeBlockType()
         {
-            return GetPeekCodeBlock().blockType;
+            return GetPeekCodeBlock().type;
         }
 
         public bool AddUniform(Uniform uniform)
@@ -208,7 +252,11 @@ namespace Saffiano.ShaderCompilation
             List<object> parameters = new List<object>();
             foreach (var arg in args)
             {
-                if (arg is TypeReference)
+                if (arg == null)
+                {
+                    parameters.Add(null);
+                }
+                else if(arg is TypeReference)
                 {
                     parameters.Add(Type(arg as TypeReference));
                 }
@@ -240,9 +288,10 @@ namespace Saffiano.ShaderCompilation
             return string.Format(format, parameters.ToArray());
         }
 
-        public string Property(Value @this, PropertyReference propertyReference)
+        public Value Property(Value @this, PropertyReference propertyReference)
         {
-            var methodDefinition = propertyReference.Resolve().GetMethod;
+            var propertyDefinition = propertyReference.Resolve();
+            var methodDefinition = propertyDefinition.GetMethod;
             var methodInfo = methodDefinition.GetMethodInfo();
             var shaderAttributes = methodInfo.GetCustomAttributes<ShaderAttribute>();
             string pattern;
@@ -255,7 +304,8 @@ namespace Saffiano.ShaderCompilation
             {
                 pattern = "{0}.{1}";
             }
-            return string.Format(pattern, @this.name, propertyReference.Name);
+            string s = string.Format(pattern, @this.name, propertyReference.Name);
+            return new Value(propertyDefinition.PropertyType, s);
         }
 
         public Value Field(Value @this, FieldDefinition fieldDefinition)
@@ -275,8 +325,9 @@ namespace Saffiano.ShaderCompilation
             if (type.IsValueType)
             {
                 if (type == typeof(bool))  return "bool" ;
-                if (type == typeof(int))   return "int"  ;
+                if (type == typeof(int))   return "int";
                 if (type == typeof(float)) return "float";
+                if (type == typeof(void))  return "void";
             }
             var shaderAttributes = type.GetCustomAttributes<ShaderAttribute>();
             if (!shaderAttributes.Any())
@@ -296,7 +347,7 @@ namespace Saffiano.ShaderCompilation
             return string.Join(separator, values);
         }
 
-        public string Method(MethodReference methodReference, Value[] parameters)
+        public Value Method(MethodReference methodReference, Value[] parameters)
         {
             // built-in shader method
             var methodInfo = methodReference.GetMethodInfo();
@@ -307,6 +358,7 @@ namespace Saffiano.ShaderCompilation
                 pattern = shaderAttributes.First().pattern;
             }
             var md = methodReference.Resolve();
+            TypeReference returnType = md.ReturnType;
             if (md.IsConstructor)
             {
                 var parameterPatterns = new List<string>();
@@ -315,10 +367,11 @@ namespace Saffiano.ShaderCompilation
                     parameterPatterns.Add(string.Format("{{{0}}}", i));
                 }
                 pattern = Format("{0}({1})", md.DeclaringType, Join(", ", parameterPatterns));
+                returnType = md.DeclaringType;
             }
             if (pattern != null)
             {
-                return Format(pattern, parameters);
+                return new Value(returnType, Format(pattern, parameters));
             }
             var callerDeclaringType = methodDefinition.DeclaringType;
             var calleeDeclaringType = methodReference.DeclaringType.Resolve();
@@ -326,13 +379,13 @@ namespace Saffiano.ShaderCompilation
             {
                 string methodName = Format("{0}_{1}", callerDeclaringType.Name, methodReference.Resolve().Name);
                 methods[methodName] = methodReference.Resolve();
-                return Format("{0}();", methodName);
+                return new Value(typeof(void).GetTypeDefinition(), Format("{0}();", methodName));
             }
             Debug.LogErrorFormat("Method \"{0}.{1}\" is not a built-in shader method.", methodInfo.DeclaringType.FullName, methodInfo.Name);
             return null;
         }
 
-        public string Method(MethodReference methodReference, List<Value> parameters)
+        public Value Method(MethodReference methodReference, List<Value> parameters)
         {
             return Method(methodReference, parameters.ToArray());
         }
@@ -355,7 +408,7 @@ namespace Saffiano.ShaderCompilation
 
         public void If(Value value)
         {
-            writer.WriteLine("if({0})", value);
+            writer.WriteLine("if({0} != 0)", value);
         }
 
         public void Else()

@@ -65,41 +65,23 @@ namespace Saffiano.Sample
             out Color f_color
         )
         {
+            base.FragmentShader(v_position, v_normal, v_diffuseColor, out f_color);
+
+            // shadow mapping processing
             var targetPosition = mv * lightMVP * v_position;
             targetPosition = targetPosition / targetPosition.w;
             var distance = (v_position.xyz - lightPosition).magnitude;
             var texelSize = 1.0f / shadowMapTexture.size;
-
             float shadow = 0;
-            var a00 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(-1, -1) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d00 = a00.r * 256.0f * 256.0f + a00.g * 256.0f + a00.b + a00.a / 32.0f;
-            if (d00 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a10 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(+0, -1) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d10 = a10.r * 256.0f * 256.0f + a10.g * 256.0f + a10.b + a10.a / 32.0f;
-            if (d10 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a20 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(+1, -1) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d20 = a20.r * 256.0f * 256.0f + a20.g * 256.0f + a20.b + a20.a / 32.0f;
-            if (d20 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a01 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(-1, +0) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d01 = a01.r * 256.0f * 256.0f + a01.g * 256.0f + a01.b + a01.a / 32.0f;
-            if (d01 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a11 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(+0, +0) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d11 = a11.r * 256.0f * 256.0f + a11.g * 256.0f + a11.b + a11.a / 32.0f;
-            if (d11 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a21 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(+1, +0) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d21 = a21.r * 256.0f * 256.0f + a21.g * 256.0f + a21.b + a21.a / 32.0f;
-            if (d21 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a02 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(-1, +1) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d02 = a02.r * 256.0f * 256.0f + a02.g * 256.0f + a02.b + a02.a / 32.0f;
-            if (d02 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a12 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(+0, +1) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d12 = a12.r * 256.0f * 256.0f + a12.g * 256.0f + a12.b + a12.a / 32.0f;
-            if (d12 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-            var a22 = shadowMapTexture.Sample((targetPosition.xy + new Vector2(+1, +1) * texelSize + new Vector2(1, 1)) * 0.5f);
-            var d22 = a22.r * 256.0f * 256.0f + a22.g * 256.0f + a22.b + a22.a / 32.0f;
-            if (d22 + epsilon > distance) { shadow += 1.0f / 9.0f; }
-
-            base.FragmentShader(v_position, v_normal, v_diffuseColor, out f_color);
+            int half = 8;
+            int step = 2;
+            float count = (half / step * 2 + 1) * (half / step * 2 + 1);
+            for (int x = -half; x <= half; x += step) for (int y = -half; y <= half; y += step)
+            {
+                var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
+                var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
+                if (depth + epsilon > distance) { shadow += 1.0f / count; }
+            }
             f_color = (Color)((Vector4)f_color * shadow + new Vector4(0, 0, 0, 1));
         }
     }

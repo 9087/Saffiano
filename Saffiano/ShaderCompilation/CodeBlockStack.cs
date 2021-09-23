@@ -5,28 +5,29 @@ using System.Text;
 
 namespace Saffiano.ShaderCompilation
 {
-    internal enum BlockType
+    internal enum CodeBlockType
     {
+        Unknown = 0,
         If = 1,
     }
 
-    internal class Block
+    internal class CodeBlock
     {
-        public BlockType blockType { get; private set; }
+        public CodeBlockType type { get; private set; }
 
-        public Instruction start { get; private set; }
+        public Instruction first { get; private set; }
 
-        public Instruction end { get; private set; }
+        public Instruction last { get; private set; }
 
-        public Block(BlockType blockType, Instruction start, Instruction end)
+        public CodeBlock(Instruction first, Instruction last, CodeBlockType type = CodeBlockType.Unknown)
         {
-            this.blockType = blockType;
-            this.start = start;
-            this.end = end;
+            this.first = first;
+            this.last = last;
+            this.type = type;
         }
     }
 
-    internal class CodeBlockStack : Stack<Block>
+    internal class CodeBlockStack : Stack<CodeBlock>
     {
     }
 }

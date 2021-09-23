@@ -5,7 +5,7 @@ namespace Saffiano.ShaderCompilation
 {
     internal class Value
     {
-        public object name { get; private set; }
+        public object name { get; protected set; }
 
         public TypeReference type { get; private set; }
 
@@ -42,5 +42,4 @@ namespace Saffiano.ShaderCompilation
             return hashCode;
         }
     }
-
 }

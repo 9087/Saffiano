@@ -26,7 +26,15 @@ namespace Saffiano.ShaderCompilation
                 cache[index] = new Value(type, string.Format("{0}_{1}", prefix, index));
                 cache[index].initialized = false;
             }
-            Debug.Assert(type.FullName == cache[index].type.FullName);
+            var cachedType = cache[index].type;
+            if (type.Resolve().GetRuntimeType() == typeof(bool) && cachedType.Resolve().GetRuntimeType() == typeof(int)) { ; }
+            else
+            {
+                Debug.Assert(
+                    type.FullName == cachedType.FullName,
+                    string.Format("the input type ({0}) does not match the cached ({1})", type.FullName, cache[index].type.FullName)
+                );
+            }
             return cache[index];
         }
 
