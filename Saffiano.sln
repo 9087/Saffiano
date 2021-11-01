@@ -5,11 +5,11 @@ VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saffiano", "Saffiano\Saffiano.csproj", "{1B347A24-53F7-4651-A549-5E613E5E69A2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saffiano.Sample", "Saffiano.Sample\Saffiano.Sample.csproj", "{163BD269-53F7-4524-A96F-E70ED38824A7}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saffiano.Console", "Saffiano.Console\Saffiano.Console.csproj", "{85B4CB59-B49A-4B72-93A5-1D703F15339B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saffiano.Widgets", "Saffiano.Widgets\Saffiano.Widgets.csproj", "{C9BEF216-0889-4CCE-AC8B-79FA5F0F9B82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Saffiano.Widgets", "Saffiano.Widgets\Saffiano.Widgets.csproj", "{C9BEF216-0889-4CCE-AC8B-79FA5F0F9B82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Saffiano.Gallery", "Saffiano.Gallery\Saffiano.Gallery.csproj", "{BD67E02C-B00B-404C-97C6-EE60C698B3C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,10 +21,6 @@ Global
 		{1B347A24-53F7-4651-A549-5E613E5E69A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B347A24-53F7-4651-A549-5E613E5E69A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B347A24-53F7-4651-A549-5E613E5E69A2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{163BD269-53F7-4524-A96F-E70ED38824A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{163BD269-53F7-4524-A96F-E70ED38824A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{163BD269-53F7-4524-A96F-E70ED38824A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{163BD269-53F7-4524-A96F-E70ED38824A7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{85B4CB59-B49A-4B72-93A5-1D703F15339B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{85B4CB59-B49A-4B72-93A5-1D703F15339B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85B4CB59-B49A-4B72-93A5-1D703F15339B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -33,6 +29,10 @@ Global
 		{C9BEF216-0889-4CCE-AC8B-79FA5F0F9B82}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9BEF216-0889-4CCE-AC8B-79FA5F0F9B82}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9BEF216-0889-4CCE-AC8B-79FA5F0F9B82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD67E02C-B00B-404C-97C6-EE60C698B3C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD67E02C-B00B-404C-97C6-EE60C698B3C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD67E02C-B00B-404C-97C6-EE60C698B3C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD67E02C-B00B-404C-97C6-EE60C698B3C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

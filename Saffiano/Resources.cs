@@ -75,9 +75,9 @@ namespace Saffiano
             return true;
         }
 
-        public static Object Load<T>() where T : ScriptablePrefab, new()
+        public static Object Load<T>() where T : Prefab, new()
         {
-            return ScriptablePrefab.Load<T>();
+            return Prefab.Load<T>();
         }
 
         public static Asset Load(string path)

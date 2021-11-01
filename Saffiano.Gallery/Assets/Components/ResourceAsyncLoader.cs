@@ -1,8 +1,8 @@
 ﻿using System.Collections;
 
-namespace Saffiano.Sample
+namespace Saffiano.Gallery.Assets.Components
 {
-    class AsyncResourceLoader : Behaviour
+    public class ResourceAsyncLoader : Behaviour
     {
         public string path = null;
         protected ResourceRequest resourceRequest;
@@ -17,16 +17,6 @@ namespace Saffiano.Sample
             yield return new WaitForSeconds(0.5f);
             this.resourceRequest = Resources.LoadAsync(this.path);
             yield return this.resourceRequest;
-        }
-    }
-
-    class MeshLoader : AsyncResourceLoader
-    {
-        public override IEnumerator Load()
-        {
-            yield return base.Load();
-            this.GetComponent<MeshFilter>().mesh = this.resourceRequest.asset as Mesh;
-            this.resourceRequest = null;
         }
     }
 }

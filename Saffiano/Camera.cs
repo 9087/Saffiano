@@ -67,7 +67,7 @@ namespace Saffiano
                 
         }
 
-        public RenderTexture TargetTexture { get; set; } = null;
+        public RenderTexture targetTexture { get; set; } = null;
 
         public Camera() : base()
         {
@@ -94,13 +94,13 @@ namespace Saffiano
 
         internal Vector2 GetViewportSize()
         {
-            if (this.TargetTexture == null)
+            if (this.targetTexture == null)
             {
                 return Window.GetSize();
             }
             else
             {
-                return new Vector2(this.TargetTexture.width, this.TargetTexture.height);
+                return new Vector2(this.targetTexture.width, this.targetTexture.height);
             }
         }
     }

@@ -1,7 +1,8 @@
-﻿using Saffiano.UI;
+﻿using Saffiano.Gallery.Assets.Classes;
+using Saffiano.UI;
 using static Saffiano.Resources.Default.Material;
 
-namespace Saffiano.Sample
+namespace Saffiano.Gallery.Assets.Objects
 {
     public class ShadowMappingMaterial : ScriptableMaterial
     {
@@ -38,8 +39,8 @@ namespace Saffiano.Sample
             f_color = (Color)(new Vector4(
                 (float)((int)(floor / 256.0f)) / 256.0f,
                 (float)((int)(floor % 256.0f)) / 256.0f,
-                (float)((int)(fract / 32.0f )) / 32.0f,
-                (float)((int)(fract % 32.0f )) / 32.0f
+                (float)((int)(fract / 32.0f)) / 32.0f,
+                (float)((int)(fract % 32.0f)) / 32.0f
             ));
         }
     }
@@ -77,33 +78,39 @@ namespace Saffiano.Sample
             int step = 2;
             float count = (half / step * 2 + 1) * (half / step * 2 + 1);
             for (int x = -half; x <= half; x += step) for (int y = -half; y <= half; y += step)
-            {
-                var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
-                var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                if (depth + epsilon > distance) { shadow += 1.0f / count; }
-            }
+                {
+                    var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
+                    var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
+                    if (depth + epsilon > distance) { shadow += 1.0f / count; }
+                }
             f_color = (Color)((Vector4)f_color * shadow + new Vector4(0, 0, 0, 1));
         }
     }
-
-    class ShadowMapping : ScriptablePrefab
+    
+    public class ShadowMapping : SingletonGameObject<ShadowMapping>
     {
-        public override void Construct(GameObject gameObject)
+        public Camera camera { get; protected set; }
+
+        public RenderTexture targetTexture => camera.targetTexture;
+
+        public ShadowMapping()
         {
-            gameObject.AddComponent<Transform>();
-            gameObject.AddComponent<Camera>().fieldOfView = 90.0f;
-            gameObject.transform.localPosition = new Vector3(0, 1.2f, -1.2f);
-            gameObject.transform.localRotation = Quaternion.Euler(45, 0, 0);
+            this.AddComponent<Transform>();
+            this.camera = this.AddComponent<Camera>();
+            this.camera.fieldOfView = 90.0f;
+            this.transform.localPosition = new Vector3(0, 1.2f, -1.2f);
+            this.transform.localRotation = Quaternion.Euler(45, 0, 0);
 
             RenderTexture rt = new RenderTexture(512, 512);
-            gameObject.GetComponent<Camera>().TargetTexture = rt;
-            gameObject.GetComponent<Camera>().cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
-            gameObject.GetComponent<Camera>().SetReplacementShader(new ShadowMappingMaterial().shader, "");
+            this.GetComponent<Camera>().targetTexture = rt;
+            this.GetComponent<Camera>().cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
+            this.GetComponent<Camera>().SetReplacementShader(new ShadowMappingMaterial().shader, "");
 
-            GameObject canvas = new GameObject("Camera");
+#if false // DEBUG
+            GameObject canvas = new GameObject("Canvas");
             canvas.AddComponent<RectTransform>();
             canvas.AddComponent<Canvas>();
-            canvas.transform.parent = gameObject.transform;
+            canvas.transform.parent = this.transform;
 
             GameObject target = new GameObject("Target");
             var rectTransform = target.AddComponent<RectTransform>();
@@ -115,6 +122,7 @@ namespace Saffiano.Sample
             target.transform.parent = canvas.transform;
             target.AddComponent<CanvasRenderer>();
             target.AddComponent<Image>().sprite = Sprite.Create(rt as Texture);
+#endif
         }
     }
 }

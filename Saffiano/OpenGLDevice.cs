@@ -323,7 +323,7 @@ namespace Saffiano
         {
             currentCamera = camera;
             MakeCurrent();
-            var renderTexture = camera.TargetTexture;
+            var renderTexture = camera.targetTexture;
             if (renderTexture is null)
             {
                 Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);

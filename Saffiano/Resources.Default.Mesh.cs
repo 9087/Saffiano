@@ -24,7 +24,7 @@ namespace Saffiano
         {
             public Sphere() : base()
             {
-                uint longitudeSize = 128;
+                uint longitudeSize = 32;
                 uint latitudeSize = longitudeSize >> 2;
                 uint equatorialSize = longitudeSize;
                 Vector3[] vertices = new Vector3[(latitudeSize * longitudeSize + 1) * 2 - equatorialSize];
