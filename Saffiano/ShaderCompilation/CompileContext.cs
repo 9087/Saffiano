@@ -9,6 +9,22 @@ using System.Reflection;
 
 namespace Saffiano.ShaderCompilation
 {
+    class LocalVariableOpCodeData
+    {
+        public OpCode setOpCode { get; private set; }
+
+        public OpCode[] getOpCodes { get; private set; }
+
+        public uint? index { get; private set; }
+
+        public LocalVariableOpCodeData(OpCode setOpCode, OpCode[] getOpCodes, uint? index)
+        {
+            this.setOpCode = setOpCode;
+            this.getOpCodes = getOpCodes;
+            this.index = index;
+        }
+    }
+
     internal class CompileContext
     {
         private TextWriter writer = new StringWriter();
@@ -154,9 +170,129 @@ namespace Saffiano.ShaderCompilation
             }
         }
 
+        static Dictionary<OpCode, LocalVariableOpCodeData> LocalVariableOpCodeDatas = new Dictionary<OpCode, LocalVariableOpCodeData>
+        {
+            {OpCodes.Stloc_0, new LocalVariableOpCodeData(OpCodes.Stloc_0, new OpCode[]{ OpCodes.Ldloc_0, OpCodes.Ldloca, OpCodes.Ldloca_S }, 0)},
+            {OpCodes.Stloc_1, new LocalVariableOpCodeData(OpCodes.Stloc_1, new OpCode[]{ OpCodes.Ldloc_1, OpCodes.Ldloca, OpCodes.Ldloca_S }, 1)},
+            {OpCodes.Stloc_2, new LocalVariableOpCodeData(OpCodes.Stloc_2, new OpCode[]{ OpCodes.Ldloc_2, OpCodes.Ldloca, OpCodes.Ldloca_S }, 2)},
+            {OpCodes.Stloc_3, new LocalVariableOpCodeData(OpCodes.Stloc_3, new OpCode[]{ OpCodes.Ldloc_3, OpCodes.Ldloca, OpCodes.Ldloca_S }, 3)},
+            {OpCodes.Stloc_S, new LocalVariableOpCodeData(OpCodes.Stloc_S, new OpCode[]{ OpCodes.Ldloc_S, OpCodes.Ldloca, OpCodes.Ldloca_S }, null)},
+        };
+
+        static OpCode[] LocalVariableSetOpCodes = new OpCode[]
+        {
+            OpCodes.Stloc_0, OpCodes.Stloc_1, OpCodes.Stloc_2, OpCodes.Stloc_3, OpCodes.Stloc_S,
+        };
+
+        static OpCode[] LocalVariableOpCodes = new OpCode[]
+        {
+            OpCodes.Stloc_0, OpCodes.Ldloc_0,
+            OpCodes.Stloc_1, OpCodes.Ldloc_1,
+            OpCodes.Stloc_2, OpCodes.Ldloc_2,
+            OpCodes.Stloc_3, OpCodes.Ldloc_3,
+            OpCodes.Stloc_S, OpCodes.Ldloc_S,
+            OpCodes.Ldloca, OpCodes.Ldloca_S
+        };
+
+        private HashSet<uint> unnecessaryLocalVariableIDs = new HashSet<uint>();
+
+        public bool IsUnnecessaryLocalVariableID(uint id)
+        {
+            return unnecessaryLocalVariableIDs.Contains(id);
+        }
+
+        public uint? GetLocalVariableInstructionIndex(Instruction instruction)
+        {
+            if (!LocalVariableOpCodes.Contains(instruction.OpCode))
+            {
+                return null;
+            }
+            else if (instruction.OpCode == OpCodes.Stloc_0 ||
+                    instruction.OpCode == OpCodes.Ldloc_0)
+            {
+                return 0;
+            }
+            else if (instruction.OpCode == OpCodes.Stloc_1 ||
+                instruction.OpCode == OpCodes.Ldloc_1)
+            {
+                return 1;
+            }
+            else if (instruction.OpCode == OpCodes.Stloc_2 ||
+                instruction.OpCode == OpCodes.Ldloc_2)
+            {
+                return 2;
+            }
+            else if (instruction.OpCode == OpCodes.Stloc_3 ||
+                instruction.OpCode == OpCodes.Ldloc_3)
+            {
+                return 3;
+            }
+            else if (instruction.OpCode == OpCodes.Stloc_S ||
+                instruction.OpCode == OpCodes.Ldloc_S ||
+                instruction.OpCode == OpCodes.Ldloca ||
+                instruction.OpCode == OpCodes.Ldloca_S)
+            {
+                return (uint)((instruction.Operand as VariableDefinition).Index);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private HashSet<uint> ScanUnnecessaryLocalVariableIDs()
+        {
+            HashSet<uint> unnecessaryLocalVariableIDs = new HashSet<uint>();
+            HashSet<uint> failedLocalVariableIDs = new HashSet<uint>();
+            for (var instruction = this.first; instruction != this.last.Next; instruction = instruction.Next)
+            {
+                uint? index_ = GetLocalVariableInstructionIndex(instruction);
+                if (index_ == null)
+                {
+                    continue;
+                }
+                uint index = index_.Value;
+                if (failedLocalVariableIDs.Contains(index) ||
+                    instruction.Next == null ||
+                    !LocalVariableSetOpCodes.Contains(instruction.OpCode) ||
+                    unnecessaryLocalVariableIDs.Contains(index))
+                {
+                    if (unnecessaryLocalVariableIDs.Contains(index))
+                    {
+                        unnecessaryLocalVariableIDs.Remove(index);
+                    }
+                    failedLocalVariableIDs.Add(index);
+                    continue;
+                }
+                var next = instruction.Next;
+                bool found = false;
+                foreach (var data in LocalVariableOpCodeDatas.Values)
+                {
+                    if (data.setOpCode == instruction.OpCode && data.getOpCodes.Contains(next.OpCode))
+                    {
+                        unnecessaryLocalVariableIDs.Add(index);
+                        instruction = instruction.Next;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found)
+                {
+                    continue;
+                }
+                if (unnecessaryLocalVariableIDs.Contains(index))
+                {
+                    unnecessaryLocalVariableIDs.Remove(index);
+                }
+                failedLocalVariableIDs.Add(index);
+            }
+            return unnecessaryLocalVariableIDs;
+        }
+
         public string Generate()
         {
             EvaluationStack unhandled = null;
+            unnecessaryLocalVariableIDs = ScanUnnecessaryLocalVariableIDs();
             return GenerateInternal(this.first, this.last, this.writer, ref unhandled);
         }
 

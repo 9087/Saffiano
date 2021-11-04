@@ -40,6 +40,7 @@ namespace Saffiano.ShaderCompilation
             statementStructure = null;
             return StatementStructureType.Unknown;
         }
+
         public virtual string Generate(CompileContext outer)
         {
             throw new NotImplementedException();
@@ -48,7 +49,25 @@ namespace Saffiano.ShaderCompilation
 
     internal class LoopStatementStructure : StatementStructure
     {
-        static HashSet<OpCode> Brtrue_OpCodes = new HashSet<OpCode> { OpCodes.Brtrue, OpCodes.Brtrue_S };
+        // Branch instructions (ECMA-335, VI.C.4.7)
+        // -------------------------------------------------------------
+        //                     | beq    | beq.s    | bge    | bge.s    |
+        // bge.un  | bge.un.s  | bgt    | bgt.s    | bgt.un | bgt.un.s |
+        // ble     | ble.s     | ble.un | ble.un.s | blt    | blt.s    |
+        // blt.un  | blt.un.s  | bne.un | bne.un.s | br     | br.s     |
+        // brfalse | brfalse.s | brtrue | brtrue.s | leave  | leave.s
+
+        static HashSet<OpCode> ConditionalBranch_OpCodes = new HashSet<OpCode>
+        {
+            OpCodes.Brtrue, OpCodes.Brtrue_S,
+            OpCodes.Brfalse, OpCodes.Brfalse_S,
+            OpCodes.Beq, OpCodes.Beq_S,
+            OpCodes.Bge, OpCodes.Bge_S, OpCodes.Bge_Un, OpCodes.Bge_Un_S,
+            OpCodes.Bgt, OpCodes.Bgt_S, OpCodes.Bgt_Un, OpCodes.Bgt_Un_S,
+            OpCodes.Ble, OpCodes.Ble_S, OpCodes.Ble_Un, OpCodes.Ble_Un_S,
+            OpCodes.Blt, OpCodes.Blt_S, OpCodes.Blt_Un, OpCodes.Blt_Un_S,
+            OpCodes.Bne_Un, OpCodes.Bne_Un_S,
+        };
 
         // for(init, condition, step) { body }
 
@@ -84,7 +103,7 @@ namespace Saffiano.ShaderCompilation
             Instruction last = null;
             {
                 var tmp = target;
-                while (tmp != null && !Brtrue_OpCodes.Contains(tmp.OpCode))
+                while (tmp != null && !ConditionalBranch_OpCodes.Contains(tmp.OpCode))
                 {
                     tmp = tmp.Next;
                 }
@@ -103,7 +122,7 @@ namespace Saffiano.ShaderCompilation
 
             CodeBlock all = new CodeBlock(instruction, last);
             CodeBlock init = null;
-            CodeBlock condition = new CodeBlock(target, last.Previous.Previous.Previous);
+            CodeBlock condition = new CodeBlock(target, last);
             CodeBlock step = null;
             CodeBlock body = new CodeBlock(instruction.Next, target.Previous);
             statementStructure = new LoopStatementStructure(all, init, condition, step, body);
@@ -112,14 +131,30 @@ namespace Saffiano.ShaderCompilation
     
         public override string Generate(CompileContext outer)
         {
+            // Condition
             EvaluationStack unhandled = null;
-            string nothing = outer.GenerateWithoutWriting(this.condition.first, this.condition.last, ref unhandled);
+            string nothing = outer.GenerateWithoutWriting(this.condition.first, this.condition.last.Previous, ref unhandled);
             Debug.Assert(unhandled != null && unhandled.Count == 1 && string.IsNullOrEmpty(nothing));
-            string condition = unhandled.Pop().ToString();
+            string condition;
+            var last = this.condition.last;
+            if (last.OpCode == OpCodes.Brtrue)
+            {
+                condition = CompileContext.Format("int({0}) != 0", unhandled.Pop());
+            }
+            else if (last.OpCode == OpCodes.Ble)
+            {
+                var b = unhandled.Pop();
+                var a = unhandled.Pop();
+                condition = CompileContext.Format("int({0} <= {1}) != 0", a, b);
+            }
+            else
+            {
+                throw new NotImplementedException(string.Format("{0} operation code is not implemented!", last.OpCode));
+            }
 
             string body = outer.GenerateWithoutWriting(this.body.first, this.body.last, ref unhandled);
             Debug.Assert(unhandled == null);
-            return string.Format("while({0} != 0) {{\n{1}\n}}\n", condition, body);
+            return string.Format("while({0}) {{\n{1}\n}}\n", condition, body);
         }
     }
 }

@@ -514,8 +514,7 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
-        [Instruction(Mono.Cecil.Cil.Code.Brfalse)]
-        public static bool Brfalse(Instruction instruction, CompileContext compileContext)
+        public static bool Brfalse_X(Instruction instruction, CompileContext compileContext)
         {
             // brfalse target - Branch to target if value is zero (false)
             compileContext.If(compileContext.Pop());
@@ -523,11 +522,29 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        [Instruction(Mono.Cecil.Cil.Code.Brfalse)]
+        public static bool Brfalse(Instruction instruction, CompileContext compileContext)
+        {
+            // brfalse target - Branch to target if value is zero (false)
+            return Brfalse_X(instruction, compileContext);
+        }
+
         [Instruction(Mono.Cecil.Cil.Code.Brfalse_S)]
         public static bool Brfalse_S(Instruction instruction, CompileContext compileContext)
         {
             // brfalse.s - Branch to target if value is zero (false), short form.
-            compileContext.If(compileContext.Pop());
+            return Brfalse_X(instruction, compileContext);
+        }
+
+        public static bool Br_X(Instruction instruction, CompileContext compileContext)
+        {
+            var blockType = compileContext.GetPeekCodeBlockType();
+            if (blockType != CodeBlockType.If)
+            {
+                throw new NotImplementedException();
+            }
+            compileContext.End();
+            compileContext.Else();
             compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
             return true;
         }
@@ -535,30 +552,22 @@ namespace Saffiano.ShaderCompilation
         [Instruction(Mono.Cecil.Cil.Code.Br)]
         public static bool Br(Instruction instruction, CompileContext compileContext)
         {
-            throw new NotImplementedException();
+            // br target - Branch to target
+            return Br_X(instruction, compileContext);
         }
 
         [Instruction(Mono.Cecil.Cil.Code.Br_S)]
         public static bool Br_S(Instruction instruction, CompileContext compileContext)
         {
             // br.s target - Branch to target, short form
-            var blockType = compileContext.GetPeekCodeBlockType();
-            if (blockType != CodeBlockType.If)
-            {
-                throw new NotImplementedException();
-            }
-            var block = compileContext.GetPeekCodeBlock();
-            compileContext.End();
-            compileContext.Else();
-            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
-            return true;
+            return Br_X(instruction, compileContext);
         }
 
         public static bool BXX_Un_S(Instruction instruction, CompileContext compileContext, string sign)
         {
             var value2 = compileContext.Pop();
             var value1 = compileContext.Pop();
-            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("({0} {2} {1})", value1, value2, sign));
+            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("int({0} {2} {1})", value1, value2, sign));
             compileContext.If(compileContext.Pop());
             compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
             return true;
@@ -639,6 +648,11 @@ namespace Saffiano.ShaderCompilation
                 Debug.LogFormat("Statement structure found: {0}", statementStructure);
                 compileContext.WriteLine(s);
                 return statementStructure.all.last.Next;
+            }
+            uint? localVariableIndex = compileContext.GetLocalVariableInstructionIndex(instruction);
+            if (localVariableIndex != null && compileContext.IsUnnecessaryLocalVariableID(localVariableIndex.Value))
+            {
+                return instruction.Next.Next;
             }
             var code = instruction.OpCode.Code;
             if (!methods.TryGetValue(code, out MethodInfo method))
