@@ -19,6 +19,12 @@ namespace Saffiano.Widgets
             set => inputField.header = value;
         }
 
+        public override string text
+        {
+            get => inputField.text;
+            set => inputField.text = value;
+        }
+
         protected override void UpdateCascadeColor()
         {
             base.UpdateCascadeColor();
