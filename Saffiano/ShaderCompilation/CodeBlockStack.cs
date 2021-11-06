@@ -8,7 +8,6 @@ namespace Saffiano.ShaderCompilation
     internal enum CodeBlockType
     {
         Unknown = 0,
-        If = 1,
     }
 
     internal class CodeBlock
@@ -24,6 +23,11 @@ namespace Saffiano.ShaderCompilation
             this.first = first;
             this.last = last;
             this.type = type;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("[{0:x4},{1:x4}]", this.first.Offset, this.last.Offset);
         }
     }
 

@@ -504,81 +504,6 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
-        public static bool Brfalse_X(Instruction instruction, CompileContext compileContext)
-        {
-            // brfalse target - Branch to target if value is zero (false)
-            compileContext.If(compileContext.Pop());
-            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
-            return true;
-        }
-
-        [Instruction(Mono.Cecil.Cil.Code.Brfalse)]
-        public static bool Brfalse(Instruction instruction, CompileContext compileContext)
-        {
-            // brfalse target - Branch to target if value is zero (false)
-            return Brfalse_X(instruction, compileContext);
-        }
-
-        [Instruction(Mono.Cecil.Cil.Code.Brfalse_S)]
-        public static bool Brfalse_S(Instruction instruction, CompileContext compileContext)
-        {
-            // brfalse.s - Branch to target if value is zero (false), short form.
-            return Brfalse_X(instruction, compileContext);
-        }
-
-        public static bool Br_X(Instruction instruction, CompileContext compileContext)
-        {
-            var blockType = compileContext.GetPeekCodeBlockType();
-            if (blockType != CodeBlockType.If)
-            {
-                throw new NotImplementedException();
-            }
-            compileContext.End();
-            compileContext.Else();
-            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
-            return true;
-        }
-
-        [Instruction(Mono.Cecil.Cil.Code.Br)]
-        public static bool Br(Instruction instruction, CompileContext compileContext)
-        {
-            // br target - Branch to target
-            return Br_X(instruction, compileContext);
-        }
-
-        [Instruction(Mono.Cecil.Cil.Code.Br_S)]
-        public static bool Br_S(Instruction instruction, CompileContext compileContext)
-        {
-            // br.s target - Branch to target, short form
-            return Br_X(instruction, compileContext);
-        }
-
-        public static bool BXX_Un_S(Instruction instruction, CompileContext compileContext, string sign)
-        {
-            var value2 = compileContext.Pop();
-            var value1 = compileContext.Pop();
-            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("int({0} {2} {1})", value1, value2, sign));
-            compileContext.If(compileContext.Pop());
-            compileContext.Begin(CodeBlockType.If, instruction, (instruction.Operand as Instruction).Previous);
-            return true;
-        }
-
-        [Instruction(Mono.Cecil.Cil.Code.Bge_Un_S)]
-        public static bool Bge_Un_S(Instruction instruction, CompileContext compileContext)
-        {
-            // bge.un.s target - Branch to target if greater than or equal to(unsigned or unordered), short form.
-            BXX_Un_S(instruction, compileContext, "<");
-            return true;
-        }
-
-        [Instruction(Mono.Cecil.Cil.Code.Ble_Un_S)]
-        public static bool Ble_Un_S(Instruction instruction, CompileContext compileContext)
-        {
-            // ble.un.s target - Branch to target if less than or equal to (unsigned or unordered), short form.
-            BXX_Un_S(instruction, compileContext, ">");
-            return true;
-        }
-
         [Instruction(Mono.Cecil.Cil.Code.Cgt)]
         public static bool Cgt(Instruction instruction, CompileContext compileContext)
         {
@@ -590,7 +515,7 @@ namespace Saffiano.ShaderCompilation
         [Instruction(Mono.Cecil.Cil.Code.Cgt_Un)]
         public static bool Cgt_Un(Instruction instruction, CompileContext compileContext)
         {
-            // clt –  Push 1 (of type int32) if value1 < value2, else push 0.
+            // cgt.un –  Push 1 (of type int32) if value1 < value2, else push 0.
             Operator(instruction, compileContext, ">", typeof(int).GetTypeDefinition());
             return true;
         }
@@ -599,16 +524,22 @@ namespace Saffiano.ShaderCompilation
         public static bool Clt(Instruction instruction, CompileContext compileContext)
         {
             // clt –  Push 1 (of type int32) if value1 < value2, else push 0.
-            var value2 = compileContext.Pop();
-            var value1 = compileContext.Pop();
-            compileContext.Push(typeof(bool).GetTypeDefinition(), CompileContext.Format("({0} < {1})", value1, value2));
+            Operator(instruction, compileContext, "<", typeof(int).GetTypeDefinition());
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Clt_Un)]
+        public static bool Clt_Un(Instruction instruction, CompileContext compileContext)
+        {
+            // clt.un –  Push 1 (of type int32) if value1 < value2, else push 0.
+            Operator(instruction, compileContext, "<", typeof(int).GetTypeDefinition());
             return true;
         }
 
         [Instruction(Mono.Cecil.Cil.Code.Ceq)]
         public static bool Ceq(Instruction instruction, CompileContext compileContext)
         {
-            // cgt - Push 1 (of type int32) if value1 > value2, else push 0.
+            // ceq - Push 1 (of type int32) if value1 > value2, else push 0.
             Operator(instruction, compileContext, "==", typeof(int).GetTypeDefinition());
             return true;
         }

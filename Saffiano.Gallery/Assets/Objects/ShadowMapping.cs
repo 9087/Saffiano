@@ -84,7 +84,10 @@ namespace Saffiano.Gallery.Assets.Objects
                 {
                     var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
                     var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                    if (depth + epsilon <= distance) { shadow += 0.5f / count; }
+                    if (depth + epsilon <= distance)
+                    {
+                        shadow += 1.0f / count;
+                    }
                 }
             }
             f_color = (Color)((Vector4)f_color * (1 - shadow) + shadow * new Vector4(0, 0, 0, 1));

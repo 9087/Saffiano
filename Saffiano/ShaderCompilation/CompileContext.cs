@@ -30,12 +30,18 @@ namespace Saffiano.ShaderCompilation
         private TextWriter writer = new StringWriter();
 
         private EvaluationStack evaluationStack = new EvaluationStack();
+
         private CodeBlockStack codeBlockStack = new CodeBlockStack();
         private VariableAllocator allocator = new VariableAllocator("local");
 
         public HashSet<Uniform> uniforms { get; private set; } = new HashSet<Uniform>();
 
         public Dictionary<string, MethodDefinition> methods { get; private set; } = new Dictionary<string, MethodDefinition>();
+
+        public EvaluationStack GetEvaluationStack()
+        {
+            return evaluationStack;
+        }
 
         public string GetUniformSourceCode()
         {
@@ -292,6 +298,12 @@ namespace Saffiano.ShaderCompilation
         public string Generate()
         {
             EvaluationStack unhandled = null;
+#if false  // DEBUG
+            for (var instruction = first; instruction != last.Next; instruction = instruction.Next)
+            {
+                Console.WriteLine(instruction);
+            }
+#endif
             unnecessaryLocalVariableIDs = ScanUnnecessaryLocalVariableIDs();
             return GenerateInternal(this.first, this.last, this.writer, ref unhandled);
         }
