@@ -93,22 +93,52 @@ namespace Saffiano.Gallery.Assets.Objects
     
     public class ShadowMapping : SingletonGameObject<ShadowMapping>
     {
+        private Light _light = null;
+
+        public Light light
+        {
+            get => _light;
+            set
+            {
+                if (_light == value)
+                {
+                    return;
+                }
+                Dettach();
+                Attach(value);
+            }
+        }
+
         public Camera camera { get; protected set; }
 
         public RenderTexture targetTexture => camera.targetTexture;
+
+        protected void Attach(Light light)
+        {
+            Debug.Assert(_light == null);
+            _light = light;
+            this.camera.transform.parent = light.transform;
+        }
+
+        protected void Dettach()
+        {
+            if (_light == null)
+            {
+                return;
+            }
+            this.camera.transform.parent = null;
+        }
 
         public ShadowMapping()
         {
             this.AddComponent<Transform>();
             this.camera = this.AddComponent<Camera>();
             this.camera.fieldOfView = 90.0f;
-            this.transform.localPosition = new Vector3(0, 1.2f, -1.2f);
-            this.transform.localRotation = Quaternion.Euler(45, 0, 0);
 
             RenderTexture rt = new RenderTexture(512, 512);
-            this.GetComponent<Camera>().targetTexture = rt;
-            this.GetComponent<Camera>().cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
-            this.GetComponent<Camera>().SetReplacementShader(new ShadowMappingMaterial().shader, "");
+            this.camera.targetTexture = rt;
+            this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
+            this.camera.SetReplacementShader(new ShadowMappingMaterial().shader, "");
 
 #if false // DEBUG
             GameObject canvas = new GameObject("Canvas");
