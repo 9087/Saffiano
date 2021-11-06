@@ -47,11 +47,11 @@ namespace Saffiano.Gallery
 
             // Several spheres
             var mesh = new Resources.Default.Mesh.Sphere();
-            for (var x = 0; x < 3; x++)
+            for (var x = 0; x < 2; x++)
             {
-                for (var y = 0; y < 3; y++)
+                for (var y = 0; y < 2; y++)
                 {
-                    for (var z = 0; z < 3; z++)
+                    for (var z = 0; z < 2; z++)
                     {
                         GameObject sphere = new GameObject("Sphere");
                         sphere.AddComponent<Transform>().localPosition = new Vector3(0.3f * (x + 1), 0.3f * (y + 1), -0.3f * z);
