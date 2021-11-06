@@ -69,7 +69,7 @@ namespace Saffiano.Gallery.Assets.Objects
             base.FragmentShader(v_position, v_normal, v_diffuseColor, out f_color);
 
             // shadow mapping processing
-            var targetPosition = mv * lightMVP * v_position;
+            var targetPosition = lightMVP * mv * v_position;
             targetPosition = targetPosition / targetPosition.w;
             var distance = (v_position.xyz - lightPosition).magnitude;
             var texelSize = 1.0f / shadowMapTexture.size;
@@ -83,7 +83,7 @@ namespace Saffiano.Gallery.Assets.Objects
                     var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
                     if (depth + epsilon > distance) { shadow += 1.0f / count; }
                 }
-            f_color = (Color)((Vector4)f_color * shadow + new Vector4(0, 0, 0, 1));
+            f_color = (Color)((Vector4)f_color * shadow + (1 - shadow) * new Vector4(0, 0, 0, 1));
         }
     }
     
