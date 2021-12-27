@@ -142,14 +142,13 @@ namespace Saffiano.ShaderCompilation
             this.writer = specific;
             for (var instruction = first; instruction != last.Next;)
             {
-                instruction = instruction.Step(this);
+                instruction = instruction.Step(last, this);
             }
             this.writer = writer;
             int evaluationStackCount = evaluationStack.Count;
-            Debug.Assert(evaluationStackCount >= evaluationStackPreviousCount);
-            int count = evaluationStackCount - evaluationStackPreviousCount;
-            if (count != 0)
+            if (evaluationStackCount > evaluationStackPreviousCount)
             {
+                int count = evaluationStackCount - evaluationStackPreviousCount;
                 unhandled = new EvaluationStack();
                 Stack<Value> tmp = new Stack<Value>();
                 while ((count--) != 0)
@@ -354,32 +353,6 @@ namespace Saffiano.ShaderCompilation
             return evaluationStack.Peek();
         }
 
-        public void Begin(CodeBlockType blockType, Instruction first, Instruction last)
-        {
-            codeBlockStack.Push(new CodeBlock(first, last, blockType));
-            writer.WriteLine("{");
-        }
-
-        public bool TryEnd(Instruction current)
-        {
-            if (codeBlockStack.Count == 0)
-            {
-                return false;
-            }
-            if (GetPeekCodeBlock().last == current)
-            {
-                End();
-            }
-            return true;
-        }
-
-        public bool End()
-        {
-            writer.WriteLine("}");
-            codeBlockStack.Pop();
-            return true;
-        }
-
         public CodeBlock GetPeekCodeBlock()
         {
             return codeBlockStack.Peek();
@@ -552,16 +525,6 @@ namespace Saffiano.ShaderCompilation
             }
             var s = Format(format, target.type, target.name, value);
             writer.WriteLine(s);
-        }
-
-        public void If(Value value)
-        {
-            writer.WriteLine("if({0} != 0)", value);
-        }
-
-        public void Else()
-        {
-            writer.WriteLine("else");
         }
 
         public void WriteLine(string content)

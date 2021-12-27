@@ -51,10 +51,10 @@ namespace Saffiano.ShaderCompilation
             return string.Format("{0}(type({1}))", this.GetType().Name, type);
         }
 
-        static public StatementStructureType Recognize(Instruction instruction, out StatementStructure statementStructure)
+        static public StatementStructureType Recognize(CodeBlock block, out StatementStructure statementStructure)
         {
-            if (LoopStatementStructure.Detect(instruction, out statementStructure) ||
-                ConditionStatementStructure.Detect(instruction, out statementStructure))
+            if (LoopStatementStructure.Detect(block, out statementStructure) ||
+                ConditionStatementStructure.Detect(block, out statementStructure))
             {
                 return statementStructure.type;
             }
@@ -85,17 +85,17 @@ namespace Saffiano.ShaderCompilation
             this.body = body;
         }
 
-        static public bool Detect(Instruction instruction, out StatementStructure statementStructure)
+        static public bool Detect(CodeBlock block, out StatementStructure statementStructure)
         {
             statementStructure = null;
-            var opCode = instruction.OpCode;
+            var opCode = block.first.OpCode;
             if (opCode != OpCodes.Br)
             {
                 return false;
             }
 
             // maybe loop condition
-            var target = instruction.Operand as Instruction;
+            var target = block.first.Operand as Instruction;
 
             // find next branch instruction (Brtrue, Brtrue_S), which may be a loop tag and an end
             Instruction last = null;
@@ -113,16 +113,16 @@ namespace Saffiano.ShaderCompilation
             }
 
             // loop body
-            if ((last.Operand as Instruction).Previous != instruction)
+            if ((last.Operand as Instruction).Previous != block.first)
             {
                 return false;
             }
 
-            CodeBlock all = new CodeBlock(instruction, last);
+            CodeBlock all = new CodeBlock(block.first, last);
             CodeBlock init = null;
             CodeBlock condition = new CodeBlock(target, last);
             CodeBlock step = null;
-            CodeBlock body = new CodeBlock(instruction.Next, target.Previous);
+            CodeBlock body = new CodeBlock(block.first.Next, target.Previous);
             statementStructure = new LoopStatementStructure(all, init, condition, step, body);
             return true;
         }
@@ -131,28 +131,16 @@ namespace Saffiano.ShaderCompilation
         {
             // Condition
             EvaluationStack unhandled = null;
-            string nothing = outer.GenerateWithoutWriting(this.condition.first, this.condition.last.Previous, ref unhandled);
-            Debug.Assert(unhandled != null && unhandled.Count == 1 && string.IsNullOrEmpty(nothing));
-            string condition;
-            var last = this.condition.last;
-            if (last.OpCode == OpCodes.Brtrue)
+            string nothing = outer.GenerateWithoutWriting(this.condition.first, this.condition.last, ref unhandled);
+            Debug.Assert(string.IsNullOrEmpty(nothing));
+            if (unhandled == null)
             {
-                condition = CompileContext.Format("int({0}) != 0", unhandled.Pop());
+                unhandled = outer.GetEvaluationStack();
             }
-            else if (last.OpCode == OpCodes.Ble)
-            {
-                var b = unhandled.Pop();
-                var a = unhandled.Pop();
-                condition = CompileContext.Format("int({0} <= {1}) != 0", a, b);
-            }
-            else
-            {
-                throw new NotImplementedException(string.Format("{0} operation code is not implemented!", last.OpCode));
-            }
-
+            var condition = unhandled.Pop();
             string body = outer.GenerateWithoutWriting(this.body.first, this.body.last, ref unhandled);
             Debug.Assert(unhandled == null);
-            return string.Format("while({0}) {{\n{1}\n}}\n", condition, body);
+            return CompileContext.Format("while({0} != 0) {{\n{1}\n}}\n", condition, body);
         }
     }
 
@@ -183,19 +171,27 @@ namespace Saffiano.ShaderCompilation
             this.blocks = blocks;
         }
 
-        static public bool Detect(Instruction instruction, out StatementStructure statementStructure)
+        static public bool Detect(CodeBlock block, out StatementStructure statementStructure)
         {
             List<OpCode> brs = new List<OpCode> { OpCodes.Br_S, OpCodes.Br };
+            var lastOffset = block.last.Offset;
 
             statementStructure = null;
-            var opCode = instruction.OpCode;
+            var opCode = block.first.OpCode;
             if (!ConditionalBranch_OpCodes.Contains(opCode))
             {
                 return false;
             }
             List<ConditionStatementBlock> blocks = new List<ConditionStatementBlock>();
-            var current = instruction;
+            var current = block.first;
             Instruction next = current.Operand as Instruction;
+
+            if (lastOffset < current.Offset ||
+                lastOffset < current.Next.Offset ||
+                lastOffset < next.Previous.Offset)
+            {
+                return false;
+            }
 
             blocks.Add(
                 new ConditionStatementBlock
@@ -238,7 +234,7 @@ namespace Saffiano.ShaderCompilation
                     break;
                 }
             }
-            CodeBlock all = new CodeBlock(instruction, blocks[blocks.Count - 1].body.last);
+            CodeBlock all = new CodeBlock(block.first, blocks[blocks.Count - 1].body.last);
             statementStructure = new ConditionStatementStructure(all, blocks);
             return true;
         }
@@ -253,23 +249,19 @@ namespace Saffiano.ShaderCompilation
                     EvaluationStack unhandled = null;
                     if (block.condition != null)
                     {
-                        string nothing = outer.GenerateWithoutWriting(block.condition.first, block.condition.last.Previous, ref unhandled);
+                        string nothing = outer.GenerateWithoutWriting(block.condition.first, block.condition.last, ref unhandled);
+                        Debug.Assert(string.IsNullOrEmpty(nothing));
                         if (unhandled == null)
                         {
                             unhandled = outer.GetEvaluationStack();
                         }
-                        var last = block.condition.last;
-                        if (last.OpCode != OpCodes.Brfalse_S)
-                        {
-                            throw new NotImplementedException();
-                        }
-                        writer.WriteLine(CompileContext.Format(first ? "if({0} != 0)" : "else if({0} != 0)", unhandled.Pop()));
+                        writer.WriteLine(CompileContext.Format(first ? "if({0} == 0)" : "else if({0} == 0)", unhandled.Pop()));
                     }
                     else
                     {
                         writer.WriteLine("else");
                     }
-                    writer.WriteLine(CompileContext.Format("{{{0}}}", outer.GenerateWithoutWriting(block.body.first, block.body.last.Previous, ref unhandled)));
+                    writer.WriteLine(CompileContext.Format("{{{0}}}", outer.GenerateWithoutWriting(block.body.first, block.body.last, ref unhandled)));
                     first = false;
                 }
                 return writer.ToString();

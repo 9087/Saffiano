@@ -548,7 +548,36 @@ namespace Saffiano.ShaderCompilation
         public static bool Brtrue(Instruction instruction, CompileContext compileContext)
         {
             // brtrue target - Branch to target if value is non-zero (true).
-            throw new NotImplementedException();
+            compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} == 1)", compileContext.Pop()));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Brfalse_S)]
+        public static bool Brfalse_S(Instruction instruction, CompileContext compileContext)
+        {
+            // brfalse.s target - Branch to target if value is zero (false), short form.
+            compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} == 0)", compileContext.Pop()));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Ble)]
+        public static bool Ble(Instruction instruction, CompileContext compileContext)
+        {
+            // ble target - Branch to target if less than or equal to.
+            var b = compileContext.Pop();
+            var a = compileContext.Pop();
+            compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} <= {1})", a, b));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Bgt_Un_S)]
+        public static bool Bgt_Un_S(Instruction instruction, CompileContext compileContext)
+        {
+            // bgt.un.s target - Branch to target if greater than (unsigned or unordered), short form.
+            var b = compileContext.Pop();
+            var a = compileContext.Pop();
+            compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} > {1})", a, b));
+            return true;
         }
 
         [Instruction(Mono.Cecil.Cil.Code.Conv_I4)]
@@ -579,28 +608,26 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
-        public static Instruction Step(this Instruction instruction, CompileContext compileContext)
+        public static Instruction Step(this Instruction current, Instruction last, CompileContext compileContext)
         {
-            if (StatementStructure.Recognize(instruction, out StatementStructure statementStructure) != StatementStructureType.Unknown)
+            if (StatementStructure.Recognize(new CodeBlock(current, last), out StatementStructure statementStructure) != StatementStructureType.Unknown)
             {
                 string s = statementStructure.Generate(compileContext);
-                Debug.LogFormat("Statement structure found: {0}", statementStructure);
                 compileContext.WriteLine(s);
                 return statementStructure.all.last.Next;
             }
-            uint? localVariableIndex = compileContext.GetLocalVariableInstructionIndex(instruction);
+            uint? localVariableIndex = compileContext.GetLocalVariableInstructionIndex(current);
             if (localVariableIndex != null && compileContext.IsUnnecessaryLocalVariableID(localVariableIndex.Value))
             {
-                return instruction.Next.Next;
+                return current.Next.Next;
             }
-            var code = instruction.OpCode.Code;
+            var code = current.OpCode.Code;
             if (!methods.TryGetValue(code, out MethodInfo method))
             {
                 throw new Exception(string.Format("Unsupported operate code: {0}", code));
             }
-            compileContext.TryEnd(instruction);
-            method.Invoke(null, new object[] { instruction, compileContext });
-            return instruction.Next;
+            method.Invoke(null, new object[] { current, compileContext });
+            return current.Next;
         }
     }
 }
