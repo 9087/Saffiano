@@ -6,7 +6,8 @@ namespace Saffiano
     public sealed class Camera : Behaviour
     {
         internal static List<Camera> allCameras = new List<Camera>();
-        internal Dictionary<string, GPUProgram> replacementShaders = new Dictionary<string, GPUProgram>();
+
+        internal Dictionary<string, GPUProgram> replacementShaders { get; private set; } = new Dictionary<string, GPUProgram>();
 
         public static Camera main
         {

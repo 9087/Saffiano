@@ -74,6 +74,15 @@ namespace Saffiano
     {
         private static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
 
+        public override GPUProgram shader
+        {
+            get
+            {
+                var shaderSourceData = GetShaderSourceData(this.GetType());
+                return new GPUProgram(shaderSourceData.codes[ShaderType.VertexShader], shaderSourceData.codes[ShaderType.FragmentShader], this.cullMode);
+            }
+        }
+
         public static ShaderSourceData GetShaderSourceData(Type type)
         {
             if (ShaderSourceCache.TryGetValue(type, out var data))
@@ -102,7 +111,6 @@ namespace Saffiano
             var type = this.GetType();
             Build(type);
             var shaderSourceData = GetShaderSourceData(type);
-            shader = new GPUProgram(shaderSourceData.codes[ShaderType.VertexShader], shaderSourceData.codes[ShaderType.FragmentShader]);
             uniforms = shaderSourceData.uniforms;
         }
 

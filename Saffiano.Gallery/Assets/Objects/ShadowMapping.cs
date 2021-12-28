@@ -6,6 +6,8 @@ namespace Saffiano.Gallery.Assets.Objects
 {
     public class ShadowMappingMaterial : ScriptableMaterial
     {
+        public override CullMode cullMode { get; set; } = CullMode.Front;
+
         [Uniform]
         public Vector3 lightPosition { get; set; }
 
@@ -57,7 +59,7 @@ namespace Saffiano.Gallery.Assets.Objects
         public Vector3 lightPosition { get; set; }
 
         [Uniform]
-        public float epsilon { get; set; } = 0.05f;
+        public float epsilon { get; set; } = 0.0001f;
 
         public override void FragmentShader(
             Vector4 v_position,
@@ -86,7 +88,7 @@ namespace Saffiano.Gallery.Assets.Objects
                     var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
                     if (depth + epsilon <= distance)
                     {
-                        shadow += 1.0f / count;
+                        shadow += 0.5f / count;
                     }
                 }
             }

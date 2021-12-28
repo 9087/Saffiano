@@ -129,5 +129,11 @@ namespace Saffiano
         {
             return Max(min, Min(max, x));
         }
+
+        [Shader(OpenGL: "exp({0})")]
+        public static float Exp(float x)
+        {
+            return MathF.Exp(x);
+        }
     }
 }

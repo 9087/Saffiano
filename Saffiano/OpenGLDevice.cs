@@ -446,7 +446,6 @@ namespace Saffiano
             {
                 Gl.Disable(EnableCap.Blend);
             }
-            Gl.Enable(EnableCap.CullFace);
 
             // apply shader
             var material = command.material;
@@ -455,6 +454,28 @@ namespace Saffiano
             {
                 shader = replacementShader;
             }
+
+            if (shader.cullMode == CullMode.Off)
+            {
+                Gl.Disable(EnableCap.CullFace);
+            }
+            else
+            {
+                Gl.Enable(EnableCap.CullFace);
+                switch (shader.cullMode)
+                {
+                    case CullMode.Front:
+                        Gl.CullFace(CullFaceMode.Front);
+                        break;
+                    case CullMode.Back:
+                        Gl.CullFace(CullFaceMode.Back);
+                        break;
+                    case CullMode.FrontAndBack:
+                        Gl.CullFace(CullFaceMode.FrontAndBack);
+                        break;
+                }
+            }
+
             uint program = shaderCache.TryRegister(shader).program;
             Gl.UseProgram(program);
             int textureIndex = 0;

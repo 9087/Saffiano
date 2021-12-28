@@ -8,11 +8,21 @@ namespace Saffiano
         FragmentShader = 35632,
     }
 
+    public enum CullMode : uint
+    {
+        Off = 0,
+        Front = 1,
+        Back = 2,
+        FrontAndBack = 3,
+    }
+
     public abstract class Material
     {
-        public GPUProgram shader { get; internal set; }
+        public virtual GPUProgram shader { get; }
 
         internal HashSet<Uniform> uniforms { get; set; }
+
+        public virtual CullMode cullMode { get; set; } = CullMode.Back;
 
         protected Material()
         {
