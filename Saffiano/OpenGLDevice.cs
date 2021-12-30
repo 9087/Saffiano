@@ -185,7 +185,7 @@ namespace Saffiano
             Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, (device as OpenGLDevice).textureCache.TryRegister(key.renderTexture), 0);
             uint depthTexture = Gl.GenTexture();
             Gl.BindTexture(TextureTarget.Texture2d, depthTexture);
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.DepthComponent32, (int)key.renderTexture.width, (int)key.renderTexture.height, 0, PixelFormat.DepthComponent, PixelType.Float, 0);
+            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.DepthComponent32, (int)key.renderTexture.width, (int)key.renderTexture.height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
             Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthTexture, 0);
             return new FrameBufferData() { fbo = fbo, depthTexture = depthTexture };
         }
@@ -232,6 +232,8 @@ namespace Saffiano
 
         public OpenGLDevice(Win32Window window)
         {
+            DeviceContext.DefaultAPI = Khronos.KhronosVersion.ApiGl;
+
             InitializeCache();
 
             this.deviceContext = DeviceContext.Create(IntPtr.Zero, window.handle);
