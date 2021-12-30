@@ -9,9 +9,18 @@ namespace Saffiano
     {
         public class Plane : Saffiano.Mesh
         {
-            public Plane() : base()
+            public Plane() : this(Vector2.one) { }
+
+            public Plane(Vector2 size) : base()
             {
-                vertices = new Vector3[] { new Vector3(-1, 0, 1), new Vector3(-1, 0, -1), new Vector3(1, 0, -1), new Vector3(1, 0, 1), };
+                var half = size * 0.5f;
+                vertices = new Vector3[]
+                {
+                    new Vector3(-half.x, 0, +half.y),
+                    new Vector3(-half.x, 0, -half.y),
+                    new Vector3(+half.x, 0, -half.y),
+                    new Vector3(+half.x, 0, +half.y),
+                };
                 indices = new uint[] { 0, 1, 2, 2, 3, 0, };
                 uv = new Vector2[] { new Vector2(0, 1), new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), };
                 colors = new Color[] { new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), new Color(1, 1, 1, 1), };

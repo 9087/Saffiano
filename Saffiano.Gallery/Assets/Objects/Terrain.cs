@@ -27,7 +27,7 @@ namespace Saffiano.Gallery.Assets.Objects
             // Plane
             GameObject plane = new GameObject("Plane");
             plane.AddComponent<Transform>();
-            plane.AddComponent<MeshFilter>().mesh = new Resources.Default.Mesh.Plane();
+            plane.AddComponent<MeshFilter>().mesh = new Resources.Default.Mesh.Plane(new Vector2(16, 16));
             renderers.Add(plane.AddComponent<MeshRenderer>());
             plane.transform.parent = this.transform;
 
