@@ -5,6 +5,12 @@ using System.Linq;
 
 namespace Saffiano
 {
+    public enum TextureWrapMode : uint
+    {
+        Repeat,
+        Clamp,
+    }
+
     [Shader(OpenGL: "sampler2D")]
     public class Texture : Asset
     {
@@ -111,6 +117,8 @@ namespace Saffiano
                 }
             }
         }
+
+        public TextureWrapMode wrapMode { get; set; } = TextureWrapMode.Repeat;
 
         internal Texture(Atlas.ReferenceDescriptor referenceDescriptor)
         {

@@ -141,6 +141,7 @@ namespace Saffiano.Gallery.Assets.Objects
             this.camera.fieldOfView = 90.0f;
 
             RenderTexture rt = new RenderTexture(2048, 2048);
+            rt.wrapMode = TextureWrapMode.Clamp;
             this.camera.targetTexture = rt;
             this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
             this.camera.SetReplacementShader(new ShadowMappingMaterial().shader, "");

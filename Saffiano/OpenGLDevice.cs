@@ -84,6 +84,19 @@ namespace Saffiano
             Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, (int)texture.width, (int)texture.height, 0, PixelFormat.Rgba, PixelType.Float, texture.GetPixels());
             Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, new int[] { Gl.NEAREST });
             Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, new int[] { Gl.NEAREST });
+            switch (texture.wrapMode)
+            {
+                case TextureWrapMode.Clamp:
+                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, new int[] { Gl.CLAMP });
+                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, new int[] { Gl.CLAMP });
+                    break;
+                case TextureWrapMode.Repeat:
+                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, new int[] { Gl.REPEAT });
+                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, new int[] { Gl.REPEAT });
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
             Gl.GenerateMipmap(TextureTarget.Texture2d);
             texture.OnRegister();
             return textureID;
