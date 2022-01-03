@@ -76,6 +76,12 @@ namespace Saffiano.Gallery.Assets.Objects
             // shadow mapping processing
             var targetPosition = lightMVP * mv * v_position;
             targetPosition = targetPosition / targetPosition.w;
+
+            if (targetPosition.x > +1) return;
+            if (targetPosition.x < -1) return;
+            if (targetPosition.y > +1) return;
+            if (targetPosition.y < -1) return;
+
             var distance = ((mv * v_position).xyz - lightPosition).magnitude;
             var texelSize = 1.0f / shadowMapTexture.size;
             float shadow = 0;

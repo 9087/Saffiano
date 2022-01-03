@@ -89,7 +89,7 @@ namespace Saffiano.ShaderCompilation
         {
             statementStructure = null;
             var opCode = block.first.OpCode;
-            if (opCode != OpCodes.Br)
+            if (opCode != OpCodes.Br && opCode != OpCodes.Br_S)
             {
                 return false;
             }
@@ -171,69 +171,80 @@ namespace Saffiano.ShaderCompilation
             this.blocks = blocks;
         }
 
-        static public bool Detect(CodeBlock block, out StatementStructure statementStructure)
+        static private ConditionStatementBlock Detect(Instruction first, Instruction last)
         {
-            List<OpCode> brs = new List<OpCode> { OpCodes.Br_S, OpCodes.Br };
-            var lastOffset = block.last.Offset;
+            Instruction current = null;
 
-            statementStructure = null;
-            var opCode = block.first.OpCode;
-            if (!ConditionalBranch_OpCodes.Contains(opCode))
+            for (var instruction = first; instruction != last.Next && instruction != null; instruction = instruction.Next)
             {
-                return false;
+                if (ConditionalBranch_OpCodes.Contains(instruction.OpCode))
+                {
+                    current = instruction;
+                    break;
+                }
             }
-            List<ConditionStatementBlock> blocks = new List<ConditionStatementBlock>();
-            var current = block.first;
+            if (current == null)
+            {
+                return null;
+            }
             Instruction next = current.Operand as Instruction;
-
+            var lastOffset = last.Offset;
             if (lastOffset < current.Offset ||
                 lastOffset < current.Next.Offset ||
                 lastOffset < next.Previous.Offset)
             {
+                return null;
+            }
+            return new ConditionStatementBlock(
+                new CodeBlock(first, current),
+                new CodeBlock(current.Next, next.Previous)
+            );
+        }
+
+        static public bool Detect(CodeBlock block, out StatementStructure statementStructure)
+        {
+            List<OpCode> brs = new List<OpCode> { OpCodes.Br_S, OpCodes.Br };
+            statementStructure = null;
+
+            if (!ConditionalBranch_OpCodes.Contains(block.first.OpCode))
+            {
                 return false;
             }
 
-            blocks.Add(
-                new ConditionStatementBlock
-                (
-                    new CodeBlock(current, current),
-                    new CodeBlock(current.Next, next.Previous)
-                )
-            );
-
-            // there is an else statement
-            bool found = true;
-            while (brs.Contains((next = (current.Operand as Instruction)).Previous.OpCode))
+            var conditionStatementBlock = Detect(block.first, block.last);
+            if (conditionStatementBlock == null)
             {
-                var br = next.Previous;
-                found = false;
-                for (var i = next; i != br.Operand as Instruction; i = i.Next)
+                return false;
+            }
+            List<ConditionStatementBlock> blocks = new List<ConditionStatementBlock>();
+            blocks.Add(conditionStatementBlock);
+
+            while (true)
+            {
+                var next = conditionStatementBlock.body.last.Next;
+                if (!brs.Contains(next.Previous.OpCode))
                 {
-                    if (ConditionalBranch_OpCodes.Contains(i.OpCode))
-                    {
-                        current = i;
-                        var condition = new CodeBlock(next, current);
-                        next = current.Operand as Instruction;
-                        var body = new CodeBlock(current.Next, next.Previous);
-                        blocks.Add(
-                            new ConditionStatementBlock(condition, body)
-                        );
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    blocks.Add(
-                        new ConditionStatementBlock
-                        (
-                            null,
-                            new CodeBlock(next, (br.Operand as Instruction).Previous)
-                        )
-                    );
                     break;
                 }
+                var br = next.Previous as Instruction;
+                var target = br.Operand as Instruction;
+                if (target.OpCode == OpCodes.Ret)
+                {
+                    break;
+                }
+                conditionStatementBlock = Detect(next, target.Previous);
+                if (conditionStatementBlock == null)
+                {
+                    break;
+                }
+                var current = blocks[blocks.Count - 1];
+                blocks[blocks.Count - 1] = new ConditionStatementBlock(
+                    current.condition,
+                    new CodeBlock(current.body.first, current.body.last.Previous)
+                );
+                blocks.Add(conditionStatementBlock);
             }
+
             CodeBlock all = new CodeBlock(block.first, blocks[blocks.Count - 1].body.last);
             statementStructure = new ConditionStatementStructure(all, blocks);
             return true;
