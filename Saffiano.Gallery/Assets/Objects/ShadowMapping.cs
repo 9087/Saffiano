@@ -59,7 +59,7 @@ namespace Saffiano.Gallery.Assets.Objects
         public Vector3 lightPosition { get; set; }
 
         [Uniform]
-        public float epsilon { get; set; } = 0.0001f;
+        public float epsilon { get; set; } = 0.02f;
 
         public override void FragmentShader(
             Vector4 v_position,
@@ -92,9 +92,9 @@ namespace Saffiano.Gallery.Assets.Objects
                 {
                     var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
                     var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                    if (depth + epsilon <= distance)
+                    if (depth - epsilon <= distance)
                     {
-                        shadow += 0.5f / count;
+                        shadow += 0.3f / count;
                     }
                 }
             }
