@@ -326,7 +326,7 @@ namespace Saffiano
             matrix.m33 = 1.0f;
             matrix.m03 = -(right + left) / (right - left);
             matrix.m13 = -(top + bottom) / (top - bottom);
-            matrix.m23 = -(zNear + zFar) / (zNear - zFar);
+            matrix.m23 = (zNear + zFar) / (zNear - zFar);
             return matrix;
         }
 

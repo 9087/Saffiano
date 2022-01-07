@@ -25,7 +25,7 @@ namespace Saffiano.Gallery
             GameObject light = new GameObject("Light");
             light.AddComponent<Transform>();
             light.transform.localPosition = new Vector3(0, 1.2f, -1.2f);
-            light.transform.localRotation = Quaternion.Euler(45, 0, 0);
+            light.transform.localRotation = Quaternion.Euler(45, 45, 0);
             light.AddComponent<Light>();
 
             // Shadow mapping Phong material
@@ -34,10 +34,6 @@ namespace Saffiano.Gallery
 
             // Shadow mapping
             ShadowMapping.Instance.light = light.GetComponent<Light>();
-            var lightCamera = ShadowMapping.Instance.camera;
-            shadowMappingPhong.shadowMapTexture = ShadowMapping.Instance.targetTexture;
-            shadowMappingPhong.lightMVP = lightCamera.projectionMatrix * lightCamera.worldToCameraMatrix;
-            shadowMappingPhong.lightPosition = lightCamera.transform.position;
 
             // Scene roaming control
             SceneRoaming.Instance.targetCamera = camera.GetComponent<Camera>();

@@ -25,11 +25,7 @@ namespace Saffiano
 
         public float fieldOfView { get; set; } = 60;
 
-        public float orthographicSize
-        {
-            get;
-            set;
-        }
+        public float orthographicSize { get; set; } = 5.0f;
 
         public bool orthographic { get; set; } = false;
 

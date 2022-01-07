@@ -4,7 +4,7 @@ using static Saffiano.Resources.Default.Material;
 
 namespace Saffiano.Gallery.Assets.Objects
 {
-    public class ShadowMappingMaterial : ScriptableMaterial
+    class ShadowMappingMaterial : ScriptableMaterial
     {
         public override CullMode cullMode { get; set; } = CullMode.Front;
 
@@ -49,14 +49,16 @@ namespace Saffiano.Gallery.Assets.Objects
 
     public class ShadowMappingPhong : Phong
     {
-        [Uniform]
-        public Texture shadowMapTexture { get; set; }
+        private Camera lightCamera => ShadowMapping.Instance.camera;
 
         [Uniform]
-        public Matrix4x4 lightMVP { get; set; }
+        public Texture shadowMapTexture => ShadowMapping.Instance.targetTexture;
 
         [Uniform]
-        public Vector3 lightPosition { get; set; }
+        public Matrix4x4 lightMVP => lightCamera.projectionMatrix * lightCamera.worldToCameraMatrix;
+
+        [Uniform]
+        public Vector3 lightPosition => lightCamera.transform.position;
 
         [Uniform]
         public float epsilon { get; set; } = 0.02f;
@@ -102,48 +104,54 @@ namespace Saffiano.Gallery.Assets.Objects
         }
     }
     
-    public class ShadowMapping : SingletonGameObject<ShadowMapping>
+    class ShadowMappingComponent : Behaviour
     {
-        private Light _light = null;
-
-        public Light light
+        void Update()
         {
-            get => _light;
-            set
+            var shadowMapping = this.gameObject as ShadowMapping;
+            var camera = shadowMapping.camera;
+            var light = shadowMapping.light;
+            if (light == null)
             {
-                if (_light == value)
-                {
-                    return;
-                }
-                Dettach();
-                Attach(value);
+                camera.transform.parent = null;
+                return;
+            }
+            if (shadowMapping.light.type == LightType.Directional)
+            {
+                Camera mainCamera = Camera.main;
+                camera.orthographic = true;
+                camera.transform.parent = null;
+
+                var targetDistance = 10;
+                camera.transform.localPosition = mainCamera.transform.position + mainCamera.transform.forward * targetDistance - light.transform.forward * targetDistance;
+                camera.orthographicSize = targetDistance;
+                camera.transform.localRotation = light.transform.rotation;
+                camera.transform.localScale = Vector3.one;
+            }
+            else
+            {
+                camera.orthographic = false;
+                camera.transform.parent = light.transform;
+                camera.transform.localPosition = Vector3.zero;
+                camera.transform.localRotation = Quaternion.identity;
+                camera.transform.localScale = Vector3.one;
             }
         }
+    }
+
+    public class ShadowMapping : SingletonGameObject<ShadowMapping>
+    {
+        public Light light { get; set; }
 
         public Camera camera { get; protected set; }
 
         public RenderTexture targetTexture => camera.targetTexture;
 
-        protected void Attach(Light light)
-        {
-            Debug.Assert(_light == null);
-            _light = light;
-            this.camera.transform.parent = light.transform;
-        }
-
-        protected void Dettach()
-        {
-            if (_light == null)
-            {
-                return;
-            }
-            this.camera.transform.parent = null;
-        }
-
         public ShadowMapping()
         {
             this.AddComponent<Transform>();
             this.camera = this.AddComponent<Camera>();
+            this.AddComponent<ShadowMappingComponent>();
             this.camera.fieldOfView = 90.0f;
 
             RenderTexture rt = new RenderTexture(2048, 2048);
@@ -152,7 +160,7 @@ namespace Saffiano.Gallery.Assets.Objects
             this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
             this.camera.SetReplacementShader(new ShadowMappingMaterial().shader, "");
 
-#if false // DEBUG
+#if true // DEBUG
             GameObject canvas = new GameObject("Canvas");
             canvas.AddComponent<RectTransform>();
             canvas.AddComponent<Canvas>();
