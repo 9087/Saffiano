@@ -160,7 +160,7 @@ namespace Saffiano.Gallery.Assets.Objects
             this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
             this.camera.SetReplacementShader(new ShadowMappingMaterial().shader, "");
 
-#if true // DEBUG
+#if false // DEBUG
             GameObject canvas = new GameObject("Canvas");
             canvas.AddComponent<RectTransform>();
             canvas.AddComponent<Canvas>();

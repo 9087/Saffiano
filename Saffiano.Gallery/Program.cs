@@ -3,6 +3,16 @@ using System;
 
 namespace Saffiano.Gallery
 {
+    class Rotating : Behaviour
+    {
+        public Vector3 speed { get; set; }
+
+        void Update()
+        {
+            this.transform.localRotation = Quaternion.Euler(this.transform.rotation.eulerAngles + speed * Time.deltaTime);
+        }
+    }
+
     class Program
     {
         public static Material material = null;
@@ -25,8 +35,9 @@ namespace Saffiano.Gallery
             GameObject light = new GameObject("Light");
             light.AddComponent<Transform>();
             light.transform.localPosition = new Vector3(0, 1.2f, -1.2f);
-            light.transform.localRotation = Quaternion.Euler(45, 45, 0);
-            light.AddComponent<Light>();
+            light.transform.localRotation = Quaternion.Euler(45, 0, 0);
+            light.AddComponent<Light>().type = LightType.Directional;
+            light.AddComponent<Rotating>().speed = new Vector3(0, 6, 0);
 
             // Shadow mapping Phong material
             var shadowMappingPhong = new ShadowMappingPhong();
