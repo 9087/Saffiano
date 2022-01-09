@@ -171,8 +171,8 @@ namespace Saffiano.Gallery.Assets.Objects
             rectTransform.pivot = new Vector2(0, 0.5f);
             rectTransform.anchorMin = new Vector2(0, 0.5f);
             rectTransform.anchorMax = new Vector2(0, 0.5f);
-            rectTransform.offsetMin = new Vector2(0, -129);
-            rectTransform.offsetMax = new Vector2(256, 128);
+            rectTransform.offsetMin = new Vector2(0, -256);
+            rectTransform.offsetMax = new Vector2(512, 256);
             target.transform.parent = canvas.transform;
             target.AddComponent<CanvasRenderer>();
             target.AddComponent<Image>().sprite = Sprite.Create(rt as Texture);

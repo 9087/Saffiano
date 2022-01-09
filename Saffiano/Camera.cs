@@ -72,10 +72,14 @@ namespace Saffiano
 
         void Awake()
         {
-            allCameras.Add(this);
             if (main is null)
             {
                 main = this;
+                allCameras.Add(this);
+            }
+            else
+            {
+                allCameras.Insert(0, this);
             }
         }
 
