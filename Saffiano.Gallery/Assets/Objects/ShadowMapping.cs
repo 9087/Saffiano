@@ -122,9 +122,9 @@ namespace Saffiano.Gallery.Assets.Objects
                 camera.orthographic = true;
                 camera.transform.parent = null;
 
-                var targetDistance = 10;
+                var targetDistance = 1.0f;
                 camera.transform.localPosition = mainCamera.transform.position + mainCamera.transform.forward * targetDistance - light.transform.forward * targetDistance;
-                camera.orthographicSize = targetDistance;
+                camera.orthographicSize = targetDistance * 2;
                 camera.transform.localRotation = light.transform.rotation;
                 camera.transform.localScale = Vector3.one;
             }
