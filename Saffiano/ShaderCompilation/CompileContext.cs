@@ -142,7 +142,23 @@ namespace Saffiano.ShaderCompilation
             this.writer = specific;
             for (var instruction = first; instruction != last.Next;)
             {
-                instruction = instruction.Step(last, this);
+                try
+                {
+                    instruction = instruction.Step(last, this);
+                }
+                catch (System.Reflection.TargetInvocationException e)
+                {
+                    Debug.LogFormat("Inner exception \"{0}\" occured in {1}, when generating the following codes:", e.InnerException, instruction);
+                    var f = first;
+                    while (f.Previous != null) { f = f.Previous; }
+                    var l = last;
+                    while (l.Next != null) { l = l.Next; }
+                    for (var i = f; i != l.Next; i = i.Next)
+                    {
+                        Console.WriteLine(i);
+                    }
+                    throw new NotImplementedException();
+                }
             }
             this.writer = writer;
             int evaluationStackCount = evaluationStack.Count;
@@ -443,7 +459,11 @@ namespace Saffiano.ShaderCompilation
         {
             // built-in shader type
             var type = typeReference.Resolve().GetRuntimeType();
-            if (type.IsValueType)
+            if (type.IsEnum)
+            {
+                return "int";
+            }
+            else if(type.IsValueType)
             {
                 if (type == typeof(bool))  return "bool" ;
                 if (type == typeof(int))   return "int";

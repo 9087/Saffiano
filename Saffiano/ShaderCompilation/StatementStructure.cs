@@ -177,7 +177,7 @@ namespace Saffiano.ShaderCompilation
 
             for (var instruction = first; instruction != last.Next && instruction != null; instruction = instruction.Next)
             {
-                if (ConditionalBranch_OpCodes.Contains(instruction.OpCode))
+                if (ConditionalBranch_OpCodes.Contains(instruction.OpCode) && (instruction.Operand as Instruction).Offset > instruction.Offset)
                 {
                     current = instruction;
                     break;
@@ -235,6 +235,8 @@ namespace Saffiano.ShaderCompilation
                 conditionStatementBlock = Detect(next, target.Previous);
                 if (conditionStatementBlock == null)
                 {
+                    conditionStatementBlock = new ConditionStatementBlock(null, new CodeBlock(next, target.Previous));
+                    blocks.Add(conditionStatementBlock);
                     break;
                 }
                 var current = blocks[blocks.Count - 1];

@@ -434,6 +434,12 @@ namespace Saffiano
                     Gl.Uniform1(location, i);
                     break;
                 default:
+                    var type = value.GetType();
+                    if (type.IsEnum)
+                    {
+                        Gl.Uniform1(location, (int)value);
+                        break;
+                    }
                     throw new NotImplementedException(string.Format("uniform type {0} is not implemented.", value.GetType()));
             }
         }

@@ -4,6 +4,12 @@ using static Saffiano.Resources.Default.Material;
 
 namespace Saffiano.Gallery.Assets.Objects
 {
+    public enum ShadowType
+    {
+        Hard = 0,
+        PercentageCloserFiltering = 1,
+    }
+
     class ShadowMappingMaterial : ScriptableMaterial
     {
         public override CullMode cullMode { get; set; } = CullMode.Front;
@@ -61,7 +67,10 @@ namespace Saffiano.Gallery.Assets.Objects
         public Vector3 lightPosition => lightCamera.transform.position;
 
         [Uniform]
-        public float epsilon { get; set; } = 0.02f;
+        public float epsilon { get; set; } = 0.001f;
+
+        [Uniform]
+        public ShadowType shadowType => ShadowMapping.Instance.shadowType;
 
         public override void FragmentShader(
             Vector4 v_position,
@@ -70,9 +79,6 @@ namespace Saffiano.Gallery.Assets.Objects
             out Color f_color
         )
         {
-            int half = 8;
-            int step = 2;
-
             base.FragmentShader(v_position, v_normal, v_diffuseColor, out f_color);
 
             // shadow mapping processing
@@ -84,19 +90,34 @@ namespace Saffiano.Gallery.Assets.Objects
             if (targetPosition.y > +1) return;
             if (targetPosition.y < -1) return;
 
+            float shadow = 0;
             var distance = ((mv * v_position).xyz - lightPosition).magnitude;
             var texelSize = 1.0f / shadowMapTexture.size;
-            float shadow = 0;
-            float count = (half / step * 2 + 1) * (half / step * 2 + 1);
-            for (int x = -half; x <= half; x += step)
+
+            if (shadowType == ShadowType.Hard)
             {
-                for (int y = -half; y <= half; y += step)
+                var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(1, 1)) * 0.5f);
+                var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
+                if (depth < distance - epsilon)
                 {
-                    var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
-                    var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                    if (depth - epsilon <= distance)
+                    shadow = 1.0f;
+                }
+            }
+            else if (shadowType == ShadowType.PercentageCloserFiltering)
+            {
+                float half = 8;
+                float step = 2;
+                float count = (half / step * 2 + 1) * (half / step * 2 + 1);
+                for (float x = -half; x <= half; x += step)
+                {
+                    for (float y = -half; y <= half; y += step)
                     {
-                        shadow += 0.3f / count;
+                        var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
+                        var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
+                        if (depth < distance - epsilon)
+                        {
+                            shadow += 1.0f / count;
+                        }
                     }
                 }
             }
@@ -146,6 +167,8 @@ namespace Saffiano.Gallery.Assets.Objects
         public Camera camera { get; protected set; }
 
         public RenderTexture targetTexture => camera.targetTexture;
+
+        public ShadowType shadowType { get; set; } = ShadowType.PercentageCloserFiltering;
 
         public ShadowMapping()
         {

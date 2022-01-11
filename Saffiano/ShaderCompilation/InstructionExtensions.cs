@@ -539,11 +539,17 @@ namespace Saffiano.ShaderCompilation
         public static bool Br(Instruction instruction, CompileContext compileContext)
         {
             var target = (instruction.Operand as Instruction);
-            if (target.OpCode != OpCodes.Ret)
+            if (target.OpCode == OpCodes.Ret)
+            {
+                compileContext.WriteLine("return;");
+            }
+            else if (target.OpCode == OpCodes.Nop)
+            {
+            }
+            else
             {
                 throw new NotImplementedException();
             }
-            compileContext.WriteLine("return;");
             return true;
         }
 
@@ -555,10 +561,12 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        // brfalse target - Branch to target if value is zero (false).
+        [Instruction(Mono.Cecil.Cil.Code.Brfalse)]
+        // brfalse.s target - Branch to target if value is zero (false), short form.
         [Instruction(Mono.Cecil.Cil.Code.Brfalse_S)]
-        public static bool Brfalse_S(Instruction instruction, CompileContext compileContext)
+        public static bool Brfalse(Instruction instruction, CompileContext compileContext)
         {
-            // brfalse.s target - Branch to target if value is zero (false), short form.
             compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} == 0)", compileContext.Pop()));
             return true;
         }
