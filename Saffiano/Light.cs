@@ -5,6 +5,7 @@ namespace Saffiano
     public enum LightType
     {
         Directional = 1,
+        Point = 2,
     }
 
     public sealed class Light : Behaviour

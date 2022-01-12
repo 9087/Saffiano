@@ -233,11 +233,11 @@ namespace Saffiano.ShaderCompilation
                     break;
                 }
                 conditionStatementBlock = Detect(next, target.Previous);
+                bool @else = false;
                 if (conditionStatementBlock == null)
                 {
                     conditionStatementBlock = new ConditionStatementBlock(null, new CodeBlock(next, target.Previous));
-                    blocks.Add(conditionStatementBlock);
-                    break;
+                    @else = true;
                 }
                 var current = blocks[blocks.Count - 1];
                 blocks[blocks.Count - 1] = new ConditionStatementBlock(
@@ -245,6 +245,10 @@ namespace Saffiano.ShaderCompilation
                     new CodeBlock(current.body.first, current.body.last.Previous)
                 );
                 blocks.Add(conditionStatementBlock);
+                if (@else)
+                {
+                    break;
+                }
             }
 
             CodeBlock all = new CodeBlock(block.first, blocks[blocks.Count - 1].body.last);

@@ -12,10 +12,18 @@ namespace Saffiano.Gallery.Assets.Objects
 
     class ShadowMappingMaterial : ScriptableMaterial
     {
+        private Camera lightCamera => ShadowMapping.Instance.camera;
+
         public override CullMode cullMode { get; set; } = CullMode.Front;
 
         [Uniform]
         public Vector3 lightPosition { get; set; }
+
+        [Uniform]
+        public Matrix4x4 lightMV => lightCamera.worldToCameraMatrix;
+
+        [Uniform]
+        public LightType lightType => ShadowMapping.Instance.light.type;
 
         void VertexShader(
             [Attribute(AttributeType.Position)] Vector3 a_position,
@@ -31,7 +39,7 @@ namespace Saffiano.Gallery.Assets.Objects
             gl_Position = mvp * new Vector4(a_position, 1.0f);
             v_texcoord = a_texcoord;
             v_color = a_color;
-            v_position = mv * new Vector4(a_position, 1.0f);
+            v_position = new Vector4(a_position, 1.0f);
         }
 
         void FragmentShader(
@@ -41,7 +49,15 @@ namespace Saffiano.Gallery.Assets.Objects
             out Color f_color
         )
         {
-            float distance = (v_position.xyz - lightPosition).magnitude;
+            float distance = 0;
+            if (lightType == LightType.Directional)
+            {
+                distance = -(lightMV * mv * v_position).z;
+            }
+            else
+            {
+                distance = (v_position.xyz - lightPosition).magnitude;
+            }
             float floor = (int)(distance);
             float fract = (int)((distance - floor) * 1024.0f);
             f_color = (Color)(new Vector4(
@@ -67,7 +83,13 @@ namespace Saffiano.Gallery.Assets.Objects
         public Vector3 lightPosition => lightCamera.transform.position;
 
         [Uniform]
-        public float epsilon { get; set; } = 0.001f;
+        public Matrix4x4 lightMV => lightCamera.worldToCameraMatrix;
+
+        [Uniform]
+        public Vector3 lightDirection => lightCamera.transform.forward;
+
+        [Uniform]
+        public LightType lightType => ShadowMapping.Instance.light.type;
 
         [Uniform]
         public ShadowType shadowType => ShadowMapping.Instance.shadowType;
@@ -91,14 +113,23 @@ namespace Saffiano.Gallery.Assets.Objects
             if (targetPosition.y < -1) return;
 
             float shadow = 0;
-            var distance = ((mv * v_position).xyz - lightPosition).magnitude;
+            float distance = 0;
+            Vector3 w_normal = (mv * new Vector4(v_normal, 0)).xyz;
+            float bias = 0;
+            if (lightType == LightType.Directional)
+            {
+                distance = -(lightMV * mv * v_position).z;
+            }
+            else
+            {
+                distance = ((mv * v_position).xyz - lightPosition).magnitude;
+            }
             var texelSize = 1.0f / shadowMapTexture.size;
-
             if (shadowType == ShadowType.Hard)
             {
                 var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(1, 1)) * 0.5f);
                 var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                if (depth < distance - epsilon)
+                if (depth < distance - bias)
                 {
                     shadow = 1.0f;
                 }
@@ -114,7 +145,7 @@ namespace Saffiano.Gallery.Assets.Objects
                     {
                         var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
                         var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                        if (depth < distance - epsilon)
+                        if (depth < distance - bias)
                         {
                             shadow += 1.0f / count;
                         }
@@ -183,7 +214,7 @@ namespace Saffiano.Gallery.Assets.Objects
             this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
             this.camera.SetReplacementShader(new ShadowMappingMaterial().shader, "");
 
-#if false // DEBUG
+#if true // DEBUG
             GameObject canvas = new GameObject("Canvas");
             canvas.AddComponent<RectTransform>();
             canvas.AddComponent<Canvas>();

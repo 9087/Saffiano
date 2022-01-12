@@ -13,11 +13,13 @@ namespace Saffiano
         public const float Rad2Deg = 57.29578F;
         public const float Epsilon = float.Epsilon;
 
+        [Shader(OpenGL: "abs({0})")]
         public static int Abs(int value)
         {
             return (int)(MathF.Abs(value));
         }
 
+        [Shader(OpenGL: "abs({0})")]
         public static float Abs(float f)
         {
             return MathF.Abs(f);
