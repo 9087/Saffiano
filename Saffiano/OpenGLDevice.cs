@@ -132,6 +132,7 @@ namespace Saffiano
                 // compile error
                 Gl.GetShader(shader, ShaderParameterName.InfoLogLength, out int length);
                 StringBuilder logBuilder = new StringBuilder();
+                logBuilder.EnsureCapacity(length);
                 Gl.GetShaderInfoLog(shader, length, out int _, logBuilder);
                 Debug.LogWarning(string.Format("Shader compilation failed:\n{0}\n{1}", source, logBuilder.ToString()));
             }

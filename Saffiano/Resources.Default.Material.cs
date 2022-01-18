@@ -77,6 +77,16 @@ namespace Saffiano
                         }
                     }
 
+                    protected Vector4 GetDiffuseColor(Vector3 lightColor, Vector3 worldNormal)
+                    {
+                        return new Vector4(lightColor * Mathf.Max(Vector3.Dot(worldNormal, directionLight), 0), 1);
+                    }
+
+                    protected Vector3 GetWorldNormal(Vector3 localNormal)
+                    {
+                        return (mv * new Vector4(localNormal, 0)).xyz.normalized;
+                    }
+
                     public virtual void VertexShader(
                         [Attribute(AttributeType.Position)] Vector3 a_position,
                         [Attribute(AttributeType.Normal)] Vector3 a_normal,
@@ -86,10 +96,9 @@ namespace Saffiano
                         out Color v_color
                     )
                     {
-                        Vector3 normal = (mv * new Vector4(a_normal, 0)).xyz.normalized;
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
-                        Vector4 color = (Vector4)directionLightColor;
-                        var diffuseColor = new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
+                        Vector3 worldNormal = GetWorldNormal(a_normal);
+                        var diffuseColor = GetDiffuseColor(((Vector4)directionLightColor).xyz, worldNormal);
                         v_color = (Color)(diffuseColor + (Vector4)(ambientColor));
                     }
 
@@ -110,6 +119,14 @@ namespace Saffiano
                     [Uniform]
                     public Vector3 cameraPosition => Camera.main.transform.position;
 
+                    Vector4 GetSpecularColor(Vector3 worldPosition, Vector3 worldNormal)
+                    {
+                        var r = Vector3.Reflect(-directionLight.normalized, worldNormal) * Mathf.Max(Vector3.Dot(worldNormal, directionLight), 0);
+                        var viewDirection = (-worldPosition + cameraPosition).normalized;
+                        var specularColor = (Vector4)directionLightColor * Mathf.Pow(Mathf.Max(Vector3.Dot(viewDirection, r), 0), shininess);
+                        return specularColor;
+                    }
+
                     public virtual void VertexShader(
                         [Attribute(AttributeType.Position)] Vector3 a_position,
                         [Attribute(AttributeType.Normal)] Vector3 a_normal,
@@ -119,10 +136,9 @@ namespace Saffiano
                         out Color v_diffuseColor
                     )
                     {
-                        Vector3 normal = (mv * new Vector4(a_normal, 0)).xyz.normalized;
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
-                        Vector4 color = (Vector4)directionLightColor;
-                        v_diffuseColor = (Color)new Vector4(color.xyz * Mathf.Max(Vector3.Dot(normal, directionLight), 0), 1);
+                        Vector3 worldNormal = GetWorldNormal(a_normal);
+                        v_diffuseColor = (Color)GetDiffuseColor(((Vector4)directionLightColor).xyz, worldNormal); ;
                         v_position = new Vector4(a_position, 1.0f);
                         v_normal = a_normal;
                     }
@@ -135,10 +151,8 @@ namespace Saffiano
                     )
                     {
                         Vector3 worldNormal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
-                        var r = Vector3.Reflect(-directionLight.normalized, worldNormal) * Mathf.Max(Vector3.Dot(worldNormal, directionLight), 0);
-                        var viewDirection = (-(mv * v_position).xyz + cameraPosition).normalized;
-                        var specularColor = (Vector4)directionLightColor * Mathf.Pow(Mathf.Max(Vector3.Dot(viewDirection, r), 0), shininess);
-                        f_color = (Color)(new Vector4(specularColor.xyz, 1) * 0.5f + (Vector4)v_diffuseColor * 0.5f + (Vector4)(ambientColor));
+                        var specularColor = GetSpecularColor((mv * v_position).xyz, worldNormal);
+                        f_color = (Color)(specularColor * 0.5f + (Vector4)v_diffuseColor * 0.5f + (Vector4)(ambientColor));
                     }
                 }
             }

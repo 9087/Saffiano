@@ -87,7 +87,7 @@ namespace Saffiano.ShaderCompilation
                         attributeDefinitions.WriteLine(Format("in {0} {1};", elementType, parameterInfo.Name));
                     }
                 }
-                if (parameterInfo.IsOut)
+                else
                 {
                     attributeDefinitions.WriteLine(Format("out {0} {1};", elementType, parameterInfo.Name));
                 }
@@ -98,7 +98,18 @@ namespace Saffiano.ShaderCompilation
         public string GetMethodSourceCode(string methodName)
         {
             var code = new StringWriter();
-            code.WriteLine(string.Format("void {0}() {{", methodName));
+            var parameters = Join(
+                ", ",
+                this.methodDefinition.Parameters
+                    .Where(x => !x.IsOut)
+                    .Select((parameter) => Format("{0} {1}", parameter.ParameterType, parameter.Name))
+            );
+            code.WriteLine(Format(
+                "{0} {1}({2}) {{",
+                methodDefinition.ReturnType,
+                methodName,
+                methodName == "main" ? "" : parameters
+            ));
             code.WriteLine(writer.ToString());
             code.WriteLine("}");
             return code.ToString();
@@ -112,7 +123,7 @@ namespace Saffiano.ShaderCompilation
 
         public Collection<ParameterDefinition> parameters => methodDefinition.Parameters;
 
-        private MethodDefinition methodDefinition { get; set; }
+        internal MethodDefinition methodDefinition { get; private set; }
 
         private Instruction first { get; set; }
 
@@ -518,9 +529,32 @@ namespace Saffiano.ShaderCompilation
             var calleeDeclaringType = methodReference.DeclaringType.Resolve();
             if (calleeDeclaringType.IsBaseOf(callerDeclaringType) || calleeDeclaringType == callerDeclaringType)
             {
-                string methodName = Format("{0}_{1}", callerDeclaringType.Name, methodReference.Resolve().Name);
-                methods[methodName] = methodReference.Resolve();
-                return new Value(typeof(void).GetTypeDefinition(), Format("{0}();", methodName));
+                var calleeMethodDefinition = methodReference.Resolve();
+                string methodName = Format("{0}_{1}", callerDeclaringType.Name, calleeMethodDefinition.Name);
+                methods[methodName] = calleeMethodDefinition;
+                List<Value> finalParameters = new List<Value>();
+                for (int index = 0; index < parameters.Length; index++)
+                {
+                    if (calleeMethodDefinition.HasThis && index == 0)
+                    {
+                        continue;
+                    }
+                    bool isShaderEntrance = typeof(ShaderType)
+                        .GetEnumValues()
+                        .Cast<ShaderType>()
+                        .Select(x => x.ToString())
+                        .Contains(calleeMethodDefinition.Name);
+                    if (calleeMethodDefinition.Parameters[index - (calleeMethodDefinition.HasThis ? 1 : 0)].IsOut)
+                    {
+                        if (!isShaderEntrance)
+                        {
+                            throw new Exception("Out parameter can be used only in shader entrace method.");
+                        }
+                        continue;
+                    }
+                    finalParameters.Add(parameters[index]);
+                }
+                return new Value(returnType, Format("{0}({1})", methodName, Join(", ", finalParameters)));
             }
             Debug.LogErrorFormat("Method \"{0}.{1}\" is not a built-in shader method.", methodInfo.DeclaringType.FullName, methodInfo.Name);
             return null;
