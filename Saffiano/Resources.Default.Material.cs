@@ -119,7 +119,7 @@ namespace Saffiano
                     [Uniform]
                     public Vector3 cameraPosition => Camera.main.transform.position;
 
-                    Vector4 GetSpecularColor(Vector3 worldPosition, Vector3 worldNormal)
+                    protected Vector4 GetSpecularColor(Vector3 worldPosition, Vector3 worldNormal)
                     {
                         var r = Vector3.Reflect(-directionLight.normalized, worldNormal) * Mathf.Max(Vector3.Dot(worldNormal, directionLight), 0);
                         var viewDirection = (-worldPosition + cameraPosition).normalized;
@@ -152,7 +152,7 @@ namespace Saffiano
                     {
                         Vector3 worldNormal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
                         var specularColor = GetSpecularColor((mv * v_position).xyz, worldNormal);
-                        f_color = (Color)(specularColor * 0.5f + (Vector4)v_diffuseColor * 0.5f + (Vector4)(ambientColor));
+                        f_color = (Color)(specularColor + (Vector4)v_diffuseColor + (Vector4)(ambientColor));
                     }
                 }
             }

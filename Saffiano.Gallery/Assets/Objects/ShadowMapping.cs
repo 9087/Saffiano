@@ -101,7 +101,9 @@ namespace Saffiano.Gallery.Assets.Objects
             out Color f_color
         )
         {
-            base.FragmentShader(v_position, v_normal, v_diffuseColor, out f_color);
+            Vector3 worldNormal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
+            var specularColor = GetSpecularColor((mv * v_position).xyz, worldNormal);
+            f_color = (Color)(specularColor + (Vector4)v_diffuseColor + (Vector4)ambientColor);
 
             // shadow mapping processing
             var targetPosition = lightMVP * mv * v_position;
@@ -114,8 +116,6 @@ namespace Saffiano.Gallery.Assets.Objects
 
             float shadow = 0;
             float distance = 0;
-            Vector3 w_normal = (mv * new Vector4(v_normal, 0)).xyz;
-            float bias = 0;
             if (lightType == LightType.Directional)
             {
                 distance = -(lightMV * mv * v_position).z;
@@ -129,7 +129,7 @@ namespace Saffiano.Gallery.Assets.Objects
             {
                 var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(1, 1)) * 0.5f);
                 var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                if (depth < distance - bias)
+                if (depth < distance)
                 {
                     shadow = 1.0f;
                 }
@@ -145,14 +145,14 @@ namespace Saffiano.Gallery.Assets.Objects
                     {
                         var color = shadowMapTexture.Sample((targetPosition.xy + new Vector2(x, y) * texelSize + new Vector2(1, 1)) * 0.5f);
                         var depth = color.r * 256.0f * 256.0f + color.g * 256.0f + color.b + color.a / 32.0f;
-                        if (depth < distance - bias)
+                        if (depth < distance)
                         {
                             shadow += 1.0f / count;
                         }
                     }
                 }
             }
-            f_color = (Color)((Vector4)f_color * (1 - shadow) + shadow * new Vector4(0, 0, 0, 1));
+            f_color = (Color)((Vector4)ambientColor + (1.0f - shadow) * ((Vector4)v_diffuseColor + specularColor));
         }
     }
     
@@ -214,7 +214,7 @@ namespace Saffiano.Gallery.Assets.Objects
             this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
             this.camera.SetReplacementShader(new ShadowMappingMaterial().shader, "");
 
-#if true // DEBUG
+#if false // DEBUG
             GameObject canvas = new GameObject("Canvas");
             canvas.AddComponent<RectTransform>();
             canvas.AddComponent<Canvas>();
