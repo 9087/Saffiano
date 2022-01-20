@@ -1,4 +1,4 @@
-﻿namespace Saffiano
+﻿namespace Saffiano.Rendering
 {
     internal class Command
     {

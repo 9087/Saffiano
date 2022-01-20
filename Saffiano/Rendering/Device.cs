@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Saffiano
+namespace Saffiano.Rendering
 {
     internal class Viewport
     {

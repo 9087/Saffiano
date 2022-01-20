@@ -1,4 +1,5 @@
-﻿using Saffiano.ShaderCompilation;
+﻿using Saffiano.Rendering;
+using Saffiano.ShaderCompilation;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

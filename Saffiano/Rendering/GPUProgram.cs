@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Saffiano
+namespace Saffiano.Rendering
 {
     public class GPUProgram
     {

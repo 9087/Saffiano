@@ -8,7 +8,7 @@
 
         public virtual Color color { get; set; } = Color.white;
 
-        internal abstract Command GenerateCommand();
+        internal abstract Saffiano.Rendering.Command GenerateCommand();
 
         protected abstract Mesh OnPopulateMesh(Mesh mesh);
     }

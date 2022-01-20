@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Saffiano
+namespace Saffiano.Rendering
 {
     internal interface IDeperactedClean
     {

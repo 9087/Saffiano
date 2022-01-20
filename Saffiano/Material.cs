@@ -18,7 +18,7 @@ namespace Saffiano
 
     public abstract class Material
     {
-        public virtual GPUProgram shader { get; }
+        public virtual Saffiano.Rendering.GPUProgram shader { get; }
 
         internal HashSet<Uniform> uniforms { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Saffiano
+namespace Saffiano.Rendering
 {
     [AttributeUsage(AttributeTargets.All, AllowMultiple = false)]
     internal class ShaderAttribute : Attribute
