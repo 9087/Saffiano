@@ -152,6 +152,10 @@ namespace Saffiano
             foreach (ShaderType shaderType in typeof(ShaderType).GetEnumValues())
             {
                 var methodReference = type.GetTypeDefinition().FindMethod(shaderType.ToString());
+                if (methodReference == null)
+                {
+                    continue;
+                }
                 string source = new ShaderCompiler().Compile(methodReference, out var uniformList);
                 var description = string.Format("// {0} generated from {1}\n", shaderType.ToString(), type.FullName);
                 shaderSourceData.codes[shaderType] = description + source;

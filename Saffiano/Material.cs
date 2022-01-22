@@ -16,7 +16,7 @@ namespace Saffiano
         FrontAndBack = 3,
     }
 
-    public abstract class Material
+    public abstract class Material : Asset
     {
         public virtual Saffiano.Rendering.GPUProgram shader { get; }
 

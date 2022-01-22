@@ -58,13 +58,18 @@ namespace Saffiano
             }
         }
 
+        private static float epsilon = 0.01f;
+
         internal Vector2 uvBottomRight
         {
             get
             {
                 if (this.atlas != null)
                 {
-                    return new Vector2((float)(this.x + this.width) / this.atlas.width, (float)(this.y) / this.atlas.height);
+                    return new Vector2(
+                        ((float)(this.x + this.width) - epsilon) / this.atlas.width,
+                        ((float)(this.y)              + epsilon) / this.atlas.height
+                    );
                 }
                 else
                 {
@@ -79,7 +84,10 @@ namespace Saffiano
             {
                 if (this.atlas != null)
                 {
-                    return new Vector2((float)(this.x) / this.atlas.width, (float)(this.y) / this.atlas.height);
+                    return new Vector2(
+                        ((float)(this.x) + epsilon) / this.atlas.width,
+                        ((float)(this.y) + epsilon) / this.atlas.height
+                    );
                 }
                 else
                 {
@@ -94,7 +102,10 @@ namespace Saffiano
             {
                 if (this.atlas != null)
                 {
-                    return new Vector2((float)(this.x + this.width) / this.atlas.width, (float)(this.y + this.height) / this.atlas.height);
+                    return new Vector2(
+                        ((float)(this.x + this.width)  - epsilon) / this.atlas.width,
+                        ((float)(this.y + this.height) - epsilon) / this.atlas.height
+                    );
                 }
                 else
                 {
@@ -109,7 +120,10 @@ namespace Saffiano
             {
                 if (this.atlas != null)
                 {
-                    return new Vector2((float)(this.x) / this.atlas.width, (float)(this.y + this.height) / this.atlas.height);
+                    return new Vector2(
+                        ((float)(this.x)               + epsilon) / this.atlas.width,
+                        ((float)(this.y + this.height) - epsilon) / this.atlas.height
+                    );
                 }
                 else
                 {
@@ -120,24 +134,29 @@ namespace Saffiano
 
         public TextureWrapMode wrapMode { get; set; } = TextureWrapMode.Repeat;
 
-        internal Texture(Atlas.ReferenceDescriptor referenceDescriptor)
+        public bool multisampling { get; private set; } = false;
+
+        internal Texture(Atlas.ReferenceDescriptor referenceDescriptor, bool multisampling = false)
         {
             this.referenceDescriptor = referenceDescriptor;
             this.x = referenceDescriptor.x;
             this.y = referenceDescriptor.y;
             this.width = referenceDescriptor.width;
             this.height = referenceDescriptor.height;
+            this.multisampling = multisampling;
         }
 
-        public Texture(uint width, uint height)
+        public Texture(uint width, uint height, bool multisampling = false)
         {
             this.width = width;
             this.height = height;
             this.pixels = Enumerable.Repeat(new Color(0, 0, 0), (int)(width * height)).ToArray();
+            this.multisampling = multisampling;
         }
 
-        internal Texture(string filePath) : base(filePath)
+        internal Texture(string filePath, bool multisampling = false) : base(filePath)
         {
+            this.multisampling = multisampling;
         }
 
         ~Texture()

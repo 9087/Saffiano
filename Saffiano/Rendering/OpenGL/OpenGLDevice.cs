@@ -1,215 +1,10 @@
-﻿using OpenGL;
+﻿using _OpenGL = OpenGL;
+using OpenGL;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Saffiano.Rendering
 {
-    internal class VertexData
-    {
-        public uint vao { get; internal set; }
-
-        public uint ebo { get; internal set; }
-
-        public Dictionary<AttributeType, uint> buffers { get; internal set; } = new Dictionary<AttributeType, uint>();
-    }
-
-    internal class VertexCache : Cache<Mesh, VertexData>
-    {
-        private uint CreateAndInitializeVertexAttribArray<T>(AttributeType location, T[] array)
-        {
-            uint buffer = Gl.GenBuffer();
-            Gl.EnableVertexAttribArray((uint)location);
-            Gl.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-            Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(typeof(T)) * array.Length), array, BufferUsage.StaticDraw);
-            Gl.VertexAttribPointer((uint)location, Marshal.SizeOf(typeof(T)) / Marshal.SizeOf(typeof(float)), VertexAttribType.Float, false, 0, IntPtr.Zero);
-            return buffer;
-        }
-
-        protected override VertexData OnRegister(Mesh mesh)
-        {
-            VertexData vertexData = new VertexData();
-
-            vertexData.vao = Gl.GenVertexArray();
-            Gl.BindVertexArray(vertexData.vao);
-
-            if (mesh.vertices == null || mesh.indices == null)
-            {
-                throw new Exception();
-            }
-
-            foreach (var attributeData in Mesh.attributeDatas)
-            {
-                var array = attributeData.GetArray(mesh);
-                if (array == null)
-                {
-                    continue;
-                }
-                uint buffer = Gl.GenBuffer();
-                vertexData.buffers.Add(attributeData.attributeType, buffer);
-                Gl.EnableVertexAttribArray((uint)attributeData.attributeType);
-                Gl.BindBuffer(BufferTarget.ArrayBuffer, buffer);
-                int length = attributeData.GetArrayLength(array);
-                Gl.BufferData(BufferTarget.ArrayBuffer, (uint)(Marshal.SizeOf(attributeData.itemType) * length), array, BufferUsage.StaticDraw);
-                Gl.VertexAttribPointer((uint)attributeData.attributeType, Marshal.SizeOf(attributeData.itemType) / Marshal.SizeOf(typeof(float)), VertexAttribType.Float, false, 0, IntPtr.Zero);
-            }
-
-            vertexData.ebo = Gl.GenBuffer();
-            Gl.BindBuffer(BufferTarget.ElementArrayBuffer, vertexData.ebo);
-            Gl.BufferData(BufferTarget.ElementArrayBuffer, (uint)(sizeof(uint) * mesh.indices.Length), mesh.indices, BufferUsage.StaticDraw);
-
-            Gl.BindVertexArray(0);
-
-            return vertexData;
-        }
-
-        protected override void OnUnregister(Mesh mesh)
-        {
-            Gl.DeleteBuffers(this[mesh].ebo);
-            Gl.DeleteBuffers(this[mesh].buffers.Values.ToArray());
-            Gl.DeleteVertexArrays(this[mesh].vao);
-        }
-    }
-
-    internal class TextureCache : Cache<Texture, uint>
-    {
-        protected override uint OnRegister(Texture texture)
-        {
-            uint textureID = Gl.GenTexture();
-            Gl.BindTexture(TextureTarget.Texture2d, textureID);
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba, (int)texture.width, (int)texture.height, 0, PixelFormat.Rgba, PixelType.Float, texture.GetPixels());
-            Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, new int[] { Gl.NEAREST });
-            Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, new int[] { Gl.NEAREST });
-            switch (texture.wrapMode)
-            {
-                case TextureWrapMode.Clamp:
-                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, new int[] { Gl.CLAMP });
-                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, new int[] { Gl.CLAMP });
-                    break;
-                case TextureWrapMode.Repeat:
-                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, new int[] { Gl.REPEAT });
-                    Gl.TexParameterI(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, new int[] { Gl.REPEAT });
-                    break;
-                default:
-                    throw new NotImplementedException();
-            }
-            Gl.GenerateMipmap(TextureTarget.Texture2d);
-            texture.OnRegister();
-            return textureID;
-        }
-
-        protected override void OnUnregister(Texture texture)
-        {
-            texture.OnUnregister();
-            Gl.DeleteTextures(this[texture]);
-        }
-    }
-
-    internal class GPUProgramData
-    {
-        public uint program { get; internal set; }
-
-        public uint vs { get; internal set; }
-
-        public uint fs { get; internal set; }
-    }
-
-    internal class GPUProgramCache : Cache<GPUProgram, GPUProgramData>
-    {
-        private uint Compile(OpenGL.ShaderType shaderType, string source)
-        {
-            uint shader = Gl.CreateShader(shaderType);
-
-            Gl.ShaderSource(shader, new string[] { source });
-            Gl.CompileShader(shader);
-            Gl.GetShader(shader, ShaderParameterName.CompileStatus, out int success);
-            if (success == Gl.FALSE)
-            {
-                // compile error
-                Gl.GetShader(shader, ShaderParameterName.InfoLogLength, out int length);
-                StringBuilder logBuilder = new StringBuilder();
-                logBuilder.EnsureCapacity(length);
-                Gl.GetShaderInfoLog(shader, length, out int _, logBuilder);
-                Debug.LogWarning(string.Format("Shader compilation failed:\n{0}\n{1}", source, logBuilder.ToString()));
-            }
-            return shader;
-        }
-
-        protected override GPUProgramData OnRegister(GPUProgram key)
-        {
-            GPUProgramData shaderData = new GPUProgramData();
-            shaderData.program = Gl.CreateProgram();
-            shaderData.vs = Compile(OpenGL.ShaderType.VertexShader, key.vertexShaderSourceCode);
-            shaderData.fs = Compile(OpenGL.ShaderType.FragmentShader, key.fragmentShaderSourceCode);
-            Gl.AttachShader(shaderData.program, shaderData.vs);
-            Gl.AttachShader(shaderData.program, shaderData.fs);
-            Gl.LinkProgram(shaderData.program);
-            return shaderData;
-        }
-
-        protected override void OnUnregister(GPUProgram key)
-        {
-            Gl.DeleteShader(this[key].vs);
-            Gl.DeleteShader(this[key].fs);
-            Gl.DeleteProgram(this[key].program);
-        }
-    }
-
-    internal class FrameBufferData
-    {
-        public uint fbo { get; internal set; }
-
-        public uint depthTexture { get; internal set; }
-    }
-
-    internal class FrameBuffer
-    {
-        public RenderTexture renderTexture { get; private set; } = null;
-
-        public FrameBuffer(RenderTexture renderTexture)
-        {
-            this.renderTexture = renderTexture;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (!(obj is FrameBuffer))
-            {
-                return false;
-            }
-            return this.renderTexture == (obj as FrameBuffer).renderTexture;
-        }
-
-        public override int GetHashCode()
-        {
-            return this.renderTexture.GetHashCode();
-        }
-    }
-
-    internal class FrameBufferCache : Cache<FrameBuffer, FrameBufferData>
-    {
-        protected override FrameBufferData OnRegister(FrameBuffer key)
-        {
-            uint fbo = Gl.CreateFramebuffer();
-            Gl.BindFramebuffer(FramebufferTarget.Framebuffer, fbo);
-            Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2d, (device as OpenGLDevice).textureCache.TryRegister(key.renderTexture), 0);
-            uint depthTexture = Gl.GenTexture();
-            Gl.BindTexture(TextureTarget.Texture2d, depthTexture);
-            Gl.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.DepthComponent32, (int)key.renderTexture.width, (int)key.renderTexture.height, 0, PixelFormat.DepthComponent, PixelType.Float, IntPtr.Zero);
-            Gl.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthTexture, 0);
-            return new FrameBufferData() { fbo = fbo, depthTexture = depthTexture };
-        }
-
-        protected override void OnUnregister(FrameBuffer key)
-        {
-            Gl.DeleteTextures(this[key].depthTexture);
-            Gl.DeleteFramebuffers(this[key].fbo);
-        }
-    }
 
     internal class OpenGLDevice : Device
     {
@@ -217,11 +12,13 @@ namespace Saffiano.Rendering
         private IntPtr glContext;
 
         internal List<IDeperactedClean> caches = new List<IDeperactedClean>();
-        internal VertexCache vertexCache;
-        internal TextureCache textureCache;
-        internal GPUProgramCache shaderCache;
-        internal FrameBufferCache frameBufferCache;
+        internal Saffiano.Rendering.OpenGL.VertexCache vertexCache;
+        internal Saffiano.Rendering.OpenGL.TextureCache textureCache;
+        internal Saffiano.Rendering.OpenGL.GPUProgramCache shaderCache;
+        internal Saffiano.Rendering.OpenGL.FrameBufferCache frameBufferCache;
         internal Camera currentCamera;
+
+        internal Saffiano.Rendering.OpenGL.MultisamplingAntialiasing msaa;
 
         static OpenGLDevice()
         {
@@ -238,10 +35,10 @@ namespace Saffiano.Rendering
 
         private void InitializeCache()
         {
-            vertexCache = CreateCache<VertexCache>();
-            textureCache = CreateCache<TextureCache>();
-            shaderCache = CreateCache<GPUProgramCache>();
-            frameBufferCache = CreateCache<FrameBufferCache>();
+            vertexCache = CreateCache<Saffiano.Rendering.OpenGL.VertexCache>();
+            textureCache = CreateCache<Saffiano.Rendering.OpenGL.TextureCache>();
+            shaderCache = CreateCache<Saffiano.Rendering.OpenGL.GPUProgramCache>();
+            frameBufferCache = CreateCache<Saffiano.Rendering.OpenGL.FrameBufferCache>();
         }
 
         public OpenGLDevice(Win32Window window)
@@ -297,6 +94,8 @@ namespace Saffiano.Rendering
             Gl.Enable(EnableCap.TextureCoordArray);
             Gl.ShadeModel(ShadingModel.Smooth);
             Gl.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+
+            msaa = new Saffiano.Rendering.OpenGL.MultisamplingAntialiasing();
         }
 
         public override void Dispose()
@@ -342,16 +141,30 @@ namespace Saffiano.Rendering
             var renderTexture = camera.targetTexture;
             if (renderTexture is null)
             {
-                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                if (QualitySettings.antiAliasing != 1)
+                {
+                    msaa.BeginScene(this);
+                }
             }
             else
             {
-                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferCache.TryRegister(new FrameBuffer(renderTexture)).fbo);
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, frameBufferCache.TryRegister(new Saffiano.Rendering.OpenGL.RenderTextureFrameBuffer(renderTexture)).fbo);
             }
         }
 
         public override void EndScene()
         {
+            if (currentCamera.targetTexture is null)
+            {
+                if (QualitySettings.antiAliasing != 1)
+                {
+                    msaa.EndScene(this);
+                }
+            }
+            else
+            {
+                Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+            }
             Gl.Flush();
             currentCamera = null;
         }
@@ -362,14 +175,14 @@ namespace Saffiano.Rendering
             Gl.Viewport((int)viewport.x, (int)viewport.y, (int)viewport.width, (int)viewport.height);
         }
 
-        private static OpenGL.PrimitiveType ConvertPrimitiveTypeToOpenGL(PrimitiveType primitiveType)
+        private static _OpenGL.PrimitiveType ConvertPrimitiveTypeToOpenGL(PrimitiveType primitiveType)
         {
             switch (primitiveType)
             {
                 case PrimitiveType.Triangles:
-                    return OpenGL.PrimitiveType.Triangles;
+                    return _OpenGL.PrimitiveType.Triangles;
                 case PrimitiveType.Quads:
-                    return OpenGL.PrimitiveType.Quads;
+                    return _OpenGL.PrimitiveType.Quads;
                 default:
                     throw new NotImplementedException();
             }
@@ -533,7 +346,7 @@ namespace Saffiano.Rendering
             }
 
             // draw
-            OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
+            _OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
             Gl.DrawElements(primitiveType, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
         }
 

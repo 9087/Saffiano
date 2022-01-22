@@ -35,6 +35,10 @@ namespace Saffiano.ShaderCompilation
                 {
                     return list.First();
                 }
+                if (td.BaseType == null)
+                {
+                    break;
+                }
                 td = td.BaseType.Resolve();
             }
             return null;
