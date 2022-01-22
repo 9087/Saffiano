@@ -97,13 +97,13 @@ namespace Saffiano.Gallery.Assets.Objects
         public override void FragmentShader(
             Vector4 v_position,
             Vector3 v_normal,
-            Color v_diffuseColor,
             out Color f_color
         )
         {
             Vector3 worldNormal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
+            var diffuseColor = (Color)GetDiffuseColor(((Vector4)directionLightColor).xyz, worldNormal);
             var specularColor = GetSpecularColor((mv * v_position).xyz, worldNormal);
-            f_color = (Color)(specularColor + (Vector4)v_diffuseColor + (Vector4)ambientColor);
+            f_color = (Color)(specularColor + (Vector4)diffuseColor + (Vector4)ambientColor);
 
             // shadow mapping processing
             var targetPosition = lightMVP * mv * v_position;
@@ -152,7 +152,7 @@ namespace Saffiano.Gallery.Assets.Objects
                     }
                 }
             }
-            f_color = (Color)((Vector4)ambientColor + (1.0f - shadow) * ((Vector4)v_diffuseColor + specularColor));
+            f_color = (Color)((Vector4)ambientColor + (1.0f - shadow) * ((Vector4)diffuseColor + specularColor));
         }
     }
     

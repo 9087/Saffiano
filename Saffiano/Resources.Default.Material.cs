@@ -132,13 +132,11 @@ namespace Saffiano
                         [Attribute(AttributeType.Normal)] Vector3 a_normal,
                         out Vector4 gl_Position,
                         out Vector4 v_position,
-                        out Vector3 v_normal,
-                        out Color v_diffuseColor
+                        out Vector3 v_normal
                     )
                     {
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
                         Vector3 worldNormal = GetWorldNormal(a_normal);
-                        v_diffuseColor = (Color)GetDiffuseColor(((Vector4)directionLightColor).xyz, worldNormal); ;
                         v_position = new Vector4(a_position, 1.0f);
                         v_normal = a_normal;
                     }
@@ -146,13 +144,13 @@ namespace Saffiano
                     public virtual void FragmentShader(
                         Vector4 v_position,
                         Vector3 v_normal,
-                        Color v_diffuseColor,
                         out Color f_color
                     )
                     {
                         Vector3 worldNormal = (mv * new Vector4(v_normal, 0)).xyz.normalized;
+                        var diffuseColor = (Color)GetDiffuseColor(((Vector4)directionLightColor).xyz, worldNormal);
                         var specularColor = GetSpecularColor((mv * v_position).xyz, worldNormal);
-                        f_color = (Color)(specularColor + (Vector4)v_diffuseColor + (Vector4)(ambientColor));
+                        f_color = (Color)(specularColor + (Vector4)diffuseColor + (Vector4)(ambientColor));
                     }
                 }
             }
