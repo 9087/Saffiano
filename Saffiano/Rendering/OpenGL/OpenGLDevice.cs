@@ -5,9 +5,22 @@ using System.Collections.Generic;
 
 namespace Saffiano.Rendering
 {
-
     internal class OpenGLDevice : Device
     {
+        static Dictionary<BlendFactor, BlendingFactor> BlendingFactors = new Dictionary<BlendFactor, BlendingFactor>
+        {
+            {BlendFactor.One, BlendingFactor.One},
+            {BlendFactor.Zero, BlendingFactor.Zero},
+            {BlendFactor.SrcColor, BlendingFactor.SrcColor},
+            {BlendFactor.SrcAlpha, BlendingFactor.SrcAlpha},
+            {BlendFactor.DstColor, BlendingFactor.DstColor},
+            {BlendFactor.DstAlpha, BlendingFactor.DstAlpha},
+            {BlendFactor.OneMinusSrcColor, BlendingFactor.OneMinusSrcColor},
+            {BlendFactor.OneMinusSrcAlpha, BlendingFactor.OneMinusSrcAlpha},
+            {BlendFactor.OneMinusDstColor, BlendingFactor.OneMinusDstColor},
+            {BlendFactor.OneMinusDstAlpha, BlendingFactor.OneMinusDstAlpha},
+        };
+
         private DeviceContext deviceContext;
         private IntPtr glContext;
 
@@ -263,32 +276,32 @@ namespace Saffiano.Rendering
             var mesh = command.mesh;
             BindVertex(mesh);
             Enable(EnableCap.Lighting, command.lighting);
-            if (command.depthTest)
-            {
-                Gl.Enable(EnableCap.DepthTest);
-                Gl.DepthFunc(DepthFunction.Less);
-            }
-            else
-            {
-                Gl.Disable(EnableCap.DepthTest);
-            }
-            if (command.blend)
-            {
-                Gl.Enable(EnableCap.Blend);
-                Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-            }
-            else
-            {
-                Gl.Disable(EnableCap.Blend);
-            }
 
             // apply shader
             var material = command.material;
-            var shader = material.shader;
-            if (currentCamera.replacementShaders.TryGetValue("", out GPUProgram replacementShader))
+            if (currentCamera.replacementMaterials.TryGetValue("", out var replacementMaterial))
             {
-                shader = replacementShader;
+                material = replacementMaterial;
             }
+            var shader = material.shader;
+
+            #region Blending
+
+            if (shader.blend == Blend.off)
+            {
+                Gl.Disable(EnableCap.Blend);
+            }
+            else
+            {
+                Gl.Enable(EnableCap.Blend);
+                var sourceFactor = BlendingFactors.GetValueOrDefault(shader.blend.source, BlendingFactor.One);
+                var destinationFactor = BlendingFactors.GetValueOrDefault(shader.blend.destination, BlendingFactor.One);
+                Gl.BlendFunc(sourceFactor, destinationFactor);
+            }
+
+            #endregion
+
+            #region Cull mode
 
             if (shader.cullMode == CullMode.Off)
             {
@@ -310,6 +323,44 @@ namespace Saffiano.Rendering
                         break;
                 }
             }
+
+            #endregion
+
+            #region Depth test
+
+            if (shader.zTest == ZTest.Always)
+            {
+                Gl.Disable(EnableCap.DepthTest);
+            }
+            else
+            {
+                Gl.Enable(EnableCap.DepthTest);
+                switch (shader.zTest)
+                {
+                    case ZTest.Less:
+                        Gl.DepthFunc(DepthFunction.Less);
+                        break;
+                    case ZTest.LEqual:
+                        Gl.DepthFunc(DepthFunction.Lequal);
+                        break;
+                    case ZTest.Equal:
+                        Gl.DepthFunc(DepthFunction.Equal);
+                        break;
+                    case ZTest.GEqual:
+                        Gl.DepthFunc(DepthFunction.Gequal);
+                        break;
+                    case ZTest.Greater:
+                        Gl.DepthFunc(DepthFunction.Greater);
+                        break;
+                    case ZTest.NotEqual:
+                        Gl.DepthFunc(DepthFunction.Notequal);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+
+            #endregion
 
             uint program = shaderCache.TryRegister(shader).program;
             Gl.UseProgram(program);

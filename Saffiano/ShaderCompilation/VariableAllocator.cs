@@ -9,7 +9,7 @@ namespace Saffiano.ShaderCompilation
     {
         private string prefix = string.Empty;
 
-        private Dictionary<uint, Value> cache = new Dictionary<uint, Value>();
+        private Dictionary<uint, Variable> cache = new Dictionary<uint, Variable>();
 
         public int Count => cache.Count;
 
@@ -21,10 +21,32 @@ namespace Saffiano.ShaderCompilation
         public Value Allocate(TypeReference type, uint index)
         {
             type = type.Resolve();
+            Value value;
             if (!cache.ContainsKey(index))
             {
-                cache[index] = new Value(type, string.Format("{0}_{1}", prefix, index));
+                value = new Value(type, string.Format("{0}_{1}", prefix, index));
+                value.initialized = false;
+                cache[index] = value;
+            }
+            else
+            {
+                Debug.Assert(cache[index] is Value);
+                value = cache[index] as Value;
+            }
+            return Allocate(value, index) as Value;
+        }
+
+        public Variable Allocate(Variable variable, uint index)
+        {
+            var type = variable.type.Resolve();
+            if (!cache.ContainsKey(index))
+            {
+                cache[index] = variable;
                 cache[index].initialized = false;
+                if (variable.name == null)
+                {
+                    variable.name = string.Format("{0}_{1}", prefix, index);
+                }
             }
             var cachedType = cache[index].type;
             if (type.Resolve().GetRuntimeType() == typeof(bool) && cachedType.Resolve().GetRuntimeType() == typeof(int)) { ; }
@@ -38,7 +60,7 @@ namespace Saffiano.ShaderCompilation
             return cache[index];
         }
 
-        public Value Get(uint index)
+        public Variable Get(uint index)
         {
             return cache[index];
         }

@@ -10,6 +10,8 @@ namespace Saffiano.Rendering.OpenGL
 
         public uint vs { get; internal set; }
 
+        public uint gs { get; internal set; } = 0;
+
         public uint fs { get; internal set; }
     }
 
@@ -42,15 +44,25 @@ namespace Saffiano.Rendering.OpenGL
             shaderData.fs = Compile(_OpenGL.ShaderType.FragmentShader, key.fragmentShaderSourceCode);
             Gl.AttachShader(shaderData.program, shaderData.vs);
             Gl.AttachShader(shaderData.program, shaderData.fs);
+            if (key.geometryShaderSourceCode != null)
+            {
+                shaderData.gs = Compile(_OpenGL.ShaderType.GeometryShader, key.geometryShaderSourceCode);
+                Gl.AttachShader(shaderData.program, shaderData.gs);
+            }
             Gl.LinkProgram(shaderData.program);
             return shaderData;
         }
 
         protected override void OnUnregister(GPUProgram key)
         {
-            Gl.DeleteShader(this[key].vs);
-            Gl.DeleteShader(this[key].fs);
-            Gl.DeleteProgram(this[key].program);
+            var shaderData = this[key];
+            Gl.DeleteShader(shaderData.vs);
+            Gl.DeleteShader(shaderData.fs);
+            if (shaderData.gs != 0)
+            {
+                Gl.DeleteShader(shaderData.gs);
+            }
+            Gl.DeleteProgram(shaderData.program);
         }
     }
 }

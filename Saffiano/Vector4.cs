@@ -37,6 +37,10 @@ namespace Saffiano
         {
         }
 
+        public static Vector4 one => new Vector4(1, 1, 1, 1);
+
+        public static Vector4 zero => new Vector4(0, 0, 0, 0);
+
         public override string ToString()
         {
             return String.Format("({0:F2}, {1:F2}, {2:F2}, {3:F2})", this.x, this.y, this.z, this.w);

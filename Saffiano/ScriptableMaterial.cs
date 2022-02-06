@@ -1,4 +1,5 @@
-﻿using Saffiano.Rendering;
+﻿using Mono.Cecil;
+using Saffiano.Rendering;
 using Saffiano.ShaderCompilation;
 using System;
 using System.Collections.Generic;
@@ -71,6 +72,82 @@ namespace Saffiano
         }
     }
 
+    #region Primitive input/output object
+
+    public enum InputMode
+    {
+        Points,
+        Lines,
+        Triangles,
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class InputModeAttribute : Attribute
+    {
+        public InputMode mode { get; private set; }
+
+        public InputModeAttribute(InputMode mode)
+        {
+            this.mode = mode;
+        }
+    }
+    public enum OutputMode
+    {
+        Points,
+        LineStrip,
+        TriangleStrip,
+    }
+
+    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
+    public class OutputModeAttribute : Attribute
+    {
+        public OutputMode mode { get; private set; }
+
+        public int capacity { get; private set; }
+
+        public OutputModeAttribute(OutputMode mode, int capacity)
+        {
+            this.mode = mode;
+            this.capacity = capacity;
+        }
+    }
+
+    public class Vertex
+    {
+        public Vector4 gl_Position { get; set; }
+
+        public Vertex(Vector4 gl_Position)
+        {
+            this.gl_Position = gl_Position;
+        }
+    }
+
+    internal class VertexValue : Value
+    {
+        public Variable gl_Position { get; set; }
+
+        public VertexValue(TypeReference type, object name, Variable gl_Position) : base(type, name)
+        {
+            this.gl_Position = gl_Position;
+        }
+    }
+
+    public class Input<V> where V : Vertex
+    {
+        public V[] vertices { get; internal set; }
+
+        public V this[int index] => vertices[index];
+    }
+
+    public class Output<V> where V : Vertex
+    {
+        public void AddPrimitive(params V[] vertices)
+        {
+        }
+    }
+
+    #endregion
+
     public class ScriptableMaterial : Material
     {
         private static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
@@ -80,7 +157,14 @@ namespace Saffiano
             get
             {
                 var shaderSourceData = GetShaderSourceData(this.GetType());
-                return new GPUProgram(shaderSourceData.codes[ShaderType.VertexShader], shaderSourceData.codes[ShaderType.FragmentShader], this.cullMode);
+                return new GPUProgram(
+                    shaderSourceData.codes[ShaderType.VertexShader],
+                    shaderSourceData.codes.GetValueOrDefault(ShaderType.GeometryShader, null),
+                    shaderSourceData.codes[ShaderType.FragmentShader],
+                    this.cullMode,
+                    this.zTest,
+                    this.blend
+                );
             }
         }
 
@@ -97,15 +181,6 @@ namespace Saffiano
         {
             ShaderSourceCache[type] = shaderSourceData;
         }
-
-        [Uniform]
-        public Matrix4x4 mvp { get; }
-
-        [Uniform]
-        public Matrix4x4 mv { get; }
-
-        [Uniform]
-        public Texture mainTexture { get; }
 
         public ScriptableMaterial()
         {
@@ -156,6 +231,17 @@ namespace Saffiano
                 {
                     continue;
                 }
+                if (methodReference.DeclaringType.Resolve().GetRuntimeType() == typeof(ScriptableMaterial))
+                {
+                    if (shaderType == ShaderType.GeometryShader)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        throw new Exception(string.Format("override the necessary shader {0}!", shaderType.ToString()));
+                    }
+                }
                 string source = new ShaderCompiler().Compile(methodReference, out var uniformList);
                 var description = string.Format("// {0} generated from {1}\n", shaderType.ToString(), type.FullName);
                 shaderSourceData.codes[shaderType] = description + source;
@@ -170,10 +256,49 @@ namespace Saffiano
             SetShaderSourceData(type, shaderSourceData);
         }
 
-        [Shader(OpenGL: "vec2(dFdx({0}), dFdy({0}))")]
-        public static Vector2 Derivative(float value)
+        protected virtual void VertexShader(
+            [Attribute(AttributeType.Position)] Vector3 a_position,
+            [Attribute(AttributeType.Normal)] Vector3 a_normal,
+            [Attribute(AttributeType.TexCoord)] Vector2 a_texcoord,
+            [Attribute(AttributeType.Color)] Color a_color,
+            out Vector4 gl_Position
+        )
         {
-            throw new NotImplementedException();
+            gl_Position = new Vector4(0, 0, 0, 0);
+            return;  // to be overrided
+        }
+
+        protected virtual void GeometryShader(
+            [InputMode(InputMode.Triangles)] Input<Vertex> input,
+            [OutputMode(OutputMode.LineStrip, 16)] Output<Vertex> output
+        )
+        {
+            return;  // to be overrided
+        }
+
+        protected virtual void FragmentShader(
+            out Color f_color
+        )
+        {
+            f_color = new Color(1, 1, 1, 1);
+            return;  // to be overrided
+        }
+
+        #region Builtin uniforms
+
+        [Uniform]
+        public Matrix4x4 mvp { get; }
+
+        [Uniform]
+        public Matrix4x4 mv { get; }
+
+        [Uniform]
+        public Texture mainTexture { get; }
+
+        #endregion
+        protected Vector3 GetWorldNormal(Vector3 localNormal)
+        {
+            return (mv * new Vector4(localNormal, 0)).xyz.normalized;
         }
     }
 }

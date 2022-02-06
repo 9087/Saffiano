@@ -72,6 +72,9 @@ namespace Saffiano.Gallery
                 }
             }
 
+            // Set one sphere model as the gizmo target
+            Gizmo.Instance.target = GameObject.Find("Sphere");
+
             Application.Run();
             Application.Uninitialize();
         }

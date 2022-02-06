@@ -8,7 +8,11 @@ namespace Saffiano.UI
 
         public Sprite sprite { get; set; } = null;
 
-        public Material material { get; set; } = new Resources.Default.Material.Basic();
+        public Material material { get; set; } = new Resources.Default.Material.Basic()
+        {
+            zTest = ZTest.Always,
+            blend = Blend.transparency,
+        };
 
         protected override Mesh OnPopulateMesh(Mesh old)
         {
@@ -42,9 +46,7 @@ namespace Saffiano.UI
                 transform = rectTransform.localToWorldMatrix,
                 mesh = this.mesh,
                 mainTexture = this.sprite.texture,
-                depthTest = false,
                 lighting = false,
-                blend = true,
                 material = material,
             };
         }

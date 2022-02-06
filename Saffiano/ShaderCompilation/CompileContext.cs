@@ -62,7 +62,18 @@ namespace Saffiano.ShaderCompilation
         public string GetAttributeSourceCode()
         {
             var attributeDefinitions = new StringWriter();
-            var methodInfo = this.methodDefinition.GetMethodInfo();
+            MethodBase methodInfo;
+
+            // Geometry shader
+            if (this.methodDefinition.Name == ShaderType.GeometryShader.ToString())
+            {
+                methodInfo = this.methodDefinition.DeclaringType.Resolve().GetRuntimeType().GetMethod("GeometryShader");
+            }
+            else
+            {
+                methodInfo = this.methodDefinition.GetMethodInfo();
+            }
+
             var parameterInfos = methodInfo.GetParameters();
             foreach (var parameterInfo in parameterInfos)
             {
@@ -77,11 +88,37 @@ namespace Saffiano.ShaderCompilation
                 }
                 if (!parameterInfo.IsOut)
                 {
-                    var attributes = parameterInfo.GetCustomAttributes(typeof(AttributeAttribute), true);
-                    if (attributes.Length == 1)
+                    var attributes = parameterInfo.GetCustomAttributes(true)
+                        .Where(x => x is AttributeAttribute || x is InputModeAttribute || x is OutputModeAttribute)
+                        .ToList();
+                    if (attributes.Count >= 1)
                     {
-                        var attribute = attributes[0] as AttributeAttribute;
-                        attributeDefinitions.WriteLine(Format("layout (location = {0}) in {1} {2};", (uint)attribute.type, elementType, parameterInfo.Name));
+                        Debug.Assert(attributes.Count == 1);
+                        var attribute = attributes[0] as Attribute;
+                        switch (attribute)
+                        {
+                            case AttributeAttribute aa:
+                                attributeDefinitions.WriteLine(Format("layout (location = {0}) in {1} {2};", (uint)aa.type, elementType, parameterInfo.Name));
+                                break;
+                            case InputModeAttribute ima:
+                                var inputMode = new Dictionary<InputMode, string> {
+                                    { InputMode.Points, "points" },
+                                    { InputMode.Lines, "lines" },
+                                    { InputMode.Triangles, "triangles" },
+                                }[ima.mode];
+                                attributeDefinitions.WriteLine(Format("layout ({0}) in;", inputMode));
+                                break;
+                            case OutputModeAttribute oma:
+                                var outputMode = new Dictionary<OutputMode, string> {
+                                    { OutputMode.Points, "points" },
+                                    { OutputMode.LineStrip, "line_strip" },
+                                    { OutputMode.TriangleStrip, "triangle_strip" },
+                                }[oma.mode];
+                                attributeDefinitions.WriteLine(Format("layout ({0}, max_vertices = {1}) out;", outputMode, oma.capacity));
+                                break;
+                            default:
+                                throw new NotImplementedException();
+                        }
                     }
                     else
                     {
@@ -99,17 +136,21 @@ namespace Saffiano.ShaderCompilation
         public string GetMethodSourceCode(string methodName)
         {
             var code = new StringWriter();
-            var parameters = Join(
-                ", ",
-                this.methodDefinition.Parameters
-                    .Where(x => !x.IsOut)
-                    .Select((parameter) => Format("{0} {1}", parameter.ParameterType, parameter.Name))
-            );
+            string parameters = "";
+            if (methodName != "main")
+            {
+                parameters = Join(
+                    ", ",
+                    this.methodDefinition.Parameters
+                        .Where(x => !x.IsOut)
+                        .Select((parameter) => Format("{0} {1}", parameter.ParameterType, parameter.Name))
+                );
+            }
             code.WriteLine(Format(
                 "{0} {1}({2}) {{",
                 methodDefinition.ReturnType,
                 methodName,
-                methodName == "main" ? "" : parameters
+                parameters
             ));
             code.WriteLine(writer.ToString());
             code.WriteLine("}");
@@ -178,7 +219,7 @@ namespace Saffiano.ShaderCompilation
             {
                 int count = evaluationStackCount - evaluationStackPreviousCount;
                 unhandled = new EvaluationStack();
-                Stack<Value> tmp = new Stack<Value>();
+                Stack<Variable> tmp = new Stack<Variable>();
                 while ((count--) != 0)
                 {
                     tmp.Push(evaluationStack.Pop());
@@ -335,48 +376,53 @@ namespace Saffiano.ShaderCompilation
             return GenerateInternal(this.first, this.last, this.writer, ref unhandled);
         }
 
-        public Value Allocate(TypeReference type, uint index)
+        public Variable Allocate(Variable existed, uint index)
+        {
+            return allocator.Allocate(existed, index);
+        }
+
+        public Variable Allocate(TypeReference type, uint index)
         {
             return allocator.Allocate(type, index);
         }
 
-        public Value GetLocal(uint index)
+        public Variable GetLocal(uint index)
         {
             return allocator.Get(index);
         }
 
-        public Value Push(TypeReference type, object name)
+        public Variable Push(TypeReference type, object name)
         {
             return evaluationStack.Push(type, name);
         }
 
-        public Value Push(Value value)
+        public Variable Push(Variable value)
         {
             evaluationStack.Push(value);
             return value;
         }
 
-        public Value Push(ParameterReference parameterReference)
+        public Variable Push(ParameterReference parameterReference)
         {
             return evaluationStack.Push(parameterReference);
         }
 
-        public Value Push(PropertyReference propertyReference)
+        public Variable Push(PropertyReference propertyReference)
         {
             return evaluationStack.Push(propertyReference);
         }
 
-        public List<Value> Pop(int count)
+        public List<Variable> Pop(int count)
         {
             return evaluationStack.Pop(count);
         }
 
-        public Value Pop()
+        public Variable Pop()
         {
             return evaluationStack.Pop();
         }
 
-        public Value Peek()
+        public Variable Peek()
         {
             return evaluationStack.Peek();
         }
@@ -419,7 +465,15 @@ namespace Saffiano.ShaderCompilation
                 }
                 else if (arg is Value)
                 {
-                    parameters.Add((arg as Value).ToString());
+                    var value = arg as Value;
+                    if (value.type.FullName.StartsWith("Saffiano.Input`1"))
+                    {
+                        parameters.Add("gl_in");
+                    }
+                    else
+                    {
+                        parameters.Add(value.ToString());
+                    }
                 }
                 else if (arg is Type)
                 {
@@ -457,7 +511,7 @@ namespace Saffiano.ShaderCompilation
             return new Value(propertyDefinition.PropertyType, s);
         }
 
-        public Value Field(Value @this, FieldDefinition fieldDefinition)
+        public Variable Field(Variable @this, FieldDefinition fieldDefinition)
         {
             return new Value(fieldDefinition.FieldType, string.Format("{0}.{1}", @this.name, fieldDefinition.Name));
         }
@@ -500,10 +554,19 @@ namespace Saffiano.ShaderCompilation
             return string.Join(separator, values);
         }
 
-        public Value Method(MethodReference methodReference, Value[] parameters)
+        public Value Method(MethodReference methodReference, Variable[] parameters)
         {
             // built-in shader method
-            var methodInfo = methodReference.GetMethodInfo();
+            MethodBase methodInfo = null;
+            if (methodReference.HasThis)
+            {
+                var @this = parameters[0];
+                methodInfo = methodReference.GetMethodInfoWithGenericInstanceType(@this.type as GenericInstanceType);
+            }
+            else
+            {
+                methodInfo = methodReference.GetMethodInfo();
+            }
             var shaderAttributes = methodInfo.GetCustomAttributes<ShaderAttribute>();
             string pattern = null;
             if (shaderAttributes.Any())
@@ -533,7 +596,7 @@ namespace Saffiano.ShaderCompilation
                 var calleeMethodDefinition = methodReference.Resolve();
                 string methodName = Format("{0}_{1}", callerDeclaringType.Name, calleeMethodDefinition.Name);
                 methods[methodName] = calleeMethodDefinition;
-                List<Value> finalParameters = new List<Value>();
+                var finalParameters = new List<Variable>();
                 for (int index = 0; index < parameters.Length; index++)
                 {
                     if (calleeMethodDefinition.HasThis && index == 0)
@@ -557,16 +620,28 @@ namespace Saffiano.ShaderCompilation
                 }
                 return new Value(returnType, Format("{0}({1})", methodName, Join(", ", finalParameters)));
             }
+            if (methodInfo.DeclaringType.FullName.StartsWith("Saffiano.Output`1"))
+            {
+                var output = parameters[0];
+                var array = parameters[1] as Array;
+                StringWriter _writer = new StringWriter();
+                foreach (VertexValue item in array)
+                {
+                    _writer.WriteLine(Format("gl_Position = {0}; EmitVertex();", item.gl_Position));
+                }
+                _writer.WriteLine("EndPrimitive();");
+                return new Value(returnType, _writer.ToString());
+            }
             Debug.LogErrorFormat("Method \"{0}.{1}\" is not a built-in shader method.", methodInfo.DeclaringType.FullName, methodInfo.Name);
             return null;
         }
 
-        public Value Method(MethodReference methodReference, List<Value> parameters)
+        public Value Method(MethodReference methodReference, List<Variable> parameters)
         {
             return Method(methodReference, parameters.ToArray());
         }
 
-        public void Assign(Value target, object value)
+        public void Assign(Variable target, object value)
         {
             string format;
             if (target.initialized)
@@ -585,6 +660,16 @@ namespace Saffiano.ShaderCompilation
         public void WriteLine(string content)
         {
             writer.WriteLine(content);
+        }
+
+        public Value ConstructVertex(MethodReference methodReference, List<Variable> parameters)
+        {
+            var type = methodReference.DeclaringType.Resolve().GetRuntimeType();
+            Debug.Assert(typeof(Vertex).IsAssignableFrom(type));
+            MethodDefinition methodDefinition = methodReference.Resolve();
+            var instructions = methodDefinition.Body.Instructions;
+            var vertexTypeDefinition = typeof(Vertex).GetTypeDefinition();
+            return new VertexValue(vertexTypeDefinition, null, parameters[0]);
         }
     }
 }

@@ -12,10 +12,6 @@
 
         public bool lighting { get; set; } = true;
 
-        public bool depthTest { get; set; } = true;
-
-        public bool blend { get; set; } = false;
-
         public Material material { get; set; } = null;
 
         public Command()

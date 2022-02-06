@@ -7,7 +7,7 @@ namespace Saffiano
     {
         internal static List<Camera> allCameras = new List<Camera>();
 
-        internal Dictionary<string, GPUProgram> replacementShaders { get; private set; } = new Dictionary<string, GPUProgram>();
+        internal Dictionary<string, Material> replacementMaterials { get; private set; } = new Dictionary<string, Material>();
 
         public static Camera main
         {
@@ -83,14 +83,14 @@ namespace Saffiano
             }
         }
 
-        public void SetReplacementShader(GPUProgram shader, string replaceTag)
+        public void SetReplacementMaterial(Material material, string replaceTag)
         {
-            replacementShaders[replaceTag] = shader;
+            replacementMaterials[replaceTag] = material;
         }
 
         public void ResetReplacementShader()
         {
-            replacementShaders.Clear();
+            replacementMaterials.Clear();
         }
 
         internal Vector2 GetViewportSize()

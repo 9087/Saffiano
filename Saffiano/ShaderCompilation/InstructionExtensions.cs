@@ -111,31 +111,50 @@ namespace Saffiano.ShaderCompilation
         public static bool Call(MethodReference methodReference, CompileContext compileContext)
         {
             var methodDefinition = methodReference.Resolve();
-            if (methodDefinition.IsGetter)  // call property getter
+            if (methodDefinition.IsGetter)  
             {
-                var propertyName = methodDefinition.Name.Substring("get_".Length);
-                var @this = compileContext.Pop();
-                var typeDefinition = @this.type.Resolve();
-                var propertyDefinition = typeDefinition.FindPropertyDefinitionIncludeAncestors(propertyName);
-                if (typeof(ScriptableMaterial).IsAssignableFrom(typeDefinition.GetRuntimeType()))
+                if (methodDefinition.Name == "get_Item")
                 {
-                    Debug.Assert((@this.name as string) == "this");
-                    // uniform type is defined as a property in ScriptingMaterial
-                    compileContext.Push(propertyDefinition);
-                    var propertyInfo = propertyDefinition.DeclaringType.GetRuntimeType().GetProperty(propertyDefinition.Name);
-                    if (propertyInfo.GetCustomAttribute<UniformAttribute>() != null)
-                    {
-                        compileContext.AddUniform(new Uniform(propertyInfo));
-                    }
-                    else
-                    {
-                        throw new Exception("uncertain material property get behaviour");
-                    }
-                    return true;
+                    // object[]
+                    var index = compileContext.Pop() as Value;
+                    var @this = compileContext.Pop() as Value;
+                    compileContext.Push(
+                        new Value(
+                            methodReference.ReturnType.ResolveWithGenericInstanceType(
+                                methodReference.DeclaringType as GenericInstanceType
+                            ),
+                            CompileContext.Format("{0}[{1}]", @this, index)
+                        )
+                    );
                 }
                 else
                 {
-                    compileContext.Push(compileContext.Property(@this, propertyDefinition));
+                    // call property getter
+                    var propertyName = methodDefinition.Name.Substring("get_".Length);
+                    var @this = compileContext.Pop() as Value;
+                    Debug.Assert(@this != null);
+                    var typeDefinition = @this.type.Resolve();
+                    var propertyDefinition = typeDefinition.FindPropertyDefinitionIncludeAncestors(propertyName);
+                    if (typeof(ScriptableMaterial).IsAssignableFrom(typeDefinition.GetRuntimeType()))
+                    {
+                        Debug.Assert((@this.name as string) == "this");
+                        // uniform type is defined as a property in ScriptingMaterial
+                        compileContext.Push(propertyDefinition);
+                        var propertyInfo = propertyDefinition.DeclaringType.GetRuntimeType().GetProperty(propertyDefinition.Name);
+                        if (propertyInfo.GetCustomAttribute<UniformAttribute>() != null)
+                        {
+                            compileContext.AddUniform(new Uniform(propertyInfo));
+                        }
+                        else
+                        {
+                            throw new Exception("uncertain material property get behaviour");
+                        }
+                        return true;
+                    }
+                    else
+                    {
+                        compileContext.Push(compileContext.Property(@this, propertyDefinition));
+                    }
                 }
             }
             else  // method
@@ -280,8 +299,17 @@ namespace Saffiano.ShaderCompilation
         public static bool Construct(MethodReference methodReference, CompileContext compileContext)
         {
             var parameters = compileContext.Pop(methodReference.Parameters.Count);
-            var method = compileContext.Method(methodReference, parameters);
-            compileContext.Push(method);
+            var type = methodReference.DeclaringType.Resolve().GetRuntimeType();
+            Variable value = null;
+            if (typeof(Vertex).IsAssignableFrom(type))
+            {
+                value = compileContext.ConstructVertex(methodReference, parameters);
+            }
+            else
+            {
+                value = compileContext.Method(methodReference, parameters);
+            }
+            compileContext.Push(value);
             return true;
         }
 
@@ -651,6 +679,25 @@ namespace Saffiano.ShaderCompilation
         public static bool Pop(Instruction instruction, CompileContext compileContext, ref Instruction next)
         {
             compileContext.Pop();
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Newarr)]
+        public static bool Newarr(Instruction instruction, CompileContext compileContext, ref Instruction next)
+        {
+            var elementCount = compileContext.Pop() as Value;
+            var elementType = (instruction.Operand as TypeReference).Resolve();
+            compileContext.Push(new Array(elementType, null, elementCount));
+            return true;
+        }
+
+        [Instruction(Mono.Cecil.Cil.Code.Stelem_Ref)]
+        public static bool Stelem_Ref(Instruction instruction, CompileContext compileContext, ref Instruction next)
+        {
+            var element = compileContext.Pop() as Value;
+            var index = compileContext.Pop() as Value;
+            var array = compileContext.Pop() as Array;
+            array.SetElement((int)index.name, element);
             return true;
         }
 

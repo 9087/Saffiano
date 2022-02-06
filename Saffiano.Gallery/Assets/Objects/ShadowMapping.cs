@@ -212,7 +212,7 @@ namespace Saffiano.Gallery.Assets.Objects
             rt.wrapMode = TextureWrapMode.Clamp;
             this.camera.targetTexture = rt;
             this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
-            this.camera.SetReplacementShader(new ShadowMappingMaterial().shader, "");
+            this.camera.SetReplacementMaterial(new ShadowMappingMaterial(), "");
 
 #if false // DEBUG
             GameObject canvas = new GameObject("Canvas");

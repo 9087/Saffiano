@@ -1,6 +1,6 @@
 ﻿namespace Saffiano
 {
-    internal enum PrimitiveType
+    public enum PrimitiveType
     {
         Points = 0,
         Lines = 1,

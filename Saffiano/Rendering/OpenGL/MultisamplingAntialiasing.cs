@@ -5,6 +5,8 @@ namespace Saffiano.Rendering.OpenGL
 {
     internal class MultisamplingAntialiasingMaterial : ScriptableMaterial
     {
+        public override ZTest zTest { get; set; } = ZTest.Always;
+
         public virtual void VertexShader(
             [Attribute(AttributeType.Position)] Vector3 a_position,
             [Attribute(AttributeType.TexCoord)] Vector2 a_texcoord,
@@ -90,8 +92,6 @@ namespace Saffiano.Rendering.OpenGL
                 mesh = mesh,
                 mainTexture = screenTexture,
                 lighting = false,
-                depthTest = false,
-                blend = false,
                 material = material,
             });
         }

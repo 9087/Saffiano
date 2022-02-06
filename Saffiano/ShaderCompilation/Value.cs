@@ -1,45 +1,29 @@
 ﻿using Mono.Cecil;
-using System.Collections.Generic;
+using System;
 
 namespace Saffiano.ShaderCompilation
 {
-    internal class Value
+    internal class Value : Variable
     {
-        public object name { get; protected set; }
-
-        public TypeReference type { get; private set; }
-
-        public bool initialized { get; set; } = true;
-
-        public bool isAddress { get; set; } = false;
-
-        public Value(TypeReference type, object name)
+        public Value(TypeReference type, object name) : base(type, name)
         {
-            this.type = type;
-            this.name = name;
+            Debug.Assert(type.IsArray == false);
         }
 
-        public override bool Equals(object obj)
+        public static implicit operator int(Value value)
         {
-            if (!(obj is Value))
+            if (value.name is int)
             {
-                return false;
+                return (int)value.name;
             }
-            var value = obj as Value;
-            return type == value.type && name == value.name;
-        }
-
-        public override string ToString()
-        {
-            return name.ToString();
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = 1725085987;
-            hashCode = hashCode * -1521134295 + EqualityComparer<object>.Default.GetHashCode(name);
-            hashCode = hashCode * -1521134295 + EqualityComparer<TypeReference>.Default.GetHashCode(type);
-            return hashCode;
+            else if (value.name is string)
+            {
+                return int.Parse(value.name as string);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

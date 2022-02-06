@@ -7,9 +7,15 @@ namespace Saffiano.Rendering
     {
         internal string vertexShaderSourceCode { get; private set; }
 
+        internal string geometryShaderSourceCode { get; private set; }
+
         internal string fragmentShaderSourceCode { get; private set; }
 
         internal CullMode cullMode { get; private set; }
+
+        internal ZTest zTest { get; private set; }
+
+        internal Blend blend { get; private set; }
 
         private static string ReadFile(string filePath)
         {
@@ -18,11 +24,17 @@ namespace Saffiano.Rendering
             return streamReader.ReadToEnd();
         }
 
-        public GPUProgram(string vertexShaderSourceCode, string fragmentShaderSourceCode, CullMode cullMode)
+        public GPUProgram(
+            string vertexShaderSourceCode, string geometryShaderSourceCode, string fragmentShaderSourceCode,
+            CullMode cullMode, ZTest zTest, Blend blend
+        )
         {
             this.vertexShaderSourceCode = vertexShaderSourceCode;
+            this.geometryShaderSourceCode = geometryShaderSourceCode;
             this.fragmentShaderSourceCode = fragmentShaderSourceCode;
             this.cullMode = cullMode;
+            this.zTest = zTest;
+            this.blend = blend;
         }
 
         public override bool Equals(object other)
@@ -44,7 +56,10 @@ namespace Saffiano.Rendering
 
         public static GPUProgram LoadFromFile(string vertexShaderFilePath, string fragmentShaderFilePath)
         {
-            return new GPUProgram(ReadFile(vertexShaderFilePath), ReadFile(fragmentShaderFilePath), CullMode.Off);
+            return new GPUProgram(
+                ReadFile(vertexShaderFilePath), null, ReadFile(fragmentShaderFilePath),
+                CullMode.Off, ZTest.Less, Blend.off
+            );
         }
     }
 }

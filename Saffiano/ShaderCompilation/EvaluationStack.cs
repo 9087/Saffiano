@@ -3,32 +3,32 @@ using Mono.Cecil;
 
 namespace Saffiano.ShaderCompilation
 {
-    internal class EvaluationStack : Stack<Value>
+    internal class EvaluationStack : Stack<Variable>
     {
-        public Value Push(TypeReference type, object name)
+        public Variable Push(TypeReference type, object name)
         {
             var value = new Value(type, name);
             Push(value);
             return value;
         }
 
-        public Value Push(ParameterReference parameterReference)
+        public Variable Push(ParameterReference parameterReference)
         {
             var value = new Value(parameterReference.ParameterType, parameterReference.Name);
             Push(value);
             return value;
         }
 
-        public Value Push(PropertyReference propertyReference)
+        public Variable Push(PropertyReference propertyReference)
         {
             var value = new Value(propertyReference.PropertyType, propertyReference.Name);
             Push(value);
             return value;
         }
 
-        public List<Value> Pop(int count)
+        public List<Variable> Pop(int count)
         {
-            List<Value> list = new List<Value>();
+            List<Variable> list = new List<Variable>();
             for (int i = 0; i < count; i++)
             {
                 list.Insert(0, Pop());

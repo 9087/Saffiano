@@ -26,7 +26,6 @@ namespace Saffiano
         private Transform internalParent = null;
         internal List<Transform> children = new List<Transform>();
 
-
         private Vector3 _localPosition = Vector3.zero;
 
         public virtual Vector3 localPosition
@@ -75,19 +74,19 @@ namespace Saffiano
         
         public Quaternion rotation
         {
-            get
+            get => this.localToWorldMatrix.rotation;
+            set
             {
-                // Reference: Maths - Conversion Matrix to Quaternion
-                // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-                // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/christian.htm
-                var matrix = this.localToWorldMatrix;
-                var determinant = matrix.determinant;
-                var absQ2 = MathF.Pow(Mathf.Abs(determinant), 1.0f / 3.0f) * Mathf.Sign(determinant);
-                var w = Mathf.Sqrt(Mathf.Max(0, absQ2 + matrix.m00 + matrix.m11 + matrix.m22)) / 2;
-                var x = Mathf.Sqrt(Mathf.Max(0, 1 + matrix.m00 - matrix.m11 - matrix.m22)) / 2 * Mathf.Sign(matrix.m21 - matrix.m12);
-                var y = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 + matrix.m11 - matrix.m22)) / 2 * Mathf.Sign(matrix.m02 - matrix.m20);
-                var z = Mathf.Sqrt(Mathf.Max(0, 1 - matrix.m00 - matrix.m11 + matrix.m22)) / 2 * Mathf.Sign(matrix.m10 - matrix.m01);
-                return new Quaternion(x, y, z, w);
+                if (parent == null)
+                {
+                    localRotation = new Quaternion(value.x, value.y, value.z, value.w);
+                }
+                else
+                {
+                    var matrix = Matrix4x4.TRS(position, rotation, scale).inverse;
+                    localRotation = (parent.localToWorldMatrix * matrix).rotation;
+                }
+                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -99,6 +98,24 @@ namespace Saffiano
             set
             {
                 _localScale = value;
+                SendMessage("OnTransformParentChanged");
+            }
+        }
+
+        public Vector3 scale
+        {
+            get => this.localToWorldMatrix.lossyScale;
+            set
+            {
+                if (parent == null)
+                {
+                    localScale = new Vector3(value.x, value.y, value.z);
+                }
+                else
+                {
+                    var matrix = Matrix4x4.TRS(position, rotation, scale).inverse;
+                    localScale = (parent.localToWorldMatrix * matrix).lossyScale;
+                }
                 SendMessage("OnTransformParentChanged");
             }
         }

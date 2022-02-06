@@ -318,6 +318,25 @@ namespace Saffiano
             }
         }
 
+        public Quaternion rotation
+        {
+            get
+            {
+                // Reference: Maths - Conversion Matrix to Quaternion
+                // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+                // http://euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/christian.htm
+                var determinant = this.determinant;
+                var absQ2 = MathF.Pow(Mathf.Abs(determinant), 1.0f / 3.0f) * Mathf.Sign(determinant);
+                var w = Mathf.Sqrt(Mathf.Max(0, absQ2 + this.m00 + this.m11 + this.m22)) / 2;
+                var x = Mathf.Sqrt(Mathf.Max(0, 1 + this.m00 - this.m11 - this.m22)) / 2 * Mathf.Sign(this.m21 - this.m12);
+                var y = Mathf.Sqrt(Mathf.Max(0, 1 - this.m00 + this.m11 - this.m22)) / 2 * Mathf.Sign(this.m02 - this.m20);
+                var z = Mathf.Sqrt(Mathf.Max(0, 1 - this.m00 - this.m11 + this.m22)) / 2 * Mathf.Sign(this.m10 - this.m01);
+                return new Quaternion(x, y, z, w);
+            }
+        }
+
+        public Vector3 lossyScale => new Vector3(this.m00, this.m11, this.m22);
+
         public static Matrix4x4 Ortho(float left, float right, float bottom, float top, float zNear, float zFar)
         {
             Matrix4x4 matrix = new Matrix4x4();

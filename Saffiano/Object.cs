@@ -15,8 +15,11 @@ namespace Saffiano
     {
         public string name { get; set; } = "Unnamed";
 
+        bool alive = false;
+
         public Object()
         {
+            this.alive = true;
         }
 
         public override string ToString()
@@ -27,9 +30,24 @@ namespace Saffiano
         public static void Destroy(Object obj)
         {
             obj.RequestDestroy();
+            obj.alive = false;
         }
 
-        internal virtual void RequestDestroy()
+        public override bool Equals(object obj)
+        {
+            if (!this.alive && obj == null)
+            {
+                return true;
+            }
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return 363513814 + EqualityComparer<string>.Default.GetHashCode(name);
+        }
+
+        protected virtual void RequestDestroy()
         {
         }
 

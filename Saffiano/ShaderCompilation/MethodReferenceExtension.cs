@@ -7,13 +7,31 @@ namespace Saffiano.ShaderCompilation
 {
     public static class MethodReferenceExtension
     {
+        public static MethodBase GetMethodInfoWithGenericInstanceType(this MethodReference methodReference, GenericInstanceType git)
+        {
+            if (git == null)
+            {
+                return methodReference.GetMethodInfo();
+            }
+            var typeDefinition = git.Resolve();
+            return methodReference.GetMethodInfo(typeDefinition, git);
+        }
+
         public static MethodBase GetMethodInfo(this MethodReference methodReference)
         {
+            return methodReference.GetMethodInfo(methodReference.DeclaringType.Resolve(), null);
+        }
+
+        private static MethodBase GetMethodInfo(this MethodReference methodReference, TypeDefinition typeDefinition, GenericInstanceType git)
+        {
             var methodDefinition = methodReference.Resolve();
-            var typeDefinition = methodDefinition.DeclaringType;
             var declaringType = typeDefinition.GetRuntimeType();
+            if (git != null && !methodDefinition.IsConstructor)
+            {
+                return declaringType.GetMethod(methodReference.Name);
+            }
             var parameterTypes = methodReference.Parameters.Select((pd) => {
-                var td = pd.ParameterType.Resolve();
+                var td = pd.ParameterType.ResolveWithGenericInstanceType(git);
                 var pt = td.GetRuntimeType();
                 if (pd.ParameterType.IsPointer)
                 {

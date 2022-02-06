@@ -69,22 +69,11 @@ namespace Saffiano
                     }
 
                     [Uniform]
-                    public Color ambientColor
-                    {
-                        get
-                        {
-                            return RenderSettings.ambientLight;
-                        }
-                    }
+                    public Color ambientColor => RenderSettings.ambientLight;
 
                     protected Vector4 GetDiffuseColor(Vector3 lightColor, Vector3 worldNormal)
                     {
                         return new Vector4(lightColor * Mathf.Max(Vector3.Dot(worldNormal, directionLight), 0), 1);
-                    }
-
-                    protected Vector3 GetWorldNormal(Vector3 localNormal)
-                    {
-                        return (mv * new Vector4(localNormal, 0)).xyz.normalized;
                     }
 
                     public virtual void VertexShader(
@@ -136,7 +125,6 @@ namespace Saffiano
                     )
                     {
                         gl_Position = mvp * new Vector4(a_position, 1.0f);
-                        Vector3 worldNormal = GetWorldNormal(a_normal);
                         v_position = new Vector4(a_position, 1.0f);
                         v_normal = a_normal;
                     }

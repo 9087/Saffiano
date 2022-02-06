@@ -75,7 +75,11 @@ namespace Saffiano.UI
             }
         }
 
-        public Material material { get; set; } = new Resources.Default.Material.Basic();
+        public Material material { get; set; } = new Resources.Default.Material.Basic()
+        {
+            zTest = ZTest.Always,
+            blend = Blend.transparency,
+        };
 
         public TextAnchor alignment
         {
@@ -251,9 +255,7 @@ namespace Saffiano.UI
                 transform = rectTransform.localToWorldMatrix,
                 mesh = this.mesh,
                 mainTexture = Font.atlas,
-                depthTest = false,
                 lighting = false,
-                blend = true,
                 material = material,
             };
         }

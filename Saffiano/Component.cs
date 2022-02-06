@@ -26,7 +26,7 @@
             this.gameObject = null;
         }
 
-        internal override void RequestDestroy()
+        protected override void RequestDestroy()
         {
             this.gameObject.RemoveComponent(this);
         }

@@ -139,7 +139,7 @@ namespace Saffiano
             return this.components.FindAll(c => c is T).Select((c) => c as T).ToArray();
         }
 
-        internal override void RequestDestroy()
+        protected override void RequestDestroy()
         {
             foreach (Component component in this.components)
             {
