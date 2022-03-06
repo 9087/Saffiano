@@ -7,6 +7,8 @@ namespace Saffiano
         VertexShader = 0,
         GeometryShader = 36313,
         FragmentShader = 35632,
+        TessEvaluationShader = 36487,
+        TessControlShader = 36488,
     }
 
     public enum CullMode : uint

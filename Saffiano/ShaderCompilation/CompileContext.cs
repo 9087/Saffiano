@@ -26,6 +26,31 @@ namespace Saffiano.ShaderCompilation
         }
     }
 
+    class VertexAttributeInfo
+    {
+        public string name { get; private set; }
+
+        public TypeReference type { get; private set; }
+
+        public bool isInOrOut { get; private set; }
+
+        public bool isIn => isInOrOut;
+
+        public bool isOut => !isInOrOut;
+
+        public VertexAttributeInfo(string name, TypeReference type, bool isInOrOut)
+        {
+            this.name = name;
+            this.type = type;
+            this.isInOrOut = isInOrOut;
+        }
+
+        public override string ToString()
+        {
+            return CompileContext.Format("{0} {1} {2};", isInOrOut ? "in" : "out", type, name);
+        }
+    }
+
     internal class CompileContext
     {
         private TextWriter writer = new StringWriter();
@@ -38,6 +63,12 @@ namespace Saffiano.ShaderCompilation
         public HashSet<Uniform> uniforms { get; private set; } = new HashSet<Uniform>();
 
         public Dictionary<string, MethodDefinition> methods { get; private set; } = new Dictionary<string, MethodDefinition>();
+
+        public Dictionary<string, VertexAttributeInfo> necessaryVertexAttributes = new Dictionary<string, VertexAttributeInfo>();
+
+        static internal string TessellationShaderMethodName = "TessellationShader";
+
+        private HashSet<ShaderExtension> shaderExtensions = new HashSet<ShaderExtension>();
 
         public EvaluationStack GetEvaluationStack()
         {
@@ -59,15 +90,15 @@ namespace Saffiano.ShaderCompilation
             return uniformDefinitions.ToString();
         }
 
-        public string GetAttributeSourceCode()
+        public string GetAttributeSourceCode(Func<ParameterInfo, bool> filter = null)
         {
             var attributeDefinitions = new StringWriter();
             MethodBase methodInfo;
 
-            // Geometry shader
-            if (this.methodDefinition.Name == ShaderType.GeometryShader.ToString())
+            // Geometry shader & tessellation shader
+            if (new string[] { ShaderType.GeometryShader.ToString(), TessellationShaderMethodName }.Contains(this.methodDefinition.Name))
             {
-                methodInfo = this.methodDefinition.DeclaringType.Resolve().GetRuntimeType().GetMethod("GeometryShader");
+                methodInfo = this.methodDefinition.DeclaringType.Resolve().GetRuntimeType().GetMethod(this.methodDefinition.Name);
             }
             else
             {
@@ -75,8 +106,25 @@ namespace Saffiano.ShaderCompilation
             }
 
             var parameterInfos = methodInfo.GetParameters();
+
+            foreach (var vertexAttribute in necessaryVertexAttributes.Values)
+            {
+                attributeDefinitions.WriteLine(vertexAttribute.ToString());
+            }
+
             foreach (var parameterInfo in parameterInfos)
             {
+                if (necessaryVertexAttributes.ContainsKey(parameterInfo.Name))
+                {
+                    continue;
+                }
+                if (filter != null)
+                {
+                    if (!filter(parameterInfo))
+                    {
+                        continue;
+                    }
+                }
                 Type elementType = null;
                 if (parameterInfo.ParameterType.IsByRef)
                 {
@@ -122,7 +170,10 @@ namespace Saffiano.ShaderCompilation
                     }
                     else
                     {
-                        attributeDefinitions.WriteLine(Format("in {0} {1};", elementType, parameterInfo.Name));
+                        if (elementType.GetTypeDefinition() != null)
+                        {
+                            attributeDefinitions.WriteLine(Format("in {0} {1};", elementType, parameterInfo.Name));
+                        }
                     }
                 }
                 else
@@ -210,7 +261,7 @@ namespace Saffiano.ShaderCompilation
                     {
                         Console.WriteLine(i);
                     }
-                    throw new NotImplementedException();
+                    throw e;
                 }
             }
             this.writer = writer;
@@ -502,6 +553,7 @@ namespace Saffiano.ShaderCompilation
             {
                 // convert to method call
                 pattern = shaderAttributes.First().pattern;
+                RegisterShaderExtension(shaderAttributes.First());
             }
             else
             {
@@ -546,6 +598,7 @@ namespace Saffiano.ShaderCompilation
             {
                 throw new Exception();
             }
+            Debug.Assert(shaderAttributes.First().extensions == null);  // unsupported for type
             return shaderAttributes.First().pattern;
         }
 
@@ -572,6 +625,7 @@ namespace Saffiano.ShaderCompilation
             if (shaderAttributes.Any())
             {
                 pattern = shaderAttributes.First().pattern;
+                RegisterShaderExtension(shaderAttributes.First());
             }
             var md = methodReference.Resolve();
             TypeReference returnType = md.ReturnType;
@@ -625,9 +679,19 @@ namespace Saffiano.ShaderCompilation
                 var output = parameters[0];
                 var array = parameters[1] as Array;
                 StringWriter _writer = new StringWriter();
-                foreach (VertexValue item in array)
+                foreach (Value item in array)
                 {
-                    _writer.WriteLine(Format("gl_Position = {0}; EmitVertex();", item.gl_Position));
+                    Debug.Assert(typeof(Vertex).IsAssignableFrom(item.type.Resolve().GetRuntimeType()));
+
+                    var properties = item.name as Dictionary<string, Variable>;
+                    foreach (var pair in properties)
+                    {
+                        var name = pair.Key;
+                        var value = pair.Value;
+                        _writer.WriteLine(Format("{0} = {1};", name, value));
+                        necessaryVertexAttributes[name] = new VertexAttributeInfo(name, value.type, false);
+                    }
+                    _writer.WriteLine("EmitVertex();");
                 }
                 _writer.WriteLine("EndPrimitive();");
                 return new Value(returnType, _writer.ToString());
@@ -667,9 +731,60 @@ namespace Saffiano.ShaderCompilation
             var type = methodReference.DeclaringType.Resolve().GetRuntimeType();
             Debug.Assert(typeof(Vertex).IsAssignableFrom(type));
             MethodDefinition methodDefinition = methodReference.Resolve();
-            var instructions = methodDefinition.Body.Instructions;
             var vertexTypeDefinition = typeof(Vertex).GetTypeDefinition();
-            return new VertexValue(vertexTypeDefinition, null, parameters[0]);
+            Dictionary<string, Variable> dict = new Dictionary<string, Variable>();
+            for (int i = 0; i < methodDefinition.Parameters.Count; i++)
+            {
+                dict[methodDefinition.Parameters[i].Name] = parameters[i];
+            }
+            return new Value(vertexTypeDefinition, dict);
+        }
+
+        public void RegisterShaderExtension(ShaderAttribute shaderAttribute)
+        {
+            if (shaderAttribute.extensions == null)
+            {
+                return;
+            }
+            foreach (var extension in shaderAttribute.extensions)
+            {
+                if (shaderExtensions.Contains(extension))
+                {
+                    continue;
+                }
+                
+                shaderExtensions.Add(extension);
+            }
+            
+        }
+
+        public HashSet<ShaderExtension> GetShaderExtensions()
+        {
+            return shaderExtensions;
+        }
+
+        public static string GetShaderExtensionSourceCode(HashSet<ShaderExtension> shaderExtensions)
+        {
+            var writer = new StringWriter();
+            foreach (var shaderExtension in shaderExtensions)
+            {
+                string shaderExtensionPath = null;
+                switch (shaderExtension)
+                {
+                    case ShaderExtension.Quaternion:
+                        shaderExtensionPath = "Saffiano.Rendering.OpenGL.Quaternion.glsl";
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+                var fileStream = typeof(CompileContext).Assembly.GetManifestResourceStream(shaderExtensionPath);
+                using (var streamReader = new StreamReader(fileStream))
+                {
+                    string buffer = streamReader.ReadToEnd();
+                    writer.WriteLine(buffer);
+                }
+            }
+            return writer.ToString();
         }
     }
 }

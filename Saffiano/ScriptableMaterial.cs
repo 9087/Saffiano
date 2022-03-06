@@ -3,6 +3,7 @@ using Saffiano.Rendering;
 using Saffiano.ShaderCompilation;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Saffiano
@@ -59,11 +60,27 @@ namespace Saffiano
         }
     }
 
+
+    public enum TessellationDrawType
+    {
+        Vertics,
+        Element,
+    }
+
+    public class TessellationConfiguration
+    {
+        public int patchVerticesCount { get; set; }
+
+        public TessellationDrawType drawType { get; set; }
+    }
+
     public class ShaderSourceData
     {
         public Dictionary<ShaderType, string> codes { get; private set; }
 
         public HashSet<Uniform> uniforms { get; private set; }
+
+        public TessellationConfiguration tessellationConfiguration { get; internal set; }
 
         public ShaderSourceData()
         {
@@ -91,6 +108,7 @@ namespace Saffiano
             this.mode = mode;
         }
     }
+
     public enum OutputMode
     {
         Points,
@@ -118,17 +136,7 @@ namespace Saffiano
 
         public Vertex(Vector4 gl_Position)
         {
-            this.gl_Position = gl_Position;
-        }
-    }
-
-    internal class VertexValue : Value
-    {
-        public Variable gl_Position { get; set; }
-
-        public VertexValue(TypeReference type, object name, Variable gl_Position) : base(type, name)
-        {
-            this.gl_Position = gl_Position;
+            throw new Exception("Meaningless & Non-Runnable");
         }
     }
 
@@ -148,6 +156,37 @@ namespace Saffiano
 
     #endregion
 
+    public enum TessellationMode
+    {
+        Isolines,
+        Triangles,
+        Quads,
+    }
+
+    public class TessellationAttribute : Attribute
+    {
+        public TessellationMode mode { get; private set; }
+
+        public bool equalSpacing { get; private set; }
+
+        public bool pointMode { get; private set; }
+
+        public uint[] outer { get; private set; }
+
+        public uint[] inner { get; private set; }
+
+        public TessellationAttribute(TessellationMode mode, uint[] outer, uint[] inner, bool equalSpacing = false, bool pointMode = false)
+        {
+            this.mode = mode;
+            this.outer = outer;
+            Debug.Assert(outer.Length <= 4);
+            this.inner = inner;
+            Debug.Assert(inner.Length <= 2);
+            this.equalSpacing = equalSpacing;
+            this.pointMode = pointMode;
+        }
+    }
+
     public class ScriptableMaterial : Material
     {
         private static Dictionary<Type, ShaderSourceData> ShaderSourceCache = new Dictionary<Type, ShaderSourceData>();
@@ -157,14 +196,7 @@ namespace Saffiano
             get
             {
                 var shaderSourceData = GetShaderSourceData(this.GetType());
-                return new GPUProgram(
-                    shaderSourceData.codes[ShaderType.VertexShader],
-                    shaderSourceData.codes.GetValueOrDefault(ShaderType.GeometryShader, null),
-                    shaderSourceData.codes[ShaderType.FragmentShader],
-                    this.cullMode,
-                    this.zTest,
-                    this.blend
-                );
+                return new GPUProgram(shaderSourceData, this.cullMode, this.zTest, this.blend);
             }
         }
 
@@ -210,6 +242,122 @@ namespace Saffiano
             }
         }
 
+        private static string GenerateShaderSourceCode(Type type, ShaderType shaderType, string methodName, out HashSet<Uniform> uniformList, Func<ParameterInfo, bool> filter = null)
+        {
+            var methodReference = type.GetTypeDefinition().FindMethod(methodName);
+            if (methodReference == null)
+            {
+                uniformList = null;
+                return null;
+            }
+            if (methodReference.DeclaringType.Resolve().GetRuntimeType() == typeof(ScriptableMaterial))
+            {
+                if (shaderType == ShaderType.GeometryShader ||
+                    shaderType == ShaderType.TessControlShader ||
+                    shaderType == ShaderType.TessEvaluationShader)
+                {
+                    uniformList = null;
+                    return null;
+                }
+                throw new Exception(string.Format("override the necessary shader {0}!", methodName));
+            }
+            return new ShaderCompiler().Compile(methodReference, out uniformList, filter: filter);
+        }
+
+        private static void ProcessTessellationShader(Type type, ref ShaderSourceData shaderSourceData)
+        {
+            var methodName = CompileContext.TessellationShaderMethodName;
+            var source = GenerateShaderSourceCode(type, ShaderType.TessEvaluationShader, methodName, out var uniformList, (ParameterInfo info) => info.Name != "gl_TessCoord");
+            if (source == null)
+            {
+                return;
+            }
+
+            var methodReference = type.GetTypeDefinition().FindMethod(methodName);
+            var methodDefinition = methodReference.Resolve();
+            var methodInfo = methodDefinition.DeclaringType.Resolve().GetRuntimeType().GetMethod(methodDefinition.Name);
+
+            var tessellationAttribute = methodInfo.GetCustomAttribute<TessellationAttribute>();
+            Debug.Assert(tessellationAttribute != null, "TesselationShader method shall be decorated with TessellationAttribute");
+
+            List<string> layoutParameters = new List<string>();
+            layoutParameters.Add(tessellationAttribute.mode.ToString().ToLower());
+            if (tessellationAttribute.equalSpacing)
+            {
+                layoutParameters.Add("equal_spacing");
+            }
+            if (tessellationAttribute.pointMode)
+            {
+                layoutParameters.Add("point_mode");
+            }
+
+            var description = string.Format(
+                "// {0} generated from {1}\n" +
+                "#version 400\n" +
+                "layout({2}) in;\n",
+                methodName, type.FullName, string.Join(", ", layoutParameters)
+            ); ;
+            shaderSourceData.codes[ShaderType.TessEvaluationShader] = description + source;
+
+            if (uniformList != null)
+            {
+                foreach (var uniform in uniformList)
+                {
+                    shaderSourceData.uniforms.Add(uniform);
+                }
+            }
+
+            var tessellationConfiguration = new TessellationConfiguration();
+            switch (tessellationAttribute.mode)
+            {
+                case TessellationMode.Isolines:
+                    tessellationConfiguration.patchVerticesCount = 2;
+                    break;
+                case TessellationMode.Triangles:
+                    tessellationConfiguration.patchVerticesCount = 3;
+                    break;
+                case TessellationMode.Quads:
+                    tessellationConfiguration.patchVerticesCount = 4;
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            tessellationConfiguration.drawType = TessellationDrawType.Vertics;
+            shaderSourceData.tessellationConfiguration = tessellationConfiguration;
+
+            shaderSourceData.codes[ShaderType.TessControlShader] =
+
+                string.Format(
+                    "// Tessellation control shader generated from {0}\n",
+                    type.FullName
+                ) +
+
+                "#version 400\n" +
+
+                string.Format(
+                    "layout(vertices={0}) out;\n",
+                    tessellationConfiguration.patchVerticesCount
+                ) +
+
+                "void main()\n" +
+                "{\n" +
+                "    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;\n" +
+                "    if (gl_InvocationID == 0) {\n" +
+
+                string.Join(
+                    "",
+                    tessellationAttribute.outer.Select((x, i) => string.Format("gl_TessLevelOuter[{0}] = float({1});\n", i, x))
+                ) +
+
+                string.Join(
+                    "",
+                    tessellationAttribute.inner.Select((x, i) => string.Format("gl_TessLevelInner[{0}] = float({1});\n", i, x))
+                ) +
+
+                "    }\n" +
+                "}\n";
+        }
+
         internal static void Build(Type type)
         {
             if (GetShaderSourceData(type) != null)
@@ -226,24 +374,28 @@ namespace Saffiano
             ShaderSourceData shaderSourceData = new ShaderSourceData();
             foreach (ShaderType shaderType in typeof(ShaderType).GetEnumValues())
             {
-                var methodReference = type.GetTypeDefinition().FindMethod(shaderType.ToString());
-                if (methodReference == null)
+                if (shaderType == ShaderType.TessControlShader)
+                {
+                    // Ignore tessellstion control shader
+                    continue;
+                }
+                if (shaderType == ShaderType.TessEvaluationShader)
+                {
+                    ProcessTessellationShader(type, ref shaderSourceData);
+                    continue;
+                }
+
+                var methodName = shaderType.ToString();
+                var source = GenerateShaderSourceCode(type, shaderType, methodName, out var uniformList);
+                if (source == null)
                 {
                     continue;
                 }
-                if (methodReference.DeclaringType.Resolve().GetRuntimeType() == typeof(ScriptableMaterial))
-                {
-                    if (shaderType == ShaderType.GeometryShader)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        throw new Exception(string.Format("override the necessary shader {0}!", shaderType.ToString()));
-                    }
-                }
-                string source = new ShaderCompiler().Compile(methodReference, out var uniformList);
-                var description = string.Format("// {0} generated from {1}\n", shaderType.ToString(), type.FullName);
+                var description = string.Format(
+                    "// {0} generated from {1}\n" +
+                    "#version 330 core\n",
+                    methodName, type.FullName
+                );
                 shaderSourceData.codes[shaderType] = description + source;
                 if (uniformList != null)
                 {

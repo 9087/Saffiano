@@ -203,7 +203,14 @@ namespace Saffiano.Rendering
 
         private void BindVertex(Mesh mesh)
         {
-            Gl.BindVertexArray(vertexCache.TryRegister(mesh).vao);
+            if (mesh != null)
+            {
+                Gl.BindVertexArray(vertexCache.TryRegister(mesh).vao);
+            }
+            else
+            {
+                Gl.BindVertexArray(0);
+            }
         }
 
         private bool BindTexture(int index, Texture texture)
@@ -397,8 +404,28 @@ namespace Saffiano.Rendering
             }
 
             // draw
-            _OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
-            Gl.DrawElements(primitiveType, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            var tessellationConfiguration = material.shader.tessellationConfiguration;
+            if (tessellationConfiguration != null)
+            {
+                Gl.PatchParameter(PatchParameterName.PatchVertices, tessellationConfiguration.patchVerticesCount);
+                switch (tessellationConfiguration.drawType)
+                {
+                    case TessellationDrawType.Element:
+                        Gl.DrawElements(_OpenGL.PrimitiveType.Patches, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
+                        break;
+                    case TessellationDrawType.Vertics:
+                        Gl.DrawArrays(_OpenGL.PrimitiveType.Patches, 0, mesh.vertices.Length);
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            else
+            {
+                _OpenGL.PrimitiveType primitiveType = ConvertPrimitiveTypeToOpenGL(mesh.primitiveType);
+                Gl.DrawElements(primitiveType, mesh.indices.Length, DrawElementsType.UnsignedInt, IntPtr.Zero);
+            }
+            BindVertex(null);
         }
 
         public override void UpdateTexture(Texture texture, uint x, uint y, uint blockWidth, uint blockHeight, Color[] pixels)

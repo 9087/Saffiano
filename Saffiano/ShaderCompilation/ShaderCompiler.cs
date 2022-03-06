@@ -1,9 +1,11 @@
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
+using Saffiano.Rendering;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Saffiano.ShaderCompilation
 {
@@ -13,15 +15,13 @@ namespace Saffiano.ShaderCompilation
         {
         }
 
-        public string Compile(MethodReference methodReference, out HashSet<Uniform> uniforms)
+        public string Compile(MethodReference methodReference, out HashSet<Uniform> uniforms, Func<ParameterInfo, bool> filter = null)
         {
             if (methodReference == null)
             {
                 uniforms = null;
                 return null;
             }
-
-            var methodDefinition = methodReference.Resolve();
 
             // Method body
 
@@ -35,6 +35,7 @@ namespace Saffiano.ShaderCompilation
             List<string> sources = new List<string>();
 
             uniforms = new HashSet<Uniform>();
+            var shaderExtensions = new HashSet<ShaderExtension>();
 
             while (methods.Count != 0)
             {
@@ -50,6 +51,7 @@ namespace Saffiano.ShaderCompilation
                     contexts[name] = cc;
                     cc.Generate();
                     uniforms.UnionWith(cc.uniforms);
+                    shaderExtensions.UnionWith(cc.GetShaderExtensions());
                     sources.Insert(0, cc.GetMethodSourceCode(name));
                     visited.Add(name);
                     foreach (var n in cc.methods.Keys)
@@ -69,9 +71,9 @@ namespace Saffiano.ShaderCompilation
             }
 
             var code = new StringWriter();
-            code.WriteLine("#version 330 core");
             code.WriteLine(CompileContext.GetUniformSourceCode(uniforms));
-            code.WriteLine(contexts["main"].GetAttributeSourceCode());
+            code.WriteLine(contexts["main"].GetAttributeSourceCode(filter: filter));
+            code.WriteLine(CompileContext.GetShaderExtensionSourceCode(shaderExtensions));
             foreach (var source in sources)
             {
                 code.WriteLine(source);

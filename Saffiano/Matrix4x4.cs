@@ -422,17 +422,17 @@ namespace Saffiano
             return matrix;
         }
 
-        internal void Translate(Vector3 t)
+        public void Translate(Vector3 t)
         {
             this = Matrix4x4.Translated(t) * this;
         }
 
-        internal void Rotate(Quaternion r)
+        public void Rotate(Quaternion r)
         {
             this = Matrix4x4.Rotated(r).transpose * this;
         }
 
-        internal void Scale(Vector3 s)
+        public void Scale(Vector3 s)
         {
             this = Matrix4x4.Scaled(s) * this;
         }

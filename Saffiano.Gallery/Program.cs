@@ -50,7 +50,7 @@ namespace Saffiano.Gallery
             SceneRoaming.Instance.targetCamera = camera.GetComponent<Camera>();
 
             // Terrain
-            { Terrain.Instance.material = material; }
+            //{ Terrain.Instance.material = material; }
 
             // Bunny
             { var _ = new Bunny() { material = material }; }
@@ -71,6 +71,8 @@ namespace Saffiano.Gallery
                     }
                 }
             }
+
+            new Grass().transform.localPosition = new Vector3(-2, 0.3f, 0);
 
             // Set one sphere model as the gizmo target
             Gizmo.Instance.target = GameObject.Find("Sphere");

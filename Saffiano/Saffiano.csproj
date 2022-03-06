@@ -9,6 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Rendering\OpenGL\Quaternion.glsl" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Rendering\OpenGL\Quaternion.glsl" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FreeImage-dotnet-core" Version="4.3.6" />
     <PackageReference Include="FreeTypeSharp" Version="1.1.2" />
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />

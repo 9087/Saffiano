@@ -152,5 +152,11 @@ namespace Saffiano
                 return new Vector2(x, y);
             }
         }
+
+        [Shader(OpenGL: "dot({0}, {1})")]
+        public static float Dot(Vector2 lhs, Vector2 rhs)
+        {
+            return lhs.x * rhs.x + lhs.y * rhs.y;
+        }
     }
 }

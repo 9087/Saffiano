@@ -147,7 +147,7 @@ namespace Saffiano.ShaderCompilation
                         }
                         else
                         {
-                            throw new Exception("uncertain material property get behaviour");
+                            throw new Exception("uncertain material property get behaviour, UniformAttribute expected.");
                         }
                         return true;
                     }

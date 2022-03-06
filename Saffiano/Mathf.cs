@@ -138,5 +138,27 @@ namespace Saffiano
         {
             return MathF.Exp(x);
         }
+
+        private static float Floor(float x)
+        {
+            return MathF.Floor(x);
+        }
+
+        private static float Fract(float x)
+        {
+            return x - Floor(x);
+        }
+
+        [Shader(OpenGL: "fract(sin({0}) * 100000.0)")]
+        public static float Random(float x)
+        {
+            return Fract(Sin(x) * 100000.0f);
+        }
+
+        [Shader(OpenGL: "fract(sin(dot({0}, vec2(12.9898,78.233))) * 43758.5453123)")]
+        public static float Random(Vector2 v)
+        {
+            return Fract(Sin(Vector2.Dot(v, new Vector2(12.9898f, 78.233f))) * 43758.5453123f);
+        }
     }
 }

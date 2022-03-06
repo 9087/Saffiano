@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Saffiano.Rendering;
+using System;
 
 namespace Saffiano
 {
+    [Shader(OpenGL: "mat3")]
     public struct Quaternion
     {
         public float x;
@@ -96,6 +98,10 @@ namespace Saffiano
             return new Quaternion(v.x * sinv, v.y * sinv, v.z * sinv, cosv);
         }
 
+        [Shader(
+            OpenGL: "__Quaternion__create_mat3_from_euler_angle(vec3({0}, {1}, {2}))",
+            extensions: new ShaderExtension[] { ShaderExtension.Quaternion }
+        )]
         public static Quaternion Euler(float x, float y, float z)
         {
             Quaternion qx = Quaternion.AngleAxis(x, new Vector3(1, 0, 0));
@@ -104,6 +110,10 @@ namespace Saffiano
             return qy * qx * qz;
         }
 
+        [Shader(
+            OpenGL: "__Quaternion__create_mat3_from_euler_angle({0})",
+            extensions: new ShaderExtension[] { ShaderExtension.Quaternion }
+        )]
         public static Quaternion Euler(Vector3 eulerAngles)
         {
             return Quaternion.Euler(eulerAngles.x, eulerAngles.y, eulerAngles.z);
@@ -245,6 +255,7 @@ namespace Saffiano
                 lhs.w * rhs.w - lhs.x * rhs.x - lhs.y * rhs.y - lhs.z * rhs.z);
         }
 
+        [Shader(OpenGL: "{0} * {1}")]
         public static Vector3 operator *(Quaternion rotation, Vector3 point)
         {
             Quaternion q = rotation * new Quaternion(point.x, point.y, point.z, 0) * Quaternion.Inverse(rotation);

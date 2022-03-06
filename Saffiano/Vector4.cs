@@ -13,6 +13,8 @@ namespace Saffiano
 
         public Vector2 xy => new Vector2(x, y);
 
+        public Vector2 xz => new Vector2(x, z);
+
         public Vector2 zw => new Vector2(z, w);
 
         public Vector2 xw => new Vector2(x, w);
