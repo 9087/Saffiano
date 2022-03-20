@@ -589,10 +589,12 @@ namespace Saffiano.ShaderCompilation
             return true;
         }
 
+        // brtrue target - Branch to target if value is non-zero (true).
         [Instruction(Mono.Cecil.Cil.Code.Brtrue)]
+        // brtrue.s target - Branch to target if value is non-zero (true), short form.
+        [Instruction(Mono.Cecil.Cil.Code.Brtrue_S)]
         public static bool Brtrue(Instruction instruction, CompileContext compileContext, ref Instruction next)
         {
-            // brtrue target - Branch to target if value is non-zero (true).
             compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} == 1)", compileContext.Pop()));
             return true;
         }
@@ -604,6 +606,18 @@ namespace Saffiano.ShaderCompilation
         public static bool Brfalse(Instruction instruction, CompileContext compileContext, ref Instruction next)
         {
             compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} == 0)", compileContext.Pop()));
+            return true;
+        }
+
+        // bne.un target - Branch to target if unequal or unordered.
+        [Instruction(Mono.Cecil.Cil.Code.Bne_Un)]
+        // bne.un.s target - Branch to target if unequal or unordered, short form.
+        [Instruction(Mono.Cecil.Cil.Code.Bne_Un_S)]
+        public static bool Bne_Un_S(Instruction instruction, CompileContext compileContext, ref Instruction next)
+        {
+            var b = compileContext.Pop();
+            var a = compileContext.Pop();
+            compileContext.Push(typeof(int).GetTypeDefinition(), CompileContext.Format("int({0} != {1})", a, b));
             return true;
         }
 
@@ -621,9 +635,11 @@ namespace Saffiano.ShaderCompilation
         }
 
         // bge target - Branch to target if greater than or equal to.
-        [Instruction(Mono.Cecil.Cil.Code.Bge_Un_S)]
-        // bge.un.s target - Branch to target if greater than or equal to(unsigned or unordered), short form.
         [Instruction(Mono.Cecil.Cil.Code.Bge)]
+        // bge.un target - Branch to target if greater than or equal to (unsigned or unordered).
+        [Instruction(Mono.Cecil.Cil.Code.Bge_Un)]
+        // bge.un.s target - Branch to target if greater than or equal to(unsigned or unordered), short form.
+        [Instruction(Mono.Cecil.Cil.Code.Bge_Un_S)]
         public static bool Bge(Instruction instruction, CompileContext compileContext, ref Instruction next)
         {
             var b = compileContext.Pop();
