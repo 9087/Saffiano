@@ -41,11 +41,13 @@ namespace Saffiano
             return MathF.Acos(f);
         }
 
+        [Shader(OpenGL: "cos({0})")]
         public static float Cos(float f)
         {
             return MathF.Cos(f);
         }
 
+        [Shader(OpenGL: "sin({0})")]
         public static float Sin(float f)
         {
             return MathF.Sin(f);
@@ -62,6 +64,7 @@ namespace Saffiano
             return MathF.Max(a, b);
         }
 
+        [Shader(OpenGL: "max({0}, {1})")]
         public static int Max(int a, int b)
         {
             return Math.Max(a, b);
@@ -91,6 +94,7 @@ namespace Saffiano
             return MathF.Min(a, b);
         }
 
+        [Shader(OpenGL: "min({0}, {1})")]
         public static int Min(int a, int b)
         {
             return Math.Min(a, b);

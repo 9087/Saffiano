@@ -31,6 +31,11 @@ namespace Saffiano.Gallery.Assets.Objects
             renderers.Add(plane.AddComponent<MeshRenderer>());
             plane.transform.parent = this.transform;
 
+            // Grass
+            var grass = new Grass();
+            grass.transform.parent = this.transform;
+            grass.transform.localPosition = new Vector3(-2, 0, -2);
+
             foreach (var renderer in renderers)
             {
                 renderer.material = _material;

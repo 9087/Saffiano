@@ -14,16 +14,16 @@ namespace Saffiano.Gallery.Assets.Objects
         public override CullMode cullMode => CullMode.Off;
 
         [Uniform]
-        public float minThinness => 0.09f;
+        public float minThinness => 0.04f;
 
         [Uniform]
-        public float maxThinness => 0.11f;
+        public float maxThinness => 0.06f;
 
         [Uniform]
-        public float minHeight => 0.9f;
+        public float minHeight => 0.4f;
 
         [Uniform]
-        public float maxHeight => 1.1f;
+        public float maxHeight => 0.6f;
 
         public virtual void VertexShader(
             [Attribute(AttributeType.Position)] Vector3 a_position,
@@ -46,10 +46,16 @@ namespace Saffiano.Gallery.Assets.Objects
 
         public new virtual void GeometryShader(
             [InputMode(InputMode.Points)] Input<Vertex> input,
-            [OutputMode(OutputMode.TriangleStrip, 6)] Output<Vertex> output
+            [OutputMode(OutputMode.TriangleStrip, 64)] Output<Vertex> output
         )
         {
             var position = input[0].gl_Position;
+
+            if (position.xz.magnitude > 0.5f)
+            {
+                return;
+            }
+
             var random = Mathf.Random(position.xz);
             var rotation = Quaternion.Euler(new Vector3(0, Mathf.PI * 2.0f * random, 0));
 
@@ -58,20 +64,48 @@ namespace Saffiano.Gallery.Assets.Objects
 
             random = Mathf.Random(new Vector2(random, position.x));
             var height = minHeight + (maxHeight - minHeight) * random;
-            output.AddPrimitive(
-                new GeometryShaderVertex(
-                    mvp * (position + new Vector4(rotation * (new Vector3(0, 0, +0.5f * thinness)), 0)),
-                    new Vector2(1, 0)
-                ),
-                new GeometryShaderVertex(
-                    mvp * (position + new Vector4(rotation * (new Vector3(0, 0, -0.5f * thinness)), 0)),
-                    new Vector2(0, 0)
-                ),
-                new GeometryShaderVertex(
-                    mvp * (position + new Vector4(rotation * (new Vector3(0, 1.0f * height, 0)), 0)),
-                    new Vector2(0, 1)
-                )
-            );
+
+            float angle = 0;
+            float segment = 0;
+            float height_0 = 0;
+            float height_1 = 0;
+            float thinness_0 = 0.5f * thinness;
+            float thinness_1 = 0;
+            Vector3 rig_0 = new Vector3(0, 0, 0);
+            Vector3 rig_1 = new Vector3(0, 0, 0);
+            Vector3 a = new Vector3(0, 0, 0);
+            Vector3 b = new Vector3(0, 0, 0);
+            Vector3 c = new Vector3(0, 0, 0);
+            Vector3 d = new Vector3(0, 0, 0);
+
+            for (float i = 1; i <= 4; i++)
+            {
+                segment = (0.5f - ((float)i) * 0.1f) * height;
+                height_1 = height_0 + segment;
+                thinness_1  = (0.5f - ((float)i) * 0.125f) * thinness;
+                angle = 9.0f * Mathf.Deg2Rad * i;
+                rig_1 = rig_0 + new Vector3(0, Mathf.Cos(angle) * segment, Mathf.Sin(angle) * segment);
+
+                a = rig_0 - new Vector3(thinness_0, 0, 0);
+                b = rig_0 + new Vector3(thinness_0, 0, 0);
+                c = rig_1 - new Vector3(thinness_1, 0, 0);
+                d = rig_1 + new Vector3(thinness_1, 0, 0);
+
+                output.AddPrimitive(
+                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * a, 0)), new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * b, 0)), new Vector2(1, height_0)),
+                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * d, 0)), new Vector2(1, height_1))
+                );
+                output.AddPrimitive(
+                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * a, 0)), new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * d, 0)), new Vector2(1, height_1)),
+                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * c, 0)), new Vector2(0, height_1))
+                );
+
+                height_0 = height_1;
+                rig_0 = rig_1;
+                thinness_0 = thinness_1;
+            }
         }
 
         public virtual void FragmentShader(
@@ -98,12 +132,6 @@ namespace Saffiano.Gallery.Assets.Objects
             grass.AddComponent<MeshFilter>().mesh = mesh;
             grass.AddComponent<MeshRenderer>().material = new GrassMaterial();
             grass.transform.parent = this.transform;
-
-            GameObject plane = new GameObject();
-            plane.AddComponent<Transform>();
-            plane.AddComponent<MeshFilter>().mesh = mesh;
-            plane.AddComponent<MeshRenderer>();
-            plane.transform.parent = this.transform;
         }
     }
 }
