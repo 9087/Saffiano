@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Saffiano.Rendering.OpenGL
 {
-    internal class GPUProgramData
+    internal class ShaderData
     {
         public uint program { get; internal set; }
 
@@ -19,7 +19,7 @@ namespace Saffiano.Rendering.OpenGL
         public uint fs { get; internal set; }
     }
 
-    internal class GPUProgramCache : Cache<GPUProgram, GPUProgramData>
+    internal class ShaderCache : Cache<ShaderSourceData, ShaderData>
     {
         private uint Compile(_OpenGL.ShaderType shaderType, string source)
         {
@@ -40,9 +40,9 @@ namespace Saffiano.Rendering.OpenGL
             return shader;
         }
 
-        protected override GPUProgramData OnRegister(GPUProgram key)
+        protected override ShaderData OnRegister(ShaderSourceData key)
         {
-            GPUProgramData shaderData = new GPUProgramData();
+            ShaderData shaderData = new ShaderData();
             shaderData.program = Gl.CreateProgram();
             shaderData.vs = Compile(_OpenGL.ShaderType.VertexShader, key.vertexShaderSourceCode);
             shaderData.fs = Compile(_OpenGL.ShaderType.FragmentShader, key.fragmentShaderSourceCode);
@@ -67,7 +67,7 @@ namespace Saffiano.Rendering.OpenGL
             return shaderData;
         }
 
-        protected override void OnUnregister(GPUProgram key)
+        protected override void OnUnregister(ShaderSourceData key)
         {
             var shaderData = this[key];
             Gl.DeleteShader(shaderData.vs);

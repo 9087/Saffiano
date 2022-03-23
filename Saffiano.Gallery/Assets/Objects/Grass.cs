@@ -6,10 +6,10 @@ namespace Saffiano.Gallery.Assets.Objects
 {
     class GeometryShaderVertex : Vertex
     {
-        public GeometryShaderVertex(Vector4 gl_Position, Vector2 v_uv) : base(gl_Position) { }
+        public GeometryShaderVertex(Vector4 gl_Position, Vector4 v_position, Vector2 v_uv) : base(gl_Position) { }
     }
 
-    class GrassMaterial : ScriptableMaterial
+    class GrassMaterial : ShadowMappingPhong
     {
         public override CullMode cullMode => CullMode.Off;
 
@@ -91,15 +91,20 @@ namespace Saffiano.Gallery.Assets.Objects
                 c = rig_1 - new Vector3(thinness_1, 0, 0);
                 d = rig_1 + new Vector3(thinness_1, 0, 0);
 
+                var v_a = position + new Vector4(rotation * a, 0);
+                var v_b = position + new Vector4(rotation * b, 0);
+                var v_c = position + new Vector4(rotation * c, 0);
+                var v_d = position + new Vector4(rotation * d, 0);
+
                 output.AddPrimitive(
-                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * a, 0)), new Vector2(0, height_0)),
-                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * b, 0)), new Vector2(1, height_0)),
-                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * d, 0)), new Vector2(1, height_1))
+                    new GeometryShaderVertex(mvp * v_a, v_a, new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * v_b, v_b, new Vector2(1, height_0)),
+                    new GeometryShaderVertex(mvp * v_d, v_d, new Vector2(1, height_1))
                 );
                 output.AddPrimitive(
-                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * a, 0)), new Vector2(0, height_0)),
-                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * d, 0)), new Vector2(1, height_1)),
-                    new GeometryShaderVertex(mvp * (position + new Vector4(rotation * c, 0)), new Vector2(0, height_1))
+                    new GeometryShaderVertex(mvp * v_a, v_a, new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * v_d, v_d, new Vector2(1, height_1)),
+                    new GeometryShaderVertex(mvp * v_c, v_c, new Vector2(0, height_1))
                 );
 
                 height_0 = height_1;

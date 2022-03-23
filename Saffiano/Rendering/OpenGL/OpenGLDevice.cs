@@ -27,7 +27,7 @@ namespace Saffiano.Rendering
         internal List<IDeperactedClean> caches = new List<IDeperactedClean>();
         internal Saffiano.Rendering.OpenGL.VertexCache vertexCache;
         internal Saffiano.Rendering.OpenGL.TextureCache textureCache;
-        internal Saffiano.Rendering.OpenGL.GPUProgramCache shaderCache;
+        internal Saffiano.Rendering.OpenGL.ShaderCache shaderCache;
         internal Saffiano.Rendering.OpenGL.FrameBufferCache frameBufferCache;
         internal Camera currentCamera;
 
@@ -50,7 +50,7 @@ namespace Saffiano.Rendering
         {
             vertexCache = CreateCache<Saffiano.Rendering.OpenGL.VertexCache>();
             textureCache = CreateCache<Saffiano.Rendering.OpenGL.TextureCache>();
-            shaderCache = CreateCache<Saffiano.Rendering.OpenGL.GPUProgramCache>();
+            shaderCache = CreateCache<Saffiano.Rendering.OpenGL.ShaderCache>();
             frameBufferCache = CreateCache<Saffiano.Rendering.OpenGL.FrameBufferCache>();
         }
 
@@ -278,6 +278,45 @@ namespace Saffiano.Rendering
             }
         }
 
+        private void UpdateUniforms(uint program, Material material, Command command)
+        {
+            if (material == null)
+            {
+                return;
+            }
+            int textureIndex = 0;
+            foreach (var uniform in material.uniforms)
+            {
+                object value;
+                object extra = null;
+                switch (uniform.name)
+                {
+                    case "mvp":
+                        value = command.projection * command.transform;
+                        break;
+                    case "mv":
+                        value = command.transform;
+                        break;
+                    case "mainTexture":
+                        value = command.mainTexture;
+                        break;
+                    default:
+                        value = uniform.propertyInfo.GetValue(material);
+                        break;
+                }
+                if (uniform.propertyInfo.PropertyType == typeof(Texture))
+                {
+                    if (!BindTexture(textureIndex, value as Texture))
+                    {
+                        continue;
+                    }
+                    extra = textureIndex;
+                    textureIndex++;
+                }
+                SetProgramUniform(program, uniform, value, extra);
+            }
+        }
+
         public override void Draw(Command command)
         {
             var mesh = command.mesh;
@@ -286,11 +325,23 @@ namespace Saffiano.Rendering
 
             // apply shader
             var material = command.material;
-            if (currentCamera.replacementMaterials.TryGetValue("", out var replacementMaterial))
-            {
-                material = replacementMaterial;
-            }
+            Material replacementMaterial = null;
+            ShaderSourceData shaderSourceData = material.shader.shaderSourceData;
             var shader = material.shader;
+            if (currentCamera.replacementMaterials.TryGetValue("", out var replacementMaterialInfo))
+            {
+                replacementMaterial = replacementMaterialInfo.material;
+                shader = replacementMaterial.shader;
+                shaderSourceData = shaderSourceData.Clone() as ShaderSourceData;
+                foreach (var shaderType in replacementMaterialInfo.shaderTypes)
+                {
+                    shaderSourceData.Update(shaderType, replacementMaterial.shader.shaderSourceData.codes.GetValueOrDefault(shaderType, null));
+                }
+            }
+            uint program = shaderCache.TryRegister(shaderSourceData).program;
+            Gl.UseProgram(program);
+            UpdateUniforms(program, material, command);
+            UpdateUniforms(program, replacementMaterial, command);
 
             #region Blending
 
@@ -369,42 +420,8 @@ namespace Saffiano.Rendering
 
             #endregion
 
-            uint program = shaderCache.TryRegister(shader).program;
-            Gl.UseProgram(program);
-            int textureIndex = 0;
-            foreach (var uniform in material.uniforms)
-            {
-                object value;
-                object extra = null;
-                switch (uniform.name)
-                {
-                    case "mvp":
-                        value = command.projection * command.transform;
-                        break;
-                    case "mv":
-                        value = command.transform;
-                        break;
-                    case "mainTexture":
-                        value = command.mainTexture;
-                        break;
-                    default:
-                        value = uniform.propertyInfo.GetValue(material);
-                        break;
-                }
-                if (uniform.propertyInfo.PropertyType == typeof(Texture))
-                {
-                    if (!BindTexture(textureIndex, value as Texture))
-                    {
-                        continue;
-                    }
-                    extra = textureIndex;
-                    textureIndex++;
-                }
-                SetProgramUniform(program, uniform, value, extra);
-            }
-
             // draw
-            var tessellationConfiguration = material.shader.tessellationConfiguration;
+            var tessellationConfiguration = shaderSourceData.tessellationConfiguration;
             if (tessellationConfiguration != null)
             {
                 Gl.PatchParameter(PatchParameterName.PatchVertices, tessellationConfiguration.patchVerticesCount);

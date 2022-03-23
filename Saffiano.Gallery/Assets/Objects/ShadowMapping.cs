@@ -27,25 +27,16 @@ namespace Saffiano.Gallery.Assets.Objects
 
         void VertexShader(
             [Attribute(AttributeType.Position)] Vector3 a_position,
-            [Attribute(AttributeType.Normal)] Vector3 a_normal,
-            [Attribute(AttributeType.TexCoord)] Vector2 a_texcoord,
-            [Attribute(AttributeType.Color)] Color a_color,
             out Vector4 gl_Position,
-            out Vector4 v_position,
-            out Vector2 v_texcoord,
-            out Color v_color
+            out Vector4 v_position
         )
         {
             gl_Position = mvp * new Vector4(a_position, 1.0f);
-            v_texcoord = a_texcoord;
-            v_color = a_color;
             v_position = new Vector4(a_position, 1.0f);
         }
 
         void FragmentShader(
             Vector4 v_position,
-            Vector2 v_texcoord,
-            Color v_color,
             out Color f_color
         )
         {
@@ -212,7 +203,7 @@ namespace Saffiano.Gallery.Assets.Objects
             rt.wrapMode = TextureWrapMode.Clamp;
             this.camera.targetTexture = rt;
             this.camera.cullingMask = LayerMask.GetMask("Everything") & (~LayerMask.GetMask("UI"));
-            this.camera.SetReplacementMaterial(new ShadowMappingMaterial(), "");
+            this.camera.SetReplacementMaterial(new ShadowMappingMaterial(), "", new ShaderType[] { ShaderType.FragmentShader });
 
 #if false // DEBUG
             GameObject canvas = new GameObject("Canvas");

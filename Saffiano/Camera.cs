@@ -3,11 +3,18 @@ using System.Collections.Generic;
 
 namespace Saffiano
 {
+    struct ReplacementMaterialInfo
+    {
+        internal Material material;
+
+        internal HashSet<ShaderType> shaderTypes;
+    }
+
     public sealed class Camera : Behaviour
     {
         internal static List<Camera> allCameras = new List<Camera>();
 
-        internal Dictionary<string, Material> replacementMaterials { get; private set; } = new Dictionary<string, Material>();
+        internal Dictionary<string, ReplacementMaterialInfo> replacementMaterials { get; private set; } = new Dictionary<string, ReplacementMaterialInfo>();
 
         public static Camera main
         {
@@ -85,7 +92,26 @@ namespace Saffiano
 
         public void SetReplacementMaterial(Material material, string replaceTag)
         {
-            replacementMaterials[replaceTag] = material;
+            replacementMaterials[replaceTag] = new ReplacementMaterialInfo()
+            {
+                material = material,
+                shaderTypes = new HashSet<ShaderType> {
+                    ShaderType.VertexShader,
+                    ShaderType.TessControlShader,
+                    ShaderType.TessEvaluationShader,
+                    ShaderType.GeometryShader,
+                    ShaderType.FragmentShader
+                }
+            };
+        }
+
+        public void SetReplacementMaterial(Material material, string replaceTag, ShaderType[] shaderTypes)
+        {
+            replacementMaterials[replaceTag] = new ReplacementMaterialInfo()
+            {
+                material = material,
+                shaderTypes = new HashSet<ShaderType>(shaderTypes)
+            };
         }
 
         public void ResetReplacementShader()

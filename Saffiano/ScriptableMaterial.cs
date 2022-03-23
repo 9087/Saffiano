@@ -67,25 +67,143 @@ namespace Saffiano
         Element,
     }
 
-    public class TessellationConfiguration
+    public class TessellationConfiguration : IEquatable<TessellationConfiguration>, ICloneable
     {
         public int patchVerticesCount { get; set; }
 
         public TessellationDrawType drawType { get; set; }
+
+        public object Clone()
+        {
+            var tessellationConfiguration = new TessellationConfiguration();
+            tessellationConfiguration.patchVerticesCount = patchVerticesCount;
+            tessellationConfiguration.drawType = drawType;
+            return tessellationConfiguration;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as TessellationConfiguration);
+        }
+
+        public bool Equals(TessellationConfiguration other)
+        {
+            return other != null &&
+                   patchVerticesCount == other.patchVerticesCount &&
+                   drawType == other.drawType;
+        }
+
+        public static bool operator ==(TessellationConfiguration lhs, TessellationConfiguration rhs)
+        {
+            return (object)lhs == (object)rhs || lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(TessellationConfiguration lhs, TessellationConfiguration rhs)
+        {
+            return !(lhs == rhs);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = -1404097956;
+            hashCode = hashCode * -1521134295 + patchVerticesCount.GetHashCode();
+            hashCode = hashCode * -1521134295 + drawType.GetHashCode();
+            return hashCode;
+        }
     }
 
-    public class ShaderSourceData
+    public class ShaderSourceData : IEquatable<ShaderSourceData>, ICloneable
     {
         public Dictionary<ShaderType, string> codes { get; private set; }
 
         public HashSet<Uniform> uniforms { get; private set; }
 
+        public string vertexShaderSourceCode => codes.GetValueOrDefault(ShaderType.VertexShader, null);
+
         public TessellationConfiguration tessellationConfiguration { get; internal set; }
+
+        public string tessControlShaderSourceCode => codes.GetValueOrDefault(ShaderType.TessControlShader, null);
+
+        public string tessEvaluationShaderSourceCode => codes.GetValueOrDefault(ShaderType.TessEvaluationShader, null);
+
+        public string geometryShaderSourceCode => codes.GetValueOrDefault(ShaderType.GeometryShader, null);
+
+        public string fragmentShaderSourceCode => codes.GetValueOrDefault(ShaderType.FragmentShader, null);
 
         public ShaderSourceData()
         {
             codes = new Dictionary<ShaderType, string>();
+            tessellationConfiguration = null;
             uniforms = new HashSet<Uniform>();
+        }
+
+        public object Clone()
+        {
+            var data = new ShaderSourceData();
+            data.codes = codes.ToDictionary(entry => entry.Key, entry => entry.Value);
+            data.tessellationConfiguration = tessellationConfiguration == null ? null : tessellationConfiguration.Clone() as TessellationConfiguration;
+            data.uniforms = uniforms.ToHashSet();
+            return data;
+        }
+
+        internal static bool CodesDictionaryEquals(Dictionary<ShaderType, string> a, Dictionary<ShaderType, string> b)
+        {
+            return a.Count == b.Count && a.All((aKV) => b.TryGetValue(aKV.Key, out var bValue) && (aKV.Value == bValue || aKV.Value?.Equals(bValue) == true));
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as ShaderSourceData);
+        }
+
+        public bool Equals(ShaderSourceData other)
+        {
+            if (!(other is ShaderSourceData))
+            {
+                return false;
+            }
+            var shaderSourceData = other as ShaderSourceData;
+            return
+                CodesDictionaryEquals(this.codes, shaderSourceData.codes)
+                &&
+                (
+                    this.tessellationConfiguration == shaderSourceData.tessellationConfiguration
+                    ||
+                    this.tessellationConfiguration.Equals(shaderSourceData.tessellationConfiguration)
+                )
+                &&
+                this.uniforms.SetEquals(shaderSourceData.uniforms);
+        }
+
+        public static bool operator ==(ShaderSourceData lhs, ShaderSourceData rhs)
+        {
+            return (object)lhs == (object)rhs || lhs.Equals(rhs);
+        }
+
+        public static bool operator !=(ShaderSourceData lhs, ShaderSourceData rhs)
+        {
+            return !(lhs == rhs);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = 1740895299;
+            var pairs = this.codes.OrderBy(pair => pair.Key);
+            foreach (var pair in pairs)
+            {
+                hashCode = hashCode * -1521134295 + pair.Key.GetHashCode();
+                hashCode = hashCode * -1521134295 + pair.Value.GetHashCode();
+            }
+            if (tessellationConfiguration != null)
+            {
+                hashCode = hashCode * -1521134295 + tessellationConfiguration.GetHashCode(); ;
+            }
+            return hashCode;
+        }
+
+        public void Update(ShaderType shaderType, string code)
+        {
+            codes[shaderType] = code;
         }
     }
 

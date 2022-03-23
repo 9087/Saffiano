@@ -14,25 +14,13 @@ namespace Saffiano.Rendering
             return null;
         }
 
-        internal string vertexShaderSourceCode => GetShaderSourceCode(ShaderType.VertexShader);
-
-        internal TessellationConfiguration tessellationConfiguration => shaderSourceData.tessellationConfiguration;
-
-        internal string tessEvaluationShaderSourceCode => GetShaderSourceCode(ShaderType.TessEvaluationShader);
-
-        internal string tessControlShaderSourceCode => GetShaderSourceCode(ShaderType.TessControlShader);
-
-        internal string geometryShaderSourceCode => GetShaderSourceCode(ShaderType.GeometryShader);
-
-        internal string fragmentShaderSourceCode => GetShaderSourceCode(ShaderType.FragmentShader);
-
         internal CullMode cullMode { get; private set; }
 
         internal ZTest zTest { get; private set; }
 
         internal Blend blend { get; private set; }
 
-        protected ShaderSourceData shaderSourceData { get; private set; }
+        internal ShaderSourceData shaderSourceData { get; private set; }
 
         private static string ReadFile(string filePath)
         {
@@ -59,14 +47,18 @@ namespace Saffiano.Rendering
                 return false;
             }
             var otherGPUProgram = other as GPUProgram;
-            return this.vertexShaderSourceCode == otherGPUProgram.vertexShaderSourceCode &&
-                this.fragmentShaderSourceCode == otherGPUProgram.fragmentShaderSourceCode &&
-                this.cullMode == otherGPUProgram.cullMode;
+            return this.shaderSourceData == otherGPUProgram.shaderSourceData &&
+                this.cullMode == otherGPUProgram.cullMode &&
+                this.zTest == otherGPUProgram.zTest &&
+                this.blend == otherGPUProgram.blend;
         }
 
         public override int GetHashCode()
         {
-            return this.vertexShaderSourceCode.GetHashCode() ^ this.fragmentShaderSourceCode.GetHashCode();
+            return this.shaderSourceData.GetHashCode() ^
+                this.cullMode.GetHashCode() ^
+                this.zTest.GetHashCode() ^
+                this.blend.GetHashCode();
         }
 
         public static GPUProgram LoadFromFile(string vertexShaderFilePath, string fragmentShaderFilePath)

@@ -34,7 +34,7 @@ namespace Saffiano.Gallery.Assets.Objects
             // Grass
             var grass = new Grass();
             grass.transform.parent = this.transform;
-            grass.transform.localPosition = new Vector3(-2, 0, -2);
+            grass.transform.localPosition = new Vector3(-1, 0, -1);
 
             foreach (var renderer in renderers)
             {
