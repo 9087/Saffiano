@@ -6,13 +6,11 @@ namespace Saffiano.Gallery.Assets.Objects
 {
     class GeometryShaderVertex : Vertex
     {
-        public GeometryShaderVertex(Vector4 gl_Position, Vector4 v_position, Vector2 v_uv) : base(gl_Position) { }
+        public GeometryShaderVertex(Vector4 gl_Position, Vector4 v_position, Vector3 v_normal, Vector2 v_uv) : base(gl_Position) { }
     }
 
     class GrassMaterial : ShadowMappingPhong
     {
-        public override CullMode cullMode => CullMode.Off;
-
         [Uniform]
         public float minThinness => 0.04f;
 
@@ -96,15 +94,30 @@ namespace Saffiano.Gallery.Assets.Objects
                 var v_c = position + new Vector4(rotation * c, 0);
                 var v_d = position + new Vector4(rotation * d, 0);
 
+                var v_normal_0 = Vector3.Cross(v_b.xyz - v_a.xyz, v_a.xyz - v_c.xyz).normalized * 0.005f;
+                var bias_0 = new Vector4(v_normal_0, 0);
                 output.AddPrimitive(
-                    new GeometryShaderVertex(mvp * v_a, v_a, new Vector2(0, height_0)),
-                    new GeometryShaderVertex(mvp * v_b, v_b, new Vector2(1, height_0)),
-                    new GeometryShaderVertex(mvp * v_d, v_d, new Vector2(1, height_1))
+                    new GeometryShaderVertex(mvp * v_a, v_a + bias_0, v_normal_0, new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * v_b, v_b + bias_0, v_normal_0, new Vector2(1, height_0)),
+                    new GeometryShaderVertex(mvp * v_d, v_d + bias_0, v_normal_0, new Vector2(1, height_1))
                 );
                 output.AddPrimitive(
-                    new GeometryShaderVertex(mvp * v_a, v_a, new Vector2(0, height_0)),
-                    new GeometryShaderVertex(mvp * v_d, v_d, new Vector2(1, height_1)),
-                    new GeometryShaderVertex(mvp * v_c, v_c, new Vector2(0, height_1))
+                    new GeometryShaderVertex(mvp * v_a, v_a + bias_0, v_normal_0, new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * v_d, v_d + bias_0, v_normal_0, new Vector2(1, height_1)),
+                    new GeometryShaderVertex(mvp * v_c, v_c + bias_0, v_normal_0, new Vector2(0, height_1))
+                );
+
+                var v_normal_1 = -v_normal_0;
+                var bias_1 = new Vector4(v_normal_1, 0);
+                output.AddPrimitive(
+                    new GeometryShaderVertex(mvp * v_b, v_b + bias_1, v_normal_1, new Vector2(1, height_0)),
+                    new GeometryShaderVertex(mvp * v_a, v_a + bias_1, v_normal_1, new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * v_d, v_d + bias_1, v_normal_1, new Vector2(1, height_1))
+                );
+                output.AddPrimitive(
+                    new GeometryShaderVertex(mvp * v_d, v_d + bias_1, v_normal_1, new Vector2(1, height_1)),
+                    new GeometryShaderVertex(mvp * v_a, v_a + bias_1, v_normal_1, new Vector2(0, height_0)),
+                    new GeometryShaderVertex(mvp * v_c, v_c + bias_1, v_normal_1, new Vector2(0, height_1))
                 );
 
                 height_0 = height_1;
@@ -114,13 +127,16 @@ namespace Saffiano.Gallery.Assets.Objects
         }
 
         public virtual void FragmentShader(
+            Vector4 v_position,
+            Vector3 v_normal,
             Vector2 v_uv,
             out Color f_color
         )
         {
+            base.FragmentShader(v_position, v_normal, out f_color);
             var top = new Vector4(0, 0.5f, 0, 1.0f);
             var bottom = new Vector4(0, 0.2f, 0, 1.0f);
-            f_color = (Color)(top * v_uv.y + bottom * (1.0f - v_uv.y));
+            f_color = (Color)(((Vector4)f_color) * (top * v_uv.y + bottom * (1.0f - v_uv.y)));
         }
     }
 

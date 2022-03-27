@@ -103,7 +103,7 @@ namespace Saffiano
                 public class Phong : Lambert
                 {
                     [Uniform]
-                    public float shininess { get; set; } = 32;
+                    public virtual float shininess { get; set; } = 32;
 
                     [Uniform]
                     public Vector3 cameraPosition => Camera.main.transform.position;
