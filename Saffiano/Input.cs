@@ -72,6 +72,7 @@ namespace Saffiano
                                 Input.nextFrameInputContext.ups.Add(mouseEvent.keyCode);
                                 break;
                         };
+                        EventSystem.singleton?.ProcessMouseEvent(mouseEvent);
                         break;
                     case KeyboardEvent keyboardEvent:
                         switch (keyboardEvent.eventType)

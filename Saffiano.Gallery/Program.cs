@@ -23,7 +23,7 @@ namespace Saffiano.Gallery
             Application.Initialize();
 
             // Debug information display
-            { var _ = DebugInformation.Instance; }
+            //{ var _ = DebugInformation.Instance; }
 
             // Camera
             GameObject camera = new GameObject("Camera");
@@ -71,6 +71,31 @@ namespace Saffiano.Gallery
                         sphere.AddComponent<MeshRenderer>().material = material;
                     }
                 }
+            }
+
+            GameObject canvas = new GameObject();
+            canvas.AddComponent<RectTransform>();
+            canvas.AddComponent<Canvas>();
+
+            GameObject button = new GameObject();
+            button.AddComponent<RectTransform>();
+            var buttonRectTransform = button.transform as RectTransform;
+            buttonRectTransform.pivot = new Vector2(0, 0);
+            buttonRectTransform.anchorMin = new Vector2(0.1f, 0.1f);
+            buttonRectTransform.anchorMax = new Vector2(0.9f, 0.9f);
+            buttonRectTransform.offsetMin = new Vector2(0, 0);
+            buttonRectTransform.offsetMax = new Vector2(0, 0);
+            buttonRectTransform.parent = canvas.transform;
+
+            button.AddComponent<Saffiano.UI.Button>();
+            button.AddComponent<Saffiano.UI.Image>().sprite = Sprite.Create(Texture.blackTexture);
+            button.AddComponent<CanvasRenderer>();
+
+            // Event system
+            {
+                var eventSystem = new GameObject();
+                eventSystem.AddComponent<Transform>();
+                eventSystem.AddComponent<EventSystem>();
             }
 
             //// Set one sphere model as the gizmo target

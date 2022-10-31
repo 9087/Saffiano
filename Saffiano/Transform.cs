@@ -34,7 +34,6 @@ namespace Saffiano
             set
             {
                 _localPosition = value;
-                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -56,7 +55,6 @@ namespace Saffiano
                     var p = parent.worldToLocalMatrix * new Vector4(value.x, value.y, value.z, 1);
                     localPosition = new Vector3(p.x, p.y, p.z);
                 }
-                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -68,7 +66,6 @@ namespace Saffiano
             set
             {
                 _localRotation = value;
-                SendMessage("OnTransformParentChanged");
             }
         }
         
@@ -86,7 +83,6 @@ namespace Saffiano
                     var matrix = Matrix4x4.TRS(position, rotation, scale).inverse;
                     localRotation = (parent.localToWorldMatrix * matrix).rotation;
                 }
-                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -98,7 +94,6 @@ namespace Saffiano
             set
             {
                 _localScale = value;
-                SendMessage("OnTransformParentChanged");
             }
         }
 
@@ -116,7 +111,6 @@ namespace Saffiano
                     var matrix = Matrix4x4.TRS(position, rotation, scale).inverse;
                     localScale = (parent.localToWorldMatrix * matrix).lossyScale;
                 }
-                SendMessage("OnTransformParentChanged");
             }
         }
 

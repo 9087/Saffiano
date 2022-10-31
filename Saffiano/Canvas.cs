@@ -105,8 +105,7 @@ namespace Saffiano
             {
                 return;
             }
-            var size = Window.GetSize();
-            RenderPipeline.PushProjection(Matrix4x4.Scaled(new Vector3(1.0f / (int)(size.x / 2), 1.0f / (int)(size.y / 2), 0)) * camera.worldToCameraMatrix);
+            RenderPipeline.PushProjection(camera.worldToCanvasMatrix);
             Traverse(camera, canvas.rectTransform);
             RenderPipeline.PopProjection();
         }

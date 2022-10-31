@@ -978,14 +978,19 @@ namespace Saffiano
 
         public event MouseEventHandler MouseEvent;
 
-        protected void DispatchMouseEvent(MouseEventType mouseEventType, VirtualKeys virtualKey)
+        protected void DispatchMouseEvent(MouseEventType mouseEventType, VirtualKeys virtualKey, Vector3 position)
         {
             if (!virtualKeyToKeyCodeMap.ContainsKey(virtualKey))
             {
                 Debug.LogWarningFormat("Unknown virtual key detected: {0}", virtualKey);
                 return;
             }
-            this.MouseEvent?.Invoke(new MouseEvent(mouseEventType, virtualKeyToKeyCodeMap[virtualKey]));
+            this.MouseEvent?.Invoke(new MouseEvent(mouseEventType, virtualKeyToKeyCodeMap[virtualKey], position));
+        }
+
+        protected void DispatchMouseEvent(MouseEventType mouseEventType, Vector3 position)
+        {
+            this.MouseEvent?.Invoke(new MouseEvent(mouseEventType, position));
         }
 
         public event KeyboardEventHandler KeyboradEvent;
@@ -1060,6 +1065,11 @@ namespace Saffiano
             UpdateWindow(this.handle);
         }
 
+        private Vector3 MakeVector(uint lParam)
+        {
+            return new Vector3((float)(lParam & 0xffff), (float)(lParam >> 16), 0);
+        }
+
         private IntPtr ProcessWindowsMessage(IntPtr hWnd, WindowsMessages message, IntPtr wParam, IntPtr lParam)
         {
             switch ((WindowsMessages)message)
@@ -1075,7 +1085,7 @@ namespace Saffiano
                 case WindowsMessages.PAINT:
                     break;
                 case WindowsMessages.SIZE:
-                    Resized?.Invoke(new Vector2((float)(((uint)lParam) & 0xffff), (float)(((uint)lParam) >> 16)));
+                    Resized?.Invoke(MakeVector((uint)lParam).xy);
                     break;
                 case WindowsMessages.UNICHAR:
                     DispatchCharEvent(CharEventType.Unicode, (char)wParam);
@@ -1123,22 +1133,25 @@ namespace Saffiano
                     this.DispatchKeyboradEvent(keyboardEventType, virtualKeys);
                     break;
                 case WindowsMessages.LBUTTONDOWN:
-                    this.DispatchMouseEvent(MouseEventType.MouseDown, VirtualKeys.LeftButton);
+                    this.DispatchMouseEvent(MouseEventType.MouseDown, VirtualKeys.LeftButton, MakeVector((uint)lParam));
                     break;
                 case WindowsMessages.RBUTTONDOWN:
-                    this.DispatchMouseEvent(MouseEventType.MouseDown, VirtualKeys.RightButton);
+                    this.DispatchMouseEvent(MouseEventType.MouseDown, VirtualKeys.RightButton, MakeVector((uint)lParam));
                     break;
                 case WindowsMessages.MBUTTONDOWN:
-                    this.DispatchMouseEvent(MouseEventType.MouseDown, VirtualKeys.MiddleButton);
+                    this.DispatchMouseEvent(MouseEventType.MouseDown, VirtualKeys.MiddleButton, MakeVector((uint)lParam));
                     break;
                 case WindowsMessages.LBUTTONUP:
-                    this.DispatchMouseEvent(MouseEventType.MouseUp, VirtualKeys.LeftButton);
+                    this.DispatchMouseEvent(MouseEventType.MouseUp, VirtualKeys.LeftButton, MakeVector((uint)lParam));
                     break;
                 case WindowsMessages.RBUTTONUP:
-                    this.DispatchMouseEvent(MouseEventType.MouseUp, VirtualKeys.RightButton);
+                    this.DispatchMouseEvent(MouseEventType.MouseUp, VirtualKeys.RightButton, MakeVector((uint)lParam));
                     break;
                 case WindowsMessages.MBUTTONUP:
-                    this.DispatchMouseEvent(MouseEventType.MouseUp, VirtualKeys.MiddleButton);
+                    this.DispatchMouseEvent(MouseEventType.MouseUp, VirtualKeys.MiddleButton, MakeVector((uint)lParam));
+                    break;
+                case WindowsMessages.MOUSEMOVE:
+                    this.DispatchMouseEvent(MouseEventType.MouseMove, MakeVector((uint)lParam));
                     break;
                 case WindowsMessages.GETMINMAXINFO:
                     unsafe

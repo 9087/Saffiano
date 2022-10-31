@@ -53,7 +53,7 @@ namespace Saffiano
             get
             {
                 var texture = new Texture(1, 1);
-                texture.pixels[0] = new Color(0, 0, 0, 0);
+                texture.pixels[0] = new Color(0, 0, 0, 1);
                 return texture;
             }
         }
