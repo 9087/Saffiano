@@ -219,6 +219,8 @@ namespace Saffiano
             }
         }
 
+        public override Matrix4x4 worldToLocalMatrix => localToWorldMatrix.inverse;
+
         public void SetInsetAndSizeFromParentEdge(Edge edge, float inset, float size)
         {
             switch (edge)

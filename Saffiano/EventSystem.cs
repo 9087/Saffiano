@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Saffiano.EventSystems;
 using Saffiano.UI;
 
 namespace Saffiano
@@ -10,6 +11,8 @@ namespace Saffiano
         internal static EventSystem singleton { get; set; } = null;
 
         internal static Selectable selectable { get; set; }
+
+        internal static HashSet<Raycastable> downs = new HashSet<Raycastable>();
 
         void Awake()
         {
@@ -23,39 +26,60 @@ namespace Saffiano
             singleton = null;
         }
 
+        private static PointerEventData PopulatePointerEventData(MouseEvent mouseEvent)
+        {
+            PointerEventData.InputButton? button = null;
+            switch (mouseEvent.keyCode)
+            {
+                case KeyCode.Mouse0:
+                    button = PointerEventData.InputButton.Left;
+                    break;
+                case KeyCode.Mouse1:
+                    button = PointerEventData.InputButton.Right;
+                    break;
+                case KeyCode.Mouse2:
+                    button = PointerEventData.InputButton.Middle;
+                    break;
+            }
+            return new PointerEventData() { _button = button };
+        }
+
         internal void ProcessMouseEvent(MouseEvent mouseEvent)
         {
             var old = selectable;
             var current = Traverse(Transform.scene, mouseEvent) as Selectable;
+            if (mouseEvent.eventType == MouseEventType.MouseUp)
+            {
+                downs.Clear();
+            }
             if (old == current)
             {
                 return;
             }
             if (old != null)
             {
-                (old as Button)?.OnPointerExit(mouseEvent);
+                (old as IPointerExitHandler)?.OnPointerExit(PopulatePointerEventData(mouseEvent));
             }
             selectable = current;
             if (selectable != null)
             {
-                (selectable as Button)?.OnPointerEnter(mouseEvent);
+                (selectable as IPointerEnterHandler)?.OnPointerEnter(PopulatePointerEventData(mouseEvent));
             }
         }
 
-        private static Button Traverse(Transform transform, MouseEvent mouseEvent)
+        private static Raycastable Traverse(Transform transform, MouseEvent mouseEvent)
         {
-            Button button;
+            Raycastable raycastable;
             foreach (Transform child in transform)
             {
-                button = Traverse(child, mouseEvent);
-                if (button != null)
+                raycastable = Traverse(child, mouseEvent);
+                if (raycastable != null)
                 {
-                    return button;
+                    return raycastable;
                 }
             }
-
-            button = transform.GetComponent<Saffiano.UI.Button>();
-            if (button == null || !(transform is RectTransform))
+            raycastable = transform.GetComponent<Raycastable>();
+            if (raycastable == null || !(transform is RectTransform))
             {
                 return null;
             }
@@ -63,46 +87,36 @@ namespace Saffiano
             var rectTransform = transform as RectTransform;
             var viewportPosition = (mouseEvent.position.xy / Window.GetSize() * 2 - Vector2.one) * new Vector2(1, -1);
 
-            var Pf = new Vector3(viewportPosition.x, viewportPosition.y, -1);
-            var Pn = new Vector3(viewportPosition.x, viewportPosition.y, +1);
+            var pf = new Vector3(viewportPosition.x, viewportPosition.y, -1);
+            var pn = new Vector3(viewportPosition.x, viewportPosition.y, +1);
 
-            Pf = ((Camera.main.worldToCanvasMatrix * transform.localToWorldMatrix).inverse * new Vector4(Pf, 1)).xyz;
-            Pn = ((Camera.main.worldToCanvasMatrix * transform.localToWorldMatrix).inverse * new Vector4(Pn, 1)).xyz;
+            pf = ((Camera.main.worldToCanvasMatrix).inverse * new Vector4(pf, 1)).xyz;
+            pn = ((Camera.main.worldToCanvasMatrix).inverse * new Vector4(pn, 1)).xyz;
 
-            var E = Pf - Pn;
-
-            var rect = rectTransform.rect;
-            Vector3 A = new Vector3(rect.x, rect.y, 0);
-            Vector3 B = new Vector3(rect.x + rect.width, rect.y, 0);
-            Vector3 C = new Vector3(rect.x, rect.y + rect.height, 0);
-            B = B - A;
-            C = C - A;
-            Vector3 BxC = Vector3.Cross(B, C);
-            float BxCdotE = Vector3.Dot(BxC, E);
-            if (BxCdotE == 0)
+            if (!raycastable.Raycast(pf, pn, rectTransform))
             {
                 return null;
             }
-            var t = (Vector3.Dot(BxC, A) - Vector3.Dot(BxC, Pn)) / BxCdotE;
-            Vector3 P = Pn + t * E;
-            if (P.x <= rect.left || P.x >= rect.right || P.y >= rect.top || P.y <= rect.bottom)
-            {
-                return null;
-            }
+
             switch (mouseEvent.eventType)
             {
                 case MouseEventType.MouseDown:
-                    button.OnPointerDown(mouseEvent);
+                    (raycastable as IPointerDownHandler)?.OnPointerDown(PopulatePointerEventData(mouseEvent));
+                    downs.Add(raycastable);
                     break;
                 case MouseEventType.MouseUp:
-                    button.OnPointerUp(mouseEvent);
+                    (raycastable as IPointerUpHandler)?.OnPointerUp(PopulatePointerEventData(mouseEvent));
+                    if (downs.Contains(raycastable))
+                    {
+                        (raycastable as IPointerClickHandler)?.OnPointerClick(PopulatePointerEventData(mouseEvent));
+                    }
                     break;
                 case MouseEventType.MouseMove:
                     break;
                 default:
                     throw new NotImplementedException();
             }
-            return button;
+            return raycastable;
         }
     }
 }

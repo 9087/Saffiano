@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Saffiano.UI
 {
-    public class Selectable : Behaviour
+    public class Selectable : Raycastable
     {
     }
 }

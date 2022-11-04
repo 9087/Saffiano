@@ -202,20 +202,9 @@ namespace Saffiano
             this.gameObject.OnInternalParentChanged(old, current);
         }
 
-        public Matrix4x4 worldToLocalMatrix
+        public virtual Matrix4x4 worldToLocalMatrix
         {
-            get
-            {
-                Matrix4x4 local = Matrix4x4.TRS(localPosition, localRotation, localScale).inverse;
-                if (parent == null)
-                {
-                    return local;
-                }
-                else
-                {
-                    return local * parent.worldToLocalMatrix;
-                }
-            }
+            get => localToWorldMatrix.inverse;
         }
 
         public virtual Matrix4x4 localToWorldMatrix

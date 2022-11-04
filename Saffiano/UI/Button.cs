@@ -1,29 +1,35 @@
-﻿using System;
+﻿using Saffiano.EventSystems;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Saffiano.UI
 {
-    public class Button : Selectable
+    public class Button : Selectable, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
     {
-        internal void OnPointerDown(MouseEvent args)
+        public void OnPointerDown(PointerEventData eventData)
         {
             Debug.Log("PointerDown!");
         }
 
-        internal void OnPointerUp(MouseEvent args)
+        public void OnPointerUp(PointerEventData eventData)
         {
             Debug.Log("PointerUp!");
         }
 
-        internal void OnPointerEnter(MouseEvent args)
+        public void OnPointerEnter(PointerEventData eventData)
         {
             Debug.Log("PointerEnter!");
         }
 
-        internal void OnPointerExit(MouseEvent args)
+        public void OnPointerExit(PointerEventData eventData)
         {
             Debug.Log("PointerExit!");
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            Debug.Log("PointerClick!");
         }
     }
 }
