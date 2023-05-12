@@ -29,10 +29,10 @@ namespace Saffiano
 
         private InternalData data = new InternalData()
         {
-            anchorMax = new Vector2(0.5f, 0.5f),
-            anchorMin = new Vector2(0.5f, 0.5f),
-            offsetMax = new Vector2(128, 128),
-            offsetMin = new Vector2(-128, -128),
+            anchorMax = new Vector2(1, 1),
+            anchorMin = new Vector2(0, 0),
+            offsetMax = new Vector2(0, 0),
+            offsetMin = new Vector2(0, 0),
             pivot = new Vector2(0.5f, 0.5f),
         };
 

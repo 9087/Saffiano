@@ -39,16 +39,24 @@ namespace Saffiano.Gallery.Assets.Objects
             rectTransform.anchorMin = new Vector2(0, 0);
             rectTransform.anchorMax = new Vector2(0, 0);
             rectTransform.offsetMin = new Vector2(0, 0);
-            rectTransform.offsetMax = new Vector2(256, 26);
+            rectTransform.offsetMax = new Vector2(375, 65);
             information.transform.parent = this.transform;
 
-            information.AddComponent<CanvasRenderer>();
-            var text = information.AddComponent<Text>();
-            text.font = Font.CreateDynamicFontFromOSFont("fonts/JetBrainsMono-Regular.ttf", 22);
-            text.alignment = TextAnchor.MiddleLeft;
-            information.AddComponent<Shadow>();
+            var image = new GameObject();
+            image.AddComponent<RectTransform>().parent = rectTransform;
+            image.AddComponent<CanvasRenderer>();
+            var imageComponent = image.AddComponent<Image>();
+            imageComponent.sprite = Sprite.Create(Texture.blackTexture);
 
-            this.AddComponent<DebugInformationComponent>().text = text;
+            var text = new GameObject();
+            text.AddComponent<RectTransform>().parent = rectTransform;
+            text.AddComponent<CanvasRenderer>();
+            var textComponent = text.AddComponent<Text>();
+            textComponent.font = Font.CreateDynamicFontFromOSFont("fonts/JetBrainsMono-Regular.ttf", 60);
+            textComponent.alignment = TextAnchor.MiddleLeft;
+            text.AddComponent<Shadow>().effectColor = new Color(1, 1, 1, 0.5f);
+
+            this.AddComponent<DebugInformationComponent>().text = textComponent;
         }
     }
 }

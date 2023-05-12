@@ -213,15 +213,15 @@ namespace Saffiano.UI
                 colors.Add(color);
 
                 index += 1;
-                size.x = Mathf.Max(size.x, current.x);
                 current.x += characterInfo.advance.x;
+                size.x = Mathf.Max(size.x, current.x);
 
                 carets.Add(current + new Vector2(0, -font.lineHeight));
             }
 
             preferredSize = new Vector2(size.x, Mathf.Abs(current.y - font.lineHeight));
             Vector2 alignmentValue = alignments[alignment];
-            var delta = (rectTransform.rect.size - preferredSize) * alignmentValue;
+            var delta = (rectTransform.rect.size - preferredSize) * (alignmentValue + new Vector2(0, -1));
             vertices = vertices
                 .Select((v) => v + new Vector3(delta.x, delta.y, 0))
                 .ToList();

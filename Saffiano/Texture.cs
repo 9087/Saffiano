@@ -150,7 +150,7 @@ namespace Saffiano
         {
             this.width = width;
             this.height = height;
-            this.pixels = Enumerable.Repeat(new Color(0, 0, 0), (int)(width * height)).ToArray();
+            this.pixels = Enumerable.Repeat(Color.clear, (int)(width * height)).ToArray();
             this.multisampling = multisampling;
         }
 

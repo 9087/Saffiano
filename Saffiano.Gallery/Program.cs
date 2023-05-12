@@ -23,7 +23,7 @@ namespace Saffiano.Gallery
             Application.Initialize();
 
             // Debug information display
-            //{ var _ = DebugInformation.Instance; }
+            { var _ = DebugInformation.Instance; }
 
             // Camera
             GameObject camera = new GameObject("Camera");
@@ -81,15 +81,15 @@ namespace Saffiano.Gallery
             button.AddComponent<RectTransform>();
             var buttonRectTransform = button.transform as RectTransform;
             buttonRectTransform.pivot = new Vector2(0, 0);
-            buttonRectTransform.anchorMin = new Vector2(0.1f, 0.1f);
-            buttonRectTransform.anchorMax = new Vector2(0.9f, 0.9f);
-            buttonRectTransform.offsetMin = new Vector2(0, 0);
-            buttonRectTransform.offsetMax = new Vector2(0, 0);
+            buttonRectTransform.anchorMin = new Vector2(0.5f, 0.5f);
+            buttonRectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            buttonRectTransform.offsetMin = new Vector2(-256, -256);
+            buttonRectTransform.offsetMax = new Vector2(+256, +256);
             buttonRectTransform.parent = canvas.transform;
 
-            button.AddComponent<Saffiano.UI.Button>();
-            button.AddComponent<Saffiano.UI.Image>().sprite = Sprite.Create(Texture.blackTexture);
-            button.AddComponent<CanvasRenderer>();
+            //button.AddComponent<Saffiano.UI.Button>();
+            //button.AddComponent<Saffiano.UI.Image>().sprite = Sprite.Create(Font.atlas);
+            //button.AddComponent<CanvasRenderer>();
 
             // Event system
             {

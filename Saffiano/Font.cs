@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Saffiano
 {
-    internal class FontAtlas : Atlas
+    public class FontAtlas : Atlas
     {
         public FontAtlas(uint width, uint height) : base(width, height, spacing: 2)
         {
@@ -34,7 +34,8 @@ namespace Saffiano
 
         private static Dictionary<Identity, Font> instances = new Dictionary<Identity, Font>();
 
-        internal static FontAtlas atlas = new FontAtlas(1024, 1024);
+        public static FontAtlas atlas { get; } = new FontAtlas(1024, 1024);
+
         private Dictionary<char, CharacterInfo> characterInfos = new Dictionary<char, CharacterInfo>();
 
         private Font() : base()
