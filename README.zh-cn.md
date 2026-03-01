@@ -1,18 +1,18 @@
 # Saffiano
 
-**English** | [简体中文](README.zh-cn.md)
+[English](https://github.com/9087/Saffiano) | **简体中文**
 
-A toy game engine based on the .NET Core platform with Unity-style interface.
+基于.NET Core平台参考Unity接口风格的玩具游戏引擎。
 
 ![](Documents/Snapshot.gif)
 
-## Features
+## 功能列举
 
-### Develop Materials in C#
+### 使用C#语言开发材质
 
-The rendering layer is implemented on top of OpenGL. The underlying layer provides an IL-to-GLSL compiler (the main entry point is `ShaderCompiler.Compile`). By inheriting from `ScriptableMaterial`, you can develop materials in C# without writing GLSL code. When working with materials, you can conveniently access and set parameters with full IntelliSense support in the editor.
+渲染层基于OpenGL实现。底层提供一套IL到GLSL语言的编译器（关键入口是ShaderCompiler.Compile函数），继承`ScriptableMaterial`类型可以直接使用C#开发材质，而无需书写GLSL代码。最终在操纵材质时，可以优雅的借助编辑器的智能提示访问和设置参数。
 
-The following code is a C# implementation of the Phong lighting model:
+下列代码是Phong光照模型的C#实现：
 
 ```C#
 public class Phong : Lambert
@@ -58,7 +58,7 @@ public class Phong : Lambert
 }
 ```
 
-`Uniform` parameters need to be marked with the `Uniform` attribute. Override the `VertexShader` and `FragmentShader` methods to implement Phong lighting. In practice, you can set `shininess` directly to adjust the specular intensity:
+`Uniform`参数需要使用`Uniform`标记。重写`VertexShader`和`FragmentShader`函数实现`Phong`光照。实际使用时，直接设置`shininess`即可完成反光度的设置：
 
 ```C#
 var phong = new Resources.Default.Material.Phong();
@@ -71,15 +71,15 @@ bunny.AddComponent<MeshRenderer>().material = phong;
 bunny.AddComponent<MeshAsyncLoader>().path = "models/bunny/reconstruction/bun_zipper.ply";
 ```
 
-Currently supported shader types include: `VertexShader`, `FragmentShader`, `GeometryShader`, and `TessEvaluationShader`. The [`Saffiano.Gallery.Assets.Objects.GrassMaterial`](/Saffiano.Gallery/Assets/Objects/Grass.cs) type demonstrates usage of `GeometryShader` and `TessEvaluationShader` (the grass material shown in the screenshot above).
+当前支持的Shader类型有：`VertexShader`、`FragmentShader`、`GeometryShader`和`TessEvaluationShader`。其中[`Saffiano.Gallery.Assets.Objects.GrassMaterial`](/Saffiano.Gallery/Assets/Objects/Grass.cs)类型展示了`GeometryShader`和`TessEvaluationShader`类型的使用样例（即上文截图草的材质实现）。
 
 ### Coroutine
 
-[`Saffiano.Coroutine`](Saffiano/Coroutine.cs) provides a Unity-like coroutine implementation. Currently implemented `YieldInstruction` types include `WaitForSeconds` and `ResourceRequest`.
+[`Saffiano.Coroutine`](Saffiano/Coroutine.cs)提供了类Unity的协程实现。当前实现了`WaitForSeconds`和`ResourceRequest`两个`YieldInstruction`。
 
-### Resource Loading
+### 资源加载
 
-Use `Resources.LoadAsync` to load resources. The returned `ResourceRequest` object can be used with `yield return` in a coroutine. For example, [`ResourceAsyncLoader`](/Saffiano.Gallery/Assets/Common/ResourceAsyncLoader.cs) is implemented as follows:
+使用`Resources.LoadAsync`即可加载资源，返回的`ResourceRequest`对象可以在Coroutine中进行`yield return`。例如[`ResourceAsyncLoader`](/Saffiano.Gallery/Assets/Common/ResourceAsyncLoader.cs)实现如下：
 
 ```C#
 public class ResourceAsyncLoader : Behaviour
@@ -100,8 +100,8 @@ public class ResourceAsyncLoader : Behaviour
 }
 ```
 
-Currently supported resource formats include PLY and PNG.
+当前支持PLY和PNG格式资源。
 
 ### UI
 
-Provides a set of components including Image, Text, LayoutGroup (layout), InputField (keyboard input), Button (mouse input), Shadow, and more. Text rendering is powered by the `FreeTypeSharp` library, with glyph textures merged into font atlases.
+提供Image、Text、LayoutGroup（布局）、InputField（键盘输入）、Button（鼠标输入）、Shadow等一系列组件。文本借助`FreeTypeSharp`库进行渲染，`Glyph`贴图合并在字体图集中。
